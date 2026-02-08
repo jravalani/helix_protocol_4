@@ -8,22 +8,21 @@ extends Node2D
 @onready var house_scene = preload("res://Scenes/house.tscn")
 
 @onready var building_timer: Timer = $BuildingTimer
-@onready var house_timer: Timer = $HouseTimer
+@onready var map_timer: Timer = $TemporaryMapTimer
 
 @export var temporary_spawn_radius = 5
 
 func _ready() -> void:
 	print("Center of screen: ", floor(get_viewport().size / GameData.CELL_SIZE.x) / 2)
 	building_timer.start()
+	map_timer.start()
 
 func _on_building_timer_timeout() -> void:
 	attempt_spawn()
 
 func attempt_spawn() -> void:
-	var center_of_screen_cell = Vector2i(
-	get_viewport().size.x / 2 / GameData.CELL_SIZE.x, 
-	get_viewport().size.y / 2 / GameData.CELL_SIZE.x)
-	
+	var center_of_screen_cell = Vector2i(0, 0)
+
 	var random_offset = Vector2i(
 		randi_range(-temporary_spawn_radius, temporary_spawn_radius),
 		randi_range(-temporary_spawn_radius, temporary_spawn_radius)
@@ -73,3 +72,8 @@ func is_area_clear(start_cell: Vector2i, size: Vector2i) -> bool:
 			if GameData.grid.has(start_cell + Vector2i(x, y)):
 				return false
 	return true
+
+
+func _on_temporary_map_timer_timeout() -> void:
+	GameData.increase_map_size()
+	map_timer.start()

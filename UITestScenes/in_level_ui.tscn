@@ -2,6 +2,12 @@
 
 [ext_resource type="Script" uid="uid://dk3jqjxae20fr" path="res://UITest/in_level_ui.gd" id="1_s312j"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s312j"]
+bg_color = Color(0.6, 0.6, 0.6, 0.78431374)
+border_width_top = 3
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+
 [node name="InLevelUI" type="Control" unique_id=1777359505]
 layout_mode = 3
 anchors_preset = 15
@@ -12,41 +18,57 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_s312j")
 
-[node name="MarginContainer" type="MarginContainer" parent="." unique_id=916433756]
+[node name="Panel" type="Panel" parent="." unique_id=918554984]
+custom_minimum_size = Vector2(0, 112)
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -51.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_constants/margin_bottom = 20
+theme_override_styles/panel = SubResource("StyleBoxFlat_s312j")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer" unique_id=2120544331]
+[node name="MarginContainer" type="MarginContainer" parent="Panel" unique_id=916433756]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -80.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/margin_bottom = 16
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Panel/MarginContainer" unique_id=2120544331]
 layout_mode = 2
 size_flags_vertical = 8
 theme_override_constants/separation = 32
 alignment = 1
 
-[node name="BuildRoadButton" type="Button" parent="MarginContainer/HBoxContainer" unique_id=1299942685]
+[node name="BuildRoadButton" type="Button" parent="Panel/MarginContainer/HBoxContainer" unique_id=1299942685]
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
+theme_override_font_sizes/font_size = 24
 text = "Build Road"
 
-[node name="RotateHouseButton" type="Button" parent="MarginContainer/HBoxContainer" unique_id=615110545]
+[node name="RotateHouseButton" type="Button" parent="Panel/MarginContainer/HBoxContainer" unique_id=615110545]
 layout_mode = 2
+theme_override_font_sizes/font_size = 24
 text = "Rotate House
 "
 
-[node name="RoundaboutButton" type="Button" parent="MarginContainer/HBoxContainer" unique_id=231225114]
+[node name="RoundaboutButton" type="Button" parent="Panel/MarginContainer/HBoxContainer" unique_id=231225114]
 layout_mode = 2
+theme_override_font_sizes/font_size = 24
 text = "Roundabout"
 
-[node name="Highway" type="Button" parent="MarginContainer/HBoxContainer" unique_id=358768480]
+[node name="Highway" type="Button" parent="Panel/MarginContainer/HBoxContainer" unique_id=358768480]
 layout_mode = 2
+theme_override_font_sizes/font_size = 24
 text = "Highway"
 
-[connection signal="pressed" from="MarginContainer/HBoxContainer/BuildRoadButton" to="." method="_on_build_road_button_pressed"]
-[connection signal="pressed" from="MarginContainer/HBoxContainer/RotateHouseButton" to="." method="_on_rotate_house_button_pressed"]
-[connection signal="pressed" from="MarginContainer/HBoxContainer/RoundaboutButton" to="." method="_on_roundabout_button_pressed"]
-[connection signal="pressed" from="MarginContainer/HBoxContainer/Highway" to="." method="_on_highway_pressed"]
+[connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/BuildRoadButton" to="." method="_on_build_road_button_pressed"]
+[connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/RotateHouseButton" to="." method="_on_rotate_house_button_pressed"]
+[connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/RoundaboutButton" to="." method="_on_roundabout_button_pressed"]
+[connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/Highway" to="." method="_on_highway_pressed"]

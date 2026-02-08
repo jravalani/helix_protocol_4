@@ -6,7 +6,11 @@ const CELL_BUILDING = "BUILDING"
 const CELL_WORKPLACE_ENTRANCE = "WORKPLACE_ENTRANCE"
 const CELL_HOUSE_ENTRANCE = "HOUSE_ENTRANCE"
 const CELL_HOUSE = "HOUSE"
-const CELL_ROAD = "ROAD"
+
+const START_SIZE = 20
+const MAX_SIZE = 40
+
+var current_map_size = Rect2i(-16, -9, 32, 18)
 
 # this dictionary will store every cell status.
 # key: vectow2i (cell coordinates)
@@ -99,3 +103,8 @@ func connect_navigation_points(cell_a: Vector2i, cell_b: Vector2i) -> void:
 	var id_b = get_cell_id(cell_b)
 	if astar.has_point(id_a) and astar.has_point(id_b):
 		astar.connect_points(id_a, id_b)
+
+# Map growth function
+func increase_map_size() -> void:
+	current_map_size = current_map_size.grow(1)
+	SignalBus.increase_map_size.emit(current_map_size)

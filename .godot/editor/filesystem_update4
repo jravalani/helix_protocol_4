@@ -1,0 +1,8 @@
+res://UITestScenes/in_level_ui.tscn
+res://Globals/game_data.gd
+res://Scripts/map.gd
+res://Scenes/map.tscn
+res://Scenes/main.tscn
+res://Scripts/director.gd
+res://Globals/signal_bus.gd
+res://Scripts/camera_2d.gd

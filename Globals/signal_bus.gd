@@ -2,6 +2,8 @@ extends Node
 
 signal map_changed
 
+signal increase_map_size(map_size: Rect2i)
+
 signal delivery_requested(target_entrance: Vector2i)
 
 signal build_road

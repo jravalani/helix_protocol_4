@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://crs1t0jrlg8ja"]
+
+[ext_resource type="Script" uid="uid://ckcbmhbvmpifj" path="res://Scripts/map.gd" id="1_ci6au"]
+
+[node name="Map" type="Node2D" unique_id=1234696305]
+script = ExtResource("1_ci6au")
+
+[node name="BackgroundBoundry" type="ColorRect" parent="." unique_id=104981608]
+z_index = -10
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="PlayableArea" type="ColorRect" parent="." unique_id=1147754099]
+z_index = -5
+offset_right = 40.0
+offset_bottom = 40.0
+color = Color(0.80721945, 0.7892979, 0.66591924, 1)
+
+[node name="GridOverlay" type="TextureRect" parent="PlayableArea" unique_id=1431088704]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
