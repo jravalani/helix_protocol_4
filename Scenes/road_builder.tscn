@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://db103wkeppd8v"]
+
+[ext_resource type="Script" uid="uid://fisxnk2arj7r" path="res://Scripts/new_road_builder.gd" id="1_hnjwk"]
+
+[node name="RoadBuilder" type="Node2D" unique_id=692489345]
+script = ExtResource("1_hnjwk")

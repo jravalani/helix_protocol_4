@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://d0eeptg7wtqn2"]
+
+[ext_resource type="Script" uid="uid://jpm417umywgt" path="res://Scripts/workplace.gd" id="1_hfn1q"]
+[ext_resource type="Texture2D" uid="uid://dmif72wfljeq1" path="res://Assets/building_blue.png" id="2_4256y"]
+
+[node name="Workplace" type="Area2D" unique_id=1975955870]
+script = ExtResource("1_hfn1q")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=206688007]
+modulate = Color(1, 1, 1, 0.27450982)
+z_index = 30
+texture = ExtResource("2_4256y")
+
+[node name="EntranceMarker" type="Marker2D" parent="." unique_id=1009445334]
+position = Vector2(-64, 0)
+
+[node name="DeliveryTimer" type="Timer" parent="." unique_id=1146683334]
+wait_time = 12.0

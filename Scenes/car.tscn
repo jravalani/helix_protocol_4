@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://bwb3sd44t82vr"]
+
+[ext_resource type="Script" uid="uid://cotnldtbh0pga" path="res://Scripts/car.gd" id="1_go66d"]
+[ext_resource type="Texture2D" uid="uid://d1dxfrslry84y" path="res://Assets/car1.png" id="1_wqo35"]
+
+[node name="Car" type="PathFollow2D" unique_id=1813453801]
+script = ExtResource("1_go66d")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1549460887]
+z_index = 20
+texture = ExtResource("1_wqo35")
+
+[node name="RemoteTransform2D" type="RemoteTransform2D" parent="." unique_id=240354140]

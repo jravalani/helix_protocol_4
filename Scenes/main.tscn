@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://cnmu3c4pg7icy"]
+
+[ext_resource type="Script" uid="uid://6gp6mh68yo5t" path="res://Scripts/main.gd" id="1_8gbba"]
+[ext_resource type="PackedScene" uid="uid://db103wkeppd8v" path="res://Scenes/road_builder.tscn" id="2_8gbba"]
+[ext_resource type="Script" uid="uid://dn2oa24c84lm2" path="res://Scripts/director.gd" id="2_jjvhh"]
+[ext_resource type="PackedScene" uid="uid://3xthd7uvwo1q" path="res://Scenes/input_manager.tscn" id="3_kry3j"]
+[ext_resource type="PackedScene" uid="uid://dnpwluvfdcpl1" path="res://UITestScenes/in_level_ui.tscn" id="4_jjvhh"]
+
+[node name="Main" type="Node2D" unique_id=1733956007]
+script = ExtResource("1_8gbba")
+
+[node name="RoadBuilder" parent="." unique_id=91564763 instance=ExtResource("2_8gbba")]
+
+[node name="InputManager" parent="." unique_id=306014539 node_paths=PackedStringArray("road_builder") instance=ExtResource("3_kry3j")]
+road_builder = NodePath("../RoadBuilder")
+
+[node name="Director" type="Node2D" parent="." unique_id=1786159827]
+script = ExtResource("2_jjvhh")
+
+[node name="BuildingTimer" type="Timer" parent="Director" unique_id=1697079750]
+wait_time = 2.0
+
+[node name="HouseTimer" type="Timer" parent="Director" unique_id=858286701]
+
+[node name="Entities" type="Node" parent="." unique_id=578986959]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=113825014]
+
+[node name="InLevelUI" parent="CanvasLayer" unique_id=1777359505 instance=ExtResource("4_jjvhh")]
+
+[connection signal="timeout" from="Director/BuildingTimer" to="Director" method="_on_building_timer_timeout"]
