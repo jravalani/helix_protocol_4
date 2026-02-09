@@ -29,29 +29,11 @@ func _ready() -> void:
 	
 	SignalBus.delivery_requested.connect(_on_delivery_requested)
 	SignalBus.car_returned_home.connect(process_backlog)
+	SignalBus.map_changed.connect(_on_map_changed)
 
-#func _on_delivery_requested(requester: Node2D) -> void:
-	#var target_cell = requester.entrance_cell
-	#if all_houses.is_empty():
-		#return
-	#
-	## filter houses which are busy or not connected to the road.
-	#var available_houses = all_houses.filter(func(h):
-		#return h.is_connected_to_workplace and not h.car_has_spawned
-		#)
-	#
-	## sort them so the closest one is at the front of the list
-	#available_houses.sort_custom(func(a, b):
-		#var dist_a = a.entrance_cell.distance_squared_to(target_cell)
-		#var dist_b = b.entrance_cell.distance_squared_to(target_cell)
-		#return dist_a < dist_b
-	#)
-	#
-	## tell the closest house to try the dispatch
-	#for house in available_houses:
-		#if house.try_dispatch(target_cell):
-			#print("Director: Dispatched house at ", house.entrance_cell)
-			#break
+func _on_map_changed() -> void:
+	await get_tree().process_frame
+	process_backlog()
 
 func _on_delivery_requested(requester: Node2D) -> void:
 	pending_requests.append(requester)
@@ -60,23 +42,31 @@ func _on_delivery_requested(requester: Node2D) -> void:
 func process_backlog() -> void:
 	if all_houses.is_empty() or pending_requests.is_empty():
 		return
-	
+
+	# 1. Get all houses that have at least one car free
+	var houses_to_check = all_houses.filter(func(h):
+		return h.is_connected_to_workplace and h.active_cars < h.max_cars
+	)
+
 	for i in range(pending_requests.size() - 1, -1, -1):
-		var requester = pending_requests[i]
-		var target_cell = requester.entrance_cell
-	
-		var available_houses = all_houses.filter(func(h):
-			return h.is_connected_to_workplace and h.active_cars < h.max_cars
-			)
-	
-		available_houses.sort_custom(func(a, b):
-			return a.entrance_cell.distance_squared_to(target_cell) < b.entrance_cell.distance_squared_to(target_cell)
-			)
+		var target_cell = pending_requests[i].entrance_cell
 		
-		for house in available_houses:
+		# 2. Sort so we always try the closest house first
+		houses_to_check.sort_custom(func(a, b):
+			return a.entrance_cell.distance_squared_to(target_cell) < b.entrance_cell.distance_squared_to(target_cell)
+		)
+		
+		for house in houses_to_check:
+			# 3. Try to dispatch. 
+			# Inside try_dispatch, active_cars will increase.
 			if house.try_dispatch(target_cell):
-				print("Director: Dispatched house at ", house.entrance_cell)
 				pending_requests.remove_at(i)
+				
+				# 4. ONLY erase if the house is now truly full
+				if house.active_cars >= house.max_cars:
+					houses_to_check.erase(house)
+				
+				# We found a house for this request, move to the next request
 				break
 
 func _on_building_timer_timeout() -> void:

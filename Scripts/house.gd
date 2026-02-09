@@ -83,15 +83,25 @@ func try_dispatch(target_cell: Vector2i) -> bool:
 		var path = GameData.astar.get_id_path(start_id, end_id)
 		if path.size() > 0:
 			active_cars += 1
-			spawn_car_bounded_for(target_cell)
+			
+			var delay = (active_cars - 1) * 0.5
+			
+			if delay <= 0:
+				spawn_car_bounded_for(target_cell)
+			else:
+				get_tree().create_timer(delay).timeout.connect(
+					func(): spawn_car_bounded_for(target_cell)
+				)
 			car_has_spawned = true
 			return true
+			
 	return false
 
 # --- 2. THE CONNECTION CHECK (Replaces your old search loop) ---
 
 func update_connection_status():
 	"""Checks if there is ANY valid path to ANY workplace, but DOES NOT spawn a car."""
+	var was_connected = is_connected_to_workplace
 	var found_any_path = false
 	
 	if GameData.building_grid.is_empty():

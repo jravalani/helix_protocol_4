@@ -1,14 +1,3 @@
 res://Scenes/house.tscn
-res://Scenes/workplace.tscn
-res://Scenes/fog_of_war.tscn
-res://Scripts/fog_of_war.gd
-res://Scenes/main.tscn
-res://Scripts/director.gd
-res://Scenes/road_tile.tscn
-res://Scripts/workplace.gd
 res://Scripts/house.gd
-res://Globals/signal_bus.gd
-res://Scripts/car.gd
-res://Globals/game_data.gd
-res://Scripts/building.gd
-res://Scripts/new_road_builder.gd
+res://Scripts/director.gd
