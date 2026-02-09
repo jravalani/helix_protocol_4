@@ -1,79 +1,171 @@
 extends Node2D
-#
-#noob AI for director
-#1. spawn a building every 30-45 seconds.
-#2. spawn a house nearby building every 20 seconds. 
 
 @onready var workplace_scene = preload("res://Scenes/workplace.tscn")
 @onready var house_scene = preload("res://Scenes/house.tscn")
-
 @onready var building_timer: Timer = $BuildingTimer
 @onready var map_timer: Timer = $TemporaryMapTimer
 
-@export var temporary_spawn_radius = 5
+@export var playable_margin_cells: int = 2
+@export var spawn_buffer_cells: int = 1
+
+var all_houses: Array[Node2D] = []
+var pending_requests: Array[Node2D] = []
 
 func _ready() -> void:
-	print("Center of screen: ", floor(get_viewport().size / GameData.CELL_SIZE.x) / 2)
+	print("=== INITIAL STATE ===")
+	print("Current map size: ", GameData.current_map_size)
+	print("Building timer wait time: ", building_timer.wait_time)
+	print("Building timer autostart: ", building_timer.autostart)
+	
+	# Make sure timer is connected
+	if not building_timer.timeout.is_connected(_on_building_timer_timeout):
+		building_timer.timeout.connect(_on_building_timer_timeout)
+		print("Connected building timer")
+	
 	building_timer.start()
+	print("Building timer started")
+	
 	map_timer.start()
+	
+	SignalBus.delivery_requested.connect(_on_delivery_requested)
+	SignalBus.car_returned_home.connect(process_backlog)
+
+#func _on_delivery_requested(requester: Node2D) -> void:
+	#var target_cell = requester.entrance_cell
+	#if all_houses.is_empty():
+		#return
+	#
+	## filter houses which are busy or not connected to the road.
+	#var available_houses = all_houses.filter(func(h):
+		#return h.is_connected_to_workplace and not h.car_has_spawned
+		#)
+	#
+	## sort them so the closest one is at the front of the list
+	#available_houses.sort_custom(func(a, b):
+		#var dist_a = a.entrance_cell.distance_squared_to(target_cell)
+		#var dist_b = b.entrance_cell.distance_squared_to(target_cell)
+		#return dist_a < dist_b
+	#)
+	#
+	## tell the closest house to try the dispatch
+	#for house in available_houses:
+		#if house.try_dispatch(target_cell):
+			#print("Director: Dispatched house at ", house.entrance_cell)
+			#break
+
+func _on_delivery_requested(requester: Node2D) -> void:
+	pending_requests.append(requester)
+	process_backlog()
+
+func process_backlog() -> void:
+	if all_houses.is_empty() or pending_requests.is_empty():
+		return
+	
+	for i in range(pending_requests.size() - 1, -1, -1):
+		var requester = pending_requests[i]
+		var target_cell = requester.entrance_cell
+	
+		var available_houses = all_houses.filter(func(h):
+			return h.is_connected_to_workplace and h.active_cars < h.max_cars
+			)
+	
+		available_houses.sort_custom(func(a, b):
+			return a.entrance_cell.distance_squared_to(target_cell) < b.entrance_cell.distance_squared_to(target_cell)
+			)
+		
+		for house in available_houses:
+			if house.try_dispatch(target_cell):
+				print("Director: Dispatched house at ", house.entrance_cell)
+				pending_requests.remove_at(i)
+				break
 
 func _on_building_timer_timeout() -> void:
+	print("\n>>> BUILDING TIMER FIRED <<<")
 	attempt_spawn()
 
 func attempt_spawn() -> void:
-	var center_of_screen_cell = Vector2i(0, 0)
+	var map_rect = GameData.current_map_size
+	var spawn_rect = map_rect.grow(-(playable_margin_cells + spawn_buffer_cells))
+	
+	var camera = get_viewport().get_camera_2d()
+	if not camera: return
 
-	var random_offset = Vector2i(
-		randi_range(-temporary_spawn_radius, temporary_spawn_radius),
-		randi_range(-temporary_spawn_radius, temporary_spawn_radius)
-	)
-	var target_cell = center_of_screen_cell + random_offset
-	spawn_building(target_cell)
+	# 1. Get the Viewport and its inverse transform
+	# This lets us translate "Screen Pixels" back into "World Coordinates"
+	var viewport_size = get_viewport().get_visible_rect().size
+	var canvas_xform = get_viewport().get_canvas_transform().affine_inverse()
 
-	building_timer.start()
+	# 2. Define the exact Screen Pixels of your "Fog Hole"
+	# These MUST match the export variables in your fog_of_war.gd
+	var hole_min_screen = Vector2(100, 60) # left, top
+	var hole_max_screen = viewport_size - Vector2(100, 120) # right, bottom
 
-func spawn_building(cell: Vector2i) -> void:
+	# 3. Convert those screen points to World Coordinates
+	var screen_world_min = canvas_xform * hole_min_screen
+	var screen_world_max = canvas_xform * hole_max_screen
+	
+	# 4. Convert World Coordinates to Grid Cells (and add the 1-cell safety margin)
+	var screen_cell_min = Vector2i(floor(screen_world_min.x / GameData.CELL_SIZE.x), floor(screen_world_min.y / GameData.CELL_SIZE.x)) + Vector2i(1, 1)
+	var screen_cell_max = Vector2i(floor(screen_world_max.x / GameData.CELL_SIZE.x), floor(screen_world_max.y / GameData.CELL_SIZE.x)) - Vector2i(1, 1)
+	
+	var visible_rect = Rect2i(screen_cell_min, screen_cell_max - screen_cell_min)
+	
+	# 5. Intersection: Area that is BOTH Unlocked and Inside the Fog Hole
+	var valid_spawn_zone = spawn_rect.intersection(visible_rect)
+
+	# ... rest of your instantiation logic ...
 	var scene = house_scene if randf() > 0.5 else workplace_scene
 	var b = scene.instantiate()
-	
-	if is_area_clear(cell, b.grid_size):
+	var b_size = b.grid_size
+
+	# Ensure the building's FOOTPRINT fits inside the zone
+	var max_x = valid_spawn_zone.end.x - b_size.x
+	var max_y = valid_spawn_zone.end.y - b_size.y
+
+	if max_x < valid_spawn_zone.position.x or max_y < valid_spawn_zone.position.y:
+		b.queue_free()
+		building_timer.start()
+		return
+
+	var target_cell = Vector2i(randi_range(valid_spawn_zone.position.x, max_x), randi_range(valid_spawn_zone.position.y, max_y))
+	finalize_building_spawn(b, target_cell, valid_spawn_zone)
+	building_timer.start()
+
+func finalize_building_spawn(b: Node2D, cell: Vector2i, valid_zone: Rect2i) -> void:
+	# Use the custom zone check to ensure it's still visible
+	if is_area_clear_custom(cell, b.grid_size, valid_zone):
+		var origin = Vector2(cell) * 64.0
+		var offset = (Vector2(b.grid_size) * 64.0) / 2.0
 		
-		# 1. Get the pixel coordinate of the top-left of the 'cell'
-		var origin = Vector2(cell) * GameData.CELL_SIZE.x
-		
-		# 2. Calculate the center based on grid_size
-		# For 1x1: (1 * 64) / 2 = 32
-		# For 3x3: (3 * 64) / 2 = 96
-		# For 5x2: X=(5*64)/2=160, Y=(2*64)/2=64
-		var offset = (Vector2(b.grid_size) * GameData.CELL_SIZE.x) / 2.0
-		
-		# 3. Apply it
 		b.position = origin + offset
 		$"../Entities".add_child(b)
 		
-		# If it's a workplace, you can set its unique speed here
-		if b is Workplace: # Assuming you used 'class_name Workplace'
+		if b is House:
+			all_houses.append(b)
+			b.tree_exited.connect(func(): all_houses.erase(b))
+		
+		if b is Workplace:
 			b.shipment_interval = randf_range(5.0, 20.0)
 			
 		SignalBus.map_changed.emit.call_deferred()
-		print("Spawned a ", b.grid_size, " building!")
-		
-		if randf() > 0.8:
-			temporary_spawn_radius += 1
-			print("Radius of spawn increased!! New Radius is: ", temporary_spawn_radius)
 	else:
-		# 4. If it doesn't fit, we must delete the "draft" to save memory
-		print("Area blocked for size: ", b.grid_size)
 		b.queue_free()
 
-func is_area_clear(start_cell: Vector2i, size: Vector2i) -> bool:
+func is_area_clear_custom(start_cell: Vector2i, size: Vector2i, constraint_rect: Rect2i) -> bool:
+	# Ensure the building footprint is entirely inside the valid zone
+	var building_rect = Rect2i(start_cell, size)
+	if not constraint_rect.encloses(building_rect):
+		return false
+		
+	# Check for overlaps with other buildings
 	for x in range(-1, size.x + 1):
 		for y in range(-1, size.y + 1):
-			if GameData.grid.has(start_cell + Vector2i(x, y)):
+			if GameData.building_grid.has(start_cell + Vector2i(x, y)):
 				return false
 	return true
 
-
 func _on_temporary_map_timer_timeout() -> void:
+	print("=== MAP EXPANDING ===")
 	GameData.increase_map_size()
+	print("New map size: ", GameData.current_map_size)
 	map_timer.start()

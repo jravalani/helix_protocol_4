@@ -1,20 +1,25 @@
 extends Building
 
+class_name House
+
 @onready var driveway_marker: Marker2D = $DrivewayMarker
 @onready var road_scene: PackedScene = preload("res://Scenes/road_tile.tscn")
 
 var car_has_spawned: bool = false
 var is_connected_to_workplace: bool = false # NEW: Logic flag
 
+var active_cars: int = 0
+@export var max_cars: int = 2
+
 func _ready():
-	cell_type = GameData.CELL_HOUSE
+	cell_type = "HOUSE"
 	super() # Registers footprint and entrance
 	
 	var my_id = GameData.get_cell_id(entrance_cell)
 	GameData.astar.set_point_weight_scale(my_id, 10000000.0)
 	
 	SignalBus.map_changed.connect(_on_map_changed)
-	SignalBus.delivery_requested.connect(_on_delivery_requested)
+	#SignalBus.delivery_requested.connect(_on_delivery_requested)
 	
 	# WAIT one frame so the AStar graph can register the new driveway point
 	# before we check if we are connected!
@@ -57,7 +62,7 @@ func _on_map_changed() -> void:
 		GameData.astar.disconnect_points(my_id, connection)
 	
 	# re-establish connection only if the road is there
-	var cell_content = GameData.grid.get(target_road_cell)
+	var cell_content = GameData.road_grid.get(target_road_cell)
 	if cell_content != null and cell_content is NewRoadTile:
 		var road_id = GameData.get_cell_id(target_road_cell)
 		
@@ -65,10 +70,10 @@ func _on_map_changed() -> void:
 			GameData.astar.connect_points(my_id, road_id)
 	update_connection_status()
 
-func _on_delivery_requested(target_cell: Vector2i) -> void:
+func try_dispatch(target_cell: Vector2i) -> bool:
 	# LOGIC: "I heard a request. Am I busy? Am I even connected to the roads?"
-	if car_has_spawned or not is_connected_to_workplace:
-		return
+	if active_cars >= max_cars or not is_connected_to_workplace:
+		return false
 	
 	# If we are free and connected, try to path to THAT specific workplace
 	var start_id = GameData.get_cell_id(entrance_cell)
@@ -77,8 +82,11 @@ func _on_delivery_requested(target_cell: Vector2i) -> void:
 	if GameData.astar.has_point(start_id) and GameData.astar.has_point(end_id):
 		var path = GameData.astar.get_id_path(start_id, end_id)
 		if path.size() > 0:
+			active_cars += 1
 			spawn_car_bounded_for(target_cell)
 			car_has_spawned = true
+			return true
+	return false
 
 # --- 2. THE CONNECTION CHECK (Replaces your old search loop) ---
 
@@ -86,11 +94,11 @@ func update_connection_status():
 	"""Checks if there is ANY valid path to ANY workplace, but DOES NOT spawn a car."""
 	var found_any_path = false
 	
-	if GameData.grid.is_empty():
+	if GameData.building_grid.is_empty():
 		is_connected_to_workplace = false
 		return
 
-	for cell in GameData.grid:
+	for cell in GameData.building_grid:
 		if cell == entrance_cell: continue 
 		
 		if is_cell_an_entrance(cell) and is_destination_a_workplace(cell):
@@ -122,5 +130,6 @@ func spawn_car_bounded_for(target_cell: Vector2i) -> void:
 		car.setup_path(entrance_cell, target_cell)
 		
 func _on_car_returned() -> void:
-	car_has_spawned = false
+	active_cars -= 1
+	SignalBus.car_returned_home.emit()
 	# No need to search here! We just wait for the next Workplace Ping.

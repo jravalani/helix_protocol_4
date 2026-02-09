@@ -59,57 +59,36 @@ func _ready():
 
 func register_building():
 	var step = GameData.CELL_SIZE.x
-	
-	# Get the top-left corner by subtracting half the building's size in pixels.
 	var top_left_px = global_position - (Vector2(grid_size) * step / 2.0)
-
-	# Just divide by 64. No offsets, no half-cells.
 	var start_cell = Vector2i(floor(top_left_px.x / step), floor(top_left_px.y / step))
 	
-	# Where is the marker? Just divide its global pos by 64.
 	var ent_pos = entrance_marker.global_position
 	entrance_cell = Vector2i(floor(ent_pos.x / step), floor(ent_pos.y / step))
 	
-	# 3. Register footprint
+	# Register footprint
 	for x in range(grid_size.x):
 		for y in range(grid_size.y):
 			var current_cell = start_cell + Vector2i(x, y)
+			
+			# IMPORTANT CHANGE: 
+			# Store 'self' (the building node) so cars can call its methods.
+			GameData.building_grid[current_cell] = self
 
-			if current_cell == entrance_cell:
-				GameData.grid[current_cell] = (
-					GameData.CELL_HOUSE_ENTRANCE
-					if cell_type == GameData.CELL_HOUSE
-					else GameData.CELL_WORKPLACE_ENTRANCE
-				)
-			else:
-				GameData.grid[current_cell] = cell_type
-
-	print("Registered building type '", cell_type, "' at ", start_cell, " with entrance at ", entrance_cell)
+	print("Registered building at ", start_cell, " with entrance at ", entrance_cell)
 	GameData.add_navigation_point(entrance_cell)
 
-
+# Updated check to see if a cell is an entrance
 func is_cell_an_entrance(cell: Vector2i) -> bool:
-	var data = GameData.grid.get(cell)
-	if data == null: return false
-	
-	# Check State A: The String Label
-	if typeof(data) == TYPE_STRING and data == GameData.CELL_WORKPLACE_ENTRANCE:
-		return true
-		
-	# Check State B: The Paved Road
-	if data is NewRoadTile and data.is_entrance:
-		return true
-		
+	# Since building_grid now contains the Building Object:
+	var b = GameData.building_grid.get(cell)
+	if b is Building:
+		return b.entrance_cell == cell
 	return false
 
+# Updated check for workplace neighbors
 func is_destination_a_workplace(check_cell: Vector2i) -> bool:
 	for dir in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
-		var neighbor_data = GameData.grid.get(check_cell + dir)
-		
-		# 1. First, check if the neighbor is actually a String
-		if typeof(neighbor_data) == TYPE_STRING:
-			# 2. Now it is safe to compare String to String
-			if neighbor_data == GameData.CELL_BUILDING:
-				return true
-				
+		var neighbor = GameData.building_grid.get(check_cell + dir)
+		if neighbor is Workplace: # Assuming Workplace extends Building
+			return true
 	return false

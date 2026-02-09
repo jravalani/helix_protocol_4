@@ -50,3 +50,4 @@ left_click={
 
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="mobile"
+environment/defaults/default_clear_color=Color(0.50334823, 0.397127, 0.22528267, 1)

@@ -34,7 +34,7 @@ round_precision = 20
 antialiased = true
 
 [node name="RoadBase" type="Line2D" parent="." unique_id=893771236]
-width = 36.0
+width = 30.0
 default_color = Color(0.70980394, 0.70980394, 0.70980394, 1)
 joint_mode = 2
 begin_cap_mode = 2

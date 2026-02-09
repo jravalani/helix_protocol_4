@@ -19,6 +19,16 @@ func _process(delta):
 		progress += speed * delta
 	else:
 		if is_returning == false:
+			print("Car arrived at: ", target_building)
+			# find workplace and tell it to lower the shipment backlog count
+			var workplace = GameData.building_grid.get(target_building)
+			if workplace:
+				print("Found building: ", workplace.name)
+				workplace.fulfill_request()
+			else:
+				print("Grid is empty on this cell!")
+			
+			# head back home
 			is_returning = true
 			setup_path(target_building, starting_building)
 		else:
