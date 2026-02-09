@@ -25,6 +25,14 @@ func _ready() -> void:
 	road_outline.z_index = 0
 	road_base.z_index = 1
 
+# NEW: Check if road has a visual connection in a specific direction
+func has_connection_in_direction(direction: Vector2i) -> bool:
+	return manual_connections.has(direction)
+
+# NEW: Get all connection directions (for debugging)
+func get_connection_directions() -> Array[Vector2i]:
+	return manual_connections.duplicate()
+
 func add_connection(direction: Vector2i) -> void:
 	if not manual_connections.has(direction):
 		manual_connections.append(direction)

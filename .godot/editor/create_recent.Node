@@ -1,7 +1,8 @@
-VBoxContainer
-MarginContainer
-Sprite2D
 Label
+HBoxContainer
+MarginContainer
+VBoxContainer
+Sprite2D
 ColorRect
 CanvasLayer
 Camera2D
@@ -9,6 +10,5 @@ TextureRect
 Panel
 Line2D
 Button
-HBoxContainer
 Area2D
 CollisionShape2D

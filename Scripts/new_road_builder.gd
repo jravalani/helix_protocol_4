@@ -79,17 +79,21 @@ func build_road(cell: Vector2i) -> void:
 	var current_road = GameData.road_grid.get(cell)
 	
 	if not current_road is NewRoadTile:
-		current_road = road_tile.instantiate()
-		current_road.position = GameData.get_cell_center(cell)
-		current_road.set_cell(cell)
-		add_child(current_road)
-			
-		if was_entrance:
-			current_road.is_entrance = true
-			
-		# CHANGE: Save to road_grid
-		GameData.road_grid[cell] = current_road
-		GameData.add_navigation_point(cell)
+		if ResourceManager.spend_tile():
+			current_road = road_tile.instantiate()
+			current_road.position = GameData.get_cell_center(cell)
+			current_road.set_cell(cell)
+			add_child(current_road)
+				
+			if was_entrance:
+				current_road.is_entrance = true
+				
+			# CHANGE: Save to road_grid
+			GameData.road_grid[cell] = current_road
+			GameData.add_navigation_point(cell)
+		else:
+			print("Out of Tiles")
+			return
 	
 	# 3. THE HANDSHAKE (Connection logic using road_grid)
 	if last_build_cell != Vector2i(-1, -1) and last_build_cell != cell:
@@ -126,9 +130,12 @@ func remove_road(cell: Vector2i) -> void:
 	var object_at_cell = GameData.road_grid.get(cell)
 	
 	if object_at_cell is NewRoadTile:
+		
 		if object_at_cell.is_permanent:
 			return
-			
+		
+		ResourceManager.refund_tile()
+		
 		for dir in object_at_cell.manual_connections:
 			var neighbor_cell = cell + dir
 			var neighbor = GameData.road_grid.get(neighbor_cell)

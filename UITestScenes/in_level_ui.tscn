@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://dnpwluvfdcpl1"]
 
 [ext_resource type="Script" uid="uid://dk3jqjxae20fr" path="res://UITest/in_level_ui.gd" id="1_s312j"]
+[ext_resource type="LabelSettings" uid="uid://cfd35apj0sieb" path="res://Resources/TestUIFont.tres" id="2_gwosu"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s312j"]
 bg_color = Color(0.6, 0.6, 0.6, 0.78431374)
@@ -19,7 +20,7 @@ mouse_filter = 2
 script = ExtResource("1_s312j")
 
 [node name="Panel" type="Panel" parent="." unique_id=918554984]
-custom_minimum_size = Vector2(0, 112)
+custom_minimum_size = Vector2(0, 120)
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -35,14 +36,14 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -80.0
+offset_top = -120.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_constants/margin_bottom = 16
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Panel/MarginContainer" unique_id=2120544331]
 layout_mode = 2
-size_flags_vertical = 8
+size_flags_horizontal = 4
+size_flags_vertical = 4
 theme_override_constants/separation = 32
 alignment = 1
 
@@ -61,14 +62,55 @@ text = "Rotate House
 [node name="RoundaboutButton" type="Button" parent="Panel/MarginContainer/HBoxContainer" unique_id=231225114]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "Roundabout"
+disabled = true
+text = "ComingSoon"
 
-[node name="Highway" type="Button" parent="Panel/MarginContainer/HBoxContainer" unique_id=358768480]
+[node name="HighwayButton" type="Button" parent="Panel/MarginContainer/HBoxContainer" unique_id=358768480]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "Highway"
+disabled = true
+text = "ComingSoon"
+
+[node name="HighwayButton2" type="Button" parent="Panel/MarginContainer/HBoxContainer" unique_id=1488870758]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+disabled = true
+text = "ComingSoon"
+
+[node name="HighwayButton3" type="Button" parent="Panel/MarginContainer/HBoxContainer" unique_id=610994130]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+disabled = true
+text = "ComingSoon"
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=680113447]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 23.0
+grow_horizontal = 2
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 60
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer" unique_id=1806609271]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 50
+alignment = 2
+
+[node name="RoadTiles" type="Label" parent="MarginContainer/HBoxContainer" unique_id=1531242638]
+layout_mode = 2
+text = "Road Tiles:"
+label_settings = ExtResource("2_gwosu")
+
+[node name="Score" type="Label" parent="MarginContainer/HBoxContainer" unique_id=1839495792]
+layout_mode = 2
+text = "Score: "
+label_settings = ExtResource("2_gwosu")
 
 [connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/BuildRoadButton" to="." method="_on_build_road_button_pressed"]
 [connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/RotateHouseButton" to="." method="_on_rotate_house_button_pressed"]
 [connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/RoundaboutButton" to="." method="_on_roundabout_button_pressed"]
-[connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/Highway" to="." method="_on_highway_pressed"]
+[connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/HighwayButton" to="." method="_on_highway_pressed"]
+[connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/HighwayButton2" to="." method="_on_highway_pressed"]
+[connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/HighwayButton3" to="." method="_on_highway_pressed"]

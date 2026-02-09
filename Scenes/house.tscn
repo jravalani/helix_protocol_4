@@ -2,8 +2,10 @@
 
 [ext_resource type="Script" uid="uid://cl6cr5lqi0pqu" path="res://Scripts/house.gd" id="1_n87ef"]
 [ext_resource type="Texture2D" uid="uid://bt3b4yg4xpn8m" path="res://Assets/house_blue.png" id="2_n87ef"]
+[ext_resource type="FontFile" uid="uid://bydys01ppahq3" path="res://Assets/Roboto-Medium.ttf" id="3_3jr7h"]
 
-[sub_resource type="LabelSettings" id="LabelSettings_n87ef"]
+[sub_resource type="LabelSettings" id="LabelSettings_iqtyj"]
+font = ExtResource("3_3jr7h")
 font_size = 12
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_okrnj"]
@@ -26,7 +28,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "House"
-label_settings = SubResource("LabelSettings_n87ef")
+label_settings = SubResource("LabelSettings_iqtyj")
 horizontal_alignment = 1
 vertical_alignment = 1
 

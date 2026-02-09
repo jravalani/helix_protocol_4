@@ -1,12 +1,12 @@
 extends Camera2D
 
 @export var min_zoom: float = 0.1  # How far we can pull back
-@export var max_zoom: float = 2.0   # How close we can stay
+@export var max_zoom: float = 1.75   # How close we can stay
 @export var zoom_smooth_speed: float = 0.05 # Try 0.1 for even slower
 
 var zoom_step: float = 0.1
 
-var target_zoom: Vector2 = Vector2(2.0, 2.0)
+var target_zoom: Vector2 = Vector2(1.75, 1.75)
 
 func _ready() -> void:
 	zoom = target_zoom

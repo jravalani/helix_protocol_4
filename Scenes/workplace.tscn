@@ -2,9 +2,12 @@
 
 [ext_resource type="Script" uid="uid://jpm417umywgt" path="res://Scripts/workplace.gd" id="1_hfn1q"]
 [ext_resource type="Texture2D" uid="uid://dmif72wfljeq1" path="res://Assets/building_blue.png" id="2_4256y"]
+[ext_resource type="FontFile" uid="uid://bydys01ppahq3" path="res://Assets/Roboto-Medium.ttf" id="3_4256y"]
+[ext_resource type="LabelSettings" uid="uid://cfd35apj0sieb" path="res://Resources/TestUIFont.tres" id="4_qtbd6"]
 
-[sub_resource type="LabelSettings" id="LabelSettings_hfn1q"]
-font_size = 20
+[sub_resource type="LabelSettings" id="LabelSettings_qtbd6"]
+font = ExtResource("3_4256y")
+font_size = 32
 
 [node name="Workplace" type="Area2D" unique_id=1975955870]
 z_index = 10
@@ -29,13 +32,13 @@ layout_mode = 2
 z_index = 20
 layout_mode = 2
 text = "Workplace"
-label_settings = SubResource("LabelSettings_hfn1q")
+label_settings = SubResource("LabelSettings_qtbd6")
 
 [node name="RequestLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1891858694]
 z_index = 20
 layout_mode = 2
 text = "0"
-label_settings = SubResource("LabelSettings_hfn1q")
+label_settings = ExtResource("4_qtbd6")
 horizontal_alignment = 1
 vertical_alignment = 1
 

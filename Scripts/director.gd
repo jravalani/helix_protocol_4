@@ -152,6 +152,8 @@ func is_area_clear_custom(start_cell: Vector2i, size: Vector2i, constraint_rect:
 		for y in range(-1, size.y + 1):
 			if GameData.building_grid.has(start_cell + Vector2i(x, y)):
 				return false
+			if GameData.road_grid.has(start_cell + Vector2i(x, y)):
+				return false
 	return true
 
 func _on_temporary_map_timer_timeout() -> void:

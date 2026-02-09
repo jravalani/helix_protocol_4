@@ -41,35 +41,70 @@ func rotate_45_degrees() -> void:
 # --- 1. THE SIGNAL HANDLERS ---
 
 func _on_map_changed() -> void:
-	# When roads are built/deleted, just update our "Online" status
 	var my_id = GameData.get_cell_id(entrance_cell)
 	
-	# find the only cell where we allow connection from
-	# 1. Get the world position of the marker and the house center
-	var marker_global = driveway_marker.global_position
-	var house_global = global_position # or GameData.map_to_global(entrance_cell)
-	
-	# 2. Calculate the direction vector in the world
-	var dir_vec = (marker_global - house_global).normalized()
-	
-	# 3. Convert to a grid direction (e.g., (1, 0) or (0, -1))
-	var driveway_direction = Vector2i(round(dir_vec.x), round(dir_vec.y))
-	var target_road_cell = entrance_cell + driveway_direction
-	
-	# clean up all existing connections first
+	# 1. DISCONNECT EVERYTHING
 	var current_connections = GameData.astar.get_point_connections(my_id)
 	for connection in current_connections:
 		GameData.astar.disconnect_points(my_id, connection)
 	
-	# re-establish connection only if the road is there
-	var cell_content = GameData.road_grid.get(target_road_cell)
+	# 2. Find the driveway direction
+	var marker_pos = driveway_marker.global_position
+	var house_pos = global_position
+	var dir_vec = (marker_pos - house_pos).normalized()
+	var driveway_direction = Vector2i(round(dir_vec.x), round(dir_vec.y))
+	
+	# 3. The adjacent road cell (next to entrance)
+	var adjacent_road_cell = entrance_cell + driveway_direction
+	
+	# 4. Check if there's a road there
+	var cell_content = GameData.road_grid.get(adjacent_road_cell)
+	
 	if cell_content != null and cell_content is NewRoadTile:
-		var road_id = GameData.get_cell_id(target_road_cell)
+		var road_tile = cell_content as NewRoadTile
+		var road_id = GameData.get_cell_id(adjacent_road_cell)
 		
 		if GameData.astar.has_point(road_id):
-			GameData.astar.connect_points(my_id, road_id)
+			# KEY CHECK: Does the road have a visual connection pointing BACK to the house?
+			var opposite_direction = -driveway_direction
+			
+			if road_tile.has_connection_in_direction(opposite_direction):
+				# Road is visually connected to the house!
+				GameData.astar.connect_points(my_id, road_id)
+				print("House at ", entrance_cell, " ✓ Connected to road at ", adjacent_road_cell)
+			else:
+				# Road exists but doesn't face the house
+				print("House at ", entrance_cell, " ✗ Road doesn't face house")
+				print("  Driveway faces: ", driveway_direction)
+				print("  Road connections: ", road_tile.get_connection_directions())
+		else:
+			print("House at ", entrance_cell, " Road not in AStar")
+	else:
+		print("House at ", entrance_cell, " No road at ", adjacent_road_cell)
+	
 	update_connection_status()
 
+## How It Works:
+#
+#**Example 1: Perpendicular Highway (Should NOT connect)**
+#```
+#House entrance: (5, 5), driveway faces RIGHT (+1, 0)
+#Highway at: (6, 5)
+#Highway connections: [(0, -1), (0, 1)]  // UP and DOWN only
+#
+#Check: Does highway have connection (-1, 0)? NO
+#Result: ✗ Not connected!
+#```
+#
+#**Example 2: Aligned Road (Should connect)**
+#```
+#House entrance: (5, 5), driveway faces RIGHT (+1, 0)
+#Road at: (6, 5)  
+#Road connections: [(-1, 0), (1, 0)]  // LEFT and RIGHT
+#
+#Check: Does road have connection (-1, 0)? YES
+#Result: ✓ Connected!
+	
 func try_dispatch(target_cell: Vector2i) -> bool:
 	# LOGIC: "I heard a request. Am I busy? Am I even connected to the roads?"
 	if active_cars >= max_cars or not is_connected_to_workplace:

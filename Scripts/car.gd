@@ -33,6 +33,7 @@ func _process(delta):
 			setup_path(target_building, starting_building)
 		else:
 			arrived_home.emit()
+			ResourceManager.add_score()
 			get_parent().queue_free()
 
 ## THE GPS REQUEST: This is where the AStar map is used

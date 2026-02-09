@@ -1,3 +1,9 @@
+res://Scenes/main.tscn
+res://Scripts/camera_2d.gd
+res://UITestScenes/in_level_ui.tscn
+res://Globals/resource_manager.gd
+res://Scripts/car.gd
+res://Scripts/new_road_builder.gd
 res://Scenes/house.tscn
-res://Scripts/house.gd
-res://Scripts/director.gd
+res://Scenes/workplace.tscn
+res://UITest/in_level_ui.gd
