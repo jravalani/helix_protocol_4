@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://cveetfvewmakn"]
+
+[ext_resource type="Script" uid="uid://b8r1mhnyn31nx" path="res://Scripts/rocket.gd" id="1_kvp10"]
+[ext_resource type="Texture2D" uid="uid://bslb4va732var" path="res://Assets/rocket_temp.png" id="1_wrv6b"]
+
+[node name="Rocket" type="Area2D" unique_id=158970432]
+script = ExtResource("1_kvp10")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=935005763]
+modulate = Color(1, 1, 1, 0.60784316)
+texture = ExtResource("1_wrv6b")
+centered = false
+
+[node name="EntranceMarker" type="Marker2D" parent="." unique_id=919074711]
+position = Vector2(0, 96)

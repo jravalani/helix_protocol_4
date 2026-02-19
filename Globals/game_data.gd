@@ -1,26 +1,77 @@
 extends Node
 
 const CELL_SIZE: Vector2 = Vector2(64, 64)
-
 const START_SIZE = 20
 const MAX_WIDTH = 52
 const MAX_HEIGHT = 38
 
-var map_zoom_iterations = 0
+const MAX_PRESSURE: float = 100.0
+const BASE_RATE: float = 0.025
+var MAX_PRESSURE_PHASE: int = 3
 
-var current_map_size = Rect2i(-16, -9, 32, 18)
+## Building type constants
+#enum BuildingType {
+	#VENT,           # Oxygen source
+	#RESEARCH_HUB,   # +50% data, -20% oxygen
+	#DATA_CENTER,    # +100% data, +50% oxygen, fractures nearby pipes
+	#RELAY_HUB,      # Speed boost, no data
+	#ROCKET          # Final objective
+#}
 
-# this dictionary will store every cell status.
-# key: vectow2i (cell coordinates)
+## Building type properties
+#const BUILDING_TYPE_DATA = {
+	#BuildingType.VENT: {
+		#"name": "Vent",
+		#"color": Color.CYAN,
+		#"packet_interval": 5.0,
+		#"packet_amount": 1
+	#},
+	#BuildingType.RESEARCH_HUB: {
+		#"name": "Research Hub",
+		#"color": Color.GREEN,
+		#"data_multiplier": 1.5,
+		#"oxygen_multiplier": 0.8
+	#},
+	#BuildingType.DATA_CENTER: {
+		#"name": "Data Center",
+		#"color": Color.MAGENTA,
+		#"data_multiplier": 2.0,
+		#"oxygen_multiplier": 1.5,
+		#"fracture_radius": 5
+	#},
+	#BuildingType.RELAY_HUB: {
+		#"name": "Relay Hub",
+		#"color": Color.YELLOW,
+		#"speed_boost": 1.5,
+		#"oxygen_multiplier": 0.5
+	#}
+#}
+
+var current_pressure: float = 0.0
+var current_pressure_phase: int = 1
+
+var map_stages = [
+	Rect2i(-8, -4, 16, 8),
+	Rect2i(-11, -6, 22, 12),
+	Rect2i(-13, -7, 26, 14),
+	Rect2i(-16, -9, 32, 18)
+]
+var current_stage = 0
+var current_map_size = Rect2i(-8, -4, 16, 8)
+
+# Grid dictionaries - store every cell status
+# key: Vector2i (cell coordinates)
 var road_grid: Dictionary = {}
 var building_grid: Dictionary = {}
-
 var road_connections: Dictionary = {}
-
 var astar = AStar2D.new()
 
+
+func _ready() -> void:
+	pass
+
 func is_road_cell_empty(cell: Vector2i) -> bool:
-	# if the dictoinary has that cell, then "no its not empty"
+	# if the dictionary has that cell, then "no its not empty"
 	return not road_grid.has(cell)
 
 func set_road_cell(cell: Vector2i, type: String) -> void:
@@ -94,21 +145,33 @@ func connect_navigation_points(cell_a: Vector2i, cell_b: Vector2i) -> void:
 	if astar.has_point(id_a) and astar.has_point(id_b):
 		astar.connect_points(id_a, id_b)
 
+func remove_navigation_point(cell: Vector2i) -> void:
+	var id = get_cell_id(cell)
+	if astar.has_point(id):
+		astar.remove_point(id)
+
 # Map growth function
 func increase_map_size() -> void:
-	if current_map_size.size.x < MAX_WIDTH:
-		map_zoom_iterations += 1
-		print(map_zoom_iterations)
-		current_map_size = current_map_size.grow(1)
+	if current_stage < map_stages.size() - 1:
+		current_stage += 1
+		current_map_size = map_stages[current_stage]
 		SignalBus.increase_map_size.emit(current_map_size)
+	else:
+		print("Max Capacity Reached")
 
-func is_blocked_by_house(building: Variant, cell: Vector2i) -> bool:
+func is_blocked_by_building(building: Variant, cell: Vector2i) -> bool:
+	"""Check if a cell is blocked by a building (only entrance cells are navigable)"""
 	# If there's no building, it's not blocked
 	if not building is Building: 
 		return false
 	
-	# If it's a House, we only allow navigation if this specific cell is the entrance
-	if building is House:
+	# For Vents (1x1), only allow navigation if this is the entrance cell
+	if building is Vent:
+		return cell != building.entrance_cell
+	
+	# For Hubs (multi-cell), only allow navigation if this is the entrance cell
+	if building is Hub:
 		return cell != building.entrance_cell
 		
-	return false
+	# For any other Building, same rule applies
+	return cell != building.entrance_cell

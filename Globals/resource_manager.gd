@@ -2,9 +2,9 @@ extends Node
 
 signal resources_updated(tiles: int, score: int) # The "Messenger"
 
-var current_road_tiles: int = 15
+var current_road_tiles: int = 50
 var total_score: int = 0
-var score_to_next_reward: int = 6
+var score_to_next_reward: int = 8
 
 func _ready():
 	# Emit initial values so UI starts correct

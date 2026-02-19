@@ -1,0 +1,50 @@
+[gd_scene format=3 uid="uid://d4l4mljcpr1h"]
+
+[ext_resource type="Script" uid="uid://dgmysj83wsaoe" path="res://Scripts/vent.gd" id="1_ticwc"]
+[ext_resource type="Texture2D" uid="uid://ccgiwxv00o8w1" path="res://Assets/Vent/Untitled_Artwork (7).png" id="2_7ak8b"]
+[ext_resource type="Texture2D" uid="uid://b4i3r8gdp685l" path="res://Assets/Vent/Untitled_Artwork (8).png" id="2_ticwc"]
+[ext_resource type="FontFile" uid="uid://bydys01ppahq3" path="res://Assets/Roboto-Medium.ttf" id="3_3jr7h"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_iqtyj"]
+font = ExtResource("3_3jr7h")
+font_size = 12
+font_color = Color(0, 0, 0, 1)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_okrnj"]
+size = Vector2(64, 64)
+
+[node name="Vent" type="Area2D" unique_id=174691631 groups=["houses", "vents"]]
+z_index = 10
+collision_layer = 2
+script = ExtResource("1_ticwc")
+grid_size = Vector2i(1, 1)
+
+[node name="Sprite2D3" type="Sprite2D" parent="." unique_id=555589115]
+position = Vector2(13, 13)
+scale = Vector2(0.13, 0.13)
+texture = ExtResource("2_7ak8b")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=336567385]
+scale = Vector2(0.13, 0.13)
+texture = ExtResource("2_ticwc")
+
+[node name="Label" type="Label" parent="." unique_id=748231541]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Vent"
+label_settings = SubResource("LabelSettings_iqtyj")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EntranceMarker" type="Marker2D" parent="." unique_id=1838346473]
+
+[node name="DrivewayMarker" type="Marker2D" parent="." unique_id=1161700196]
+position = Vector2(0, 32)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=120943362]
+scale = Vector2(0.65, 0.65)
+shape = SubResource("RectangleShape2D_okrnj")

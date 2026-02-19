@@ -1,0 +1,12 @@
+res://Resources/TestUIFont.tres::7a7071d849a2b7e211d554d7e79c690c::1770868212::res://.godot/exported/133200997/export-b5c36dadd0033dd4a1ce2a210247e0d7-TestUIFont.res
+res://Scenes/car.tscn::77ef79f1cc20874bb7b666c83303af05::1770234067::res://.godot/exported/133200997/export-9f58b2554eba258a55911ec572814fe2-car.scn
+res://Scenes/fog_of_war.tscn::d11245d3b5625de86eb25e0d0dde3443::1770600123::res://.godot/exported/133200997/export-4470114080029452d28ce6caadb53364-fog_of_war.scn
+res://Scenes/house.tscn::6a89f8dec5758d55bad11402b230f1ac::1770828905::res://.godot/exported/133200997/export-ff0def6f35b7b70a9eb7536ce7a054f3-house.scn
+res://Scenes/input_manager.tscn::a8d84dd523b75d826d2446f306152770::1770425835::res://.godot/exported/133200997/export-cc185f7af6860f108ac521471b475edb-input_manager.scn
+res://Scenes/main.tscn::dca359a566faef547b1e8e3cfc811947::1770827096::res://.godot/exported/133200997/export-2ddd04d543d5858e7f20c9299a8b5096-main.scn
+res://Scenes/map.tscn::cd508b878f37767a0eae71ba8cf2f0be::1770591492::res://.godot/exported/133200997/export-522b15b96246958d270083e8689e20e5-map.scn
+res://Scenes/road_builder.tscn::0a2adbba2bf06394202d3baf253d8447::1770050753::res://.godot/exported/133200997/export-6bfe78734f8020a2197cd8882ca68678-road_builder.scn
+res://Scenes/road_tile.tscn::801ce9173dac69eca9189ebd38735b24::1770607243::res://.godot/exported/133200997/export-ce83fe56bb9eb43f36104055a46132b8-road_tile.scn
+res://Scenes/title_screen.tscn::a7b6981f80f93fad0350ae1c8be1c660::1770868212::res://.godot/exported/133200997/export-943bea3bfa5d9974424351a0a5431083-title_screen.scn
+res://Scenes/workplace.tscn::a116b08608a1839f74afe84bb7673cb6::1770828885::res://.godot/exported/133200997/export-940b1b4a1c6cc63098ecdbe33df2d281-workplace.scn
+res://UITestScenes/in_level_ui.tscn::d27eff7700ccc708f3a0a311097e43a3::1770869699::res://.godot/exported/133200997/export-2673c45ea370ca5066cb78aa69a2fcff-in_level_ui.scn

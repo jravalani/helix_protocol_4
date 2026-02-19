@@ -1,0 +1,80 @@
+[gd_scene format=3 uid="uid://47v5264qeile"]
+
+[ext_resource type="FontFile" uid="uid://bydys01ppahq3" path="res://Assets/Roboto-Medium.ttf" id="1_klylv"]
+[ext_resource type="Script" uid="uid://vqw5jomv713o" path="res://Scripts/title_screen.gd" id="1_p3fck"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_p3fck"]
+font = ExtResource("1_klylv")
+font_size = 100
+
+[node name="TitleScreen" type="Control" unique_id=1660773861]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_p3fck")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=749912]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=335974052]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_top = 100
+
+[node name="Label" type="Label" parent="MarginContainer" unique_id=1179727842]
+layout_mode = 2
+size_flags_vertical = 0
+text = "UNTITLED"
+label_settings = SubResource("LabelSettings_p3fck")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MarginContainer2" type="MarginContainer" parent="." unique_id=926807488]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -166.5
+offset_top = -128.0
+offset_right = 166.5
+offset_bottom = 128.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer2" unique_id=1358314420]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="PlayButton" type="Button" parent="MarginContainer2/VBoxContainer" unique_id=1305626722]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_klylv")
+theme_override_font_sizes/font_size = 100
+text = "PLAY"
+
+[node name="AboutButton" type="Button" parent="MarginContainer2/VBoxContainer" unique_id=1134476102]
+visible = false
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_klylv")
+theme_override_font_sizes/font_size = 100
+text = "ABOUT"
+
+[connection signal="pressed" from="MarginContainer2/VBoxContainer/PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="pressed" from="MarginContainer2/VBoxContainer/AboutButton" to="." method="_on_about_button_pressed"]

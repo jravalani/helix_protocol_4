@@ -25,11 +25,13 @@ ResourceManager="*uid://buxm4x4opy20i"
 
 window/size/viewport_width=1920
 window/size/viewport_height=1080
+window/size/mode=3
 window/stretch/mode="canvas_items"
 
 [global_group]
 
-houses=""
+vents=""
+hubs=""
 
 [input]
 
@@ -51,4 +53,6 @@ left_click={
 
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="mobile"
-environment/defaults/default_clear_color=Color(0.50334823, 0.397127, 0.22528267, 1)
+textures/vram_compression/import_s3tc_bptc=true
+environment/defaults/default_clear_color=Color(0.03529412, 0.105882354, 0.20392157, 1)
+2d/snap/snap_2d_transforms_to_pixel=true
