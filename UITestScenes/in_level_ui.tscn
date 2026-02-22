@@ -67,17 +67,17 @@ theme_override_font_sizes/font_size = 24
 text = "Rotate House
 "
 
-[node name="RoundaboutButton" type="Button" parent="Panel/MarginContainer/HBoxContainer" unique_id=231225114]
+[node name="UpgradePipes" type="Button" parent="Panel/MarginContainer/HBoxContainer" unique_id=231225114]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-disabled = true
-text = "ComingSoon"
+text = "UpgradePipe
+"
 
-[node name="HighwayButton" type="Button" parent="Panel/MarginContainer/HBoxContainer" unique_id=358768480]
+[node name="HullShield" type="Button" parent="Panel/MarginContainer/HBoxContainer" unique_id=358768480]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-disabled = true
-text = "ComingSoon"
+text = "Upgrade
+Hull Integrity"
 
 [node name="HighwayButton2" type="Button" parent="Panel/MarginContainer/HBoxContainer" unique_id=1488870758]
 layout_mode = 2
@@ -111,9 +111,9 @@ layout_mode = 2
 text = "Road Tiles:"
 label_settings = SubResource("LabelSettings_yowth")
 
-[node name="Score" type="Label" parent="MarginContainer/HBoxContainer" unique_id=1839495792]
+[node name="DataLabel" type="Label" parent="MarginContainer/HBoxContainer" unique_id=1839495792]
 layout_mode = 2
-text = "Score: "
+text = "Data: "
 label_settings = SubResource("LabelSettings_8c52c")
 
 [node name="SpeedButton" type="Button" parent="MarginContainer/HBoxContainer" unique_id=1792044961]
@@ -124,8 +124,8 @@ text = "Speed: 1x"
 
 [connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/BuildRoadButton" to="." method="_on_build_road_button_pressed"]
 [connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/RotateHouseButton" to="." method="_on_rotate_house_button_pressed"]
-[connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/RoundaboutButton" to="." method="_on_roundabout_button_pressed"]
-[connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/HighwayButton" to="." method="_on_highway_pressed"]
+[connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/UpgradePipes" to="." method="_on_upgrade_pipes_pressed"]
+[connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/HullShield" to="." method="_on_hull_shield_pressed"]
 [connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/HighwayButton2" to="." method="_on_highway_pressed"]
 [connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/HighwayButton3" to="." method="_on_highway_pressed"]
 [connection signal="pressed" from="MarginContainer/HBoxContainer/SpeedButton" to="." method="_on_speed_button_pressed"]

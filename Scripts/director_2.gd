@@ -24,7 +24,7 @@ extends Node2D
 # - Map Expansion: Occurs when the Director "runs out of room" for the vision.
 # =============================================================================
 
-const MAX_SPAWN_POS_TRIES: int = 100
+const MAX_SPAWN_POS_TRIES: int = 30
 
 # scene preloads
 @onready var rocket_scene: PackedScene = preload("res://Scenes/rocket.tscn")
@@ -61,6 +61,10 @@ var intro_cooldown: float = 3
 # pressure system
 var increment = GameData.BASE_RATE * (1 + (GameData.current_pressure / GameData.MAX_PRESSURE))
 
+# hull shield degradation rate
+var degradation_rate: float = 0.05 * (GameData.current_pressure / 100) # need to tinker with this variable 
+var fracture_check_timer: float = 0.0
+var fracture_check_interval: float = 90.0
 # screen center
 var screen_center: Vector2
 
@@ -83,10 +87,18 @@ func _process(delta: float) -> void:
 	# at certain pressure levels game states would change
 	GameData.current_pressure += increment * delta
 	
-	if GameData.current_pressure >= 40 and GameData.current_pressure_phase == 1:
+	# Hull shield degrades with pressure!
+	GameData.hull_schield_integrity -= degradation_rate * delta
+	GameData.hull_schield_integrity = max(0, GameData.hull_schield_integrity)
+	
+	if GameData.current_pressure >= 30 and GameData.current_pressure_phase == 1:
 		transition_to_phase(2)
-	if GameData.current_pressure >= 70 and GameData.current_pressure_phase == 2:
+	if GameData.current_pressure >= 60 and GameData.current_pressure_phase == 2:
 		transition_to_phase(3)
+	if GameData.current_pressure >= 90 and GameData.current_pressure_phase == 3:
+		transition_to_phase(4)
+	if GameData.current_pressure >= 100:
+		print("Meltdown Triggered!")
 	
 	# every frame delta would be subtracted from hub interval and vent interval
 	# when the timer <= 0 we spawn hub and vent and set their intervals
@@ -96,18 +108,22 @@ func _process(delta: float) -> void:
 	
 	hub_timer -= delta
 	vent_timer -= delta
+	fracture_check_timer -= delta
 	
 	if hub_timer <= 0:
-		pass
 		# spawn a hub
 		try_hub_spawn()
 		hub_timer += hub_interval
 		vent_interval = max(min_vent_interval, vent_interval * vent_acceleration)
+	
 	if vent_timer <= 0:
-		pass
 		# spawn a vent
 		try_vent_spawn()
 		vent_timer += vent_interval
+	
+	if fracture_check_timer <= 0:
+		SignalBus.check_fractures.emit()
+		fracture_check_timer = fracture_check_interval
 
 #region Camera
 #func get_camera_bounds() -> Rect2i:
@@ -163,12 +179,13 @@ func spawn_rocket() -> void:
 	entities.add_child(rocket)
 	rocket.global_position = Vector2(center_tile) * GameData.CELL_SIZE.x - Vector2(64, 64)
 	rocket.register_building(rocket)
+	GameData.apply_influence(center_tile, "rocket")
 #endregion
 
 #region Functions
-func is_area_clear(target_coord: Vector2i, area_size: Vector2i, camera_bounds: Rect2i) -> bool:
-	for x in range(area_size.x):
-		for y in range(area_size.y):
+func is_area_clear(target_coord: Vector2i, area_size: Vector2i, camera_bounds: Rect2i, buffer: int = 0) -> bool:
+	for x in range(-buffer, area_size.x + buffer):
+		for y in range(-buffer, area_size.y + buffer):
 			var current_tile = target_coord + Vector2i(x, y)
 			
 			if not camera_bounds.has_point(current_tile):
@@ -178,35 +195,175 @@ func is_area_clear(target_coord: Vector2i, area_size: Vector2i, camera_bounds: R
 				return false
 	return true
 
-func select_spawn_pos(from_center: Vector2, radius_in_tiles: int, for_size: Vector2i) -> Vector2i:
+#func select_spawn_pos(from_center: Vector2, radius_in_tiles: int, for_size: Vector2i) -> Vector2i:
+	# NEW SYSTEM
+	# for vent:
+	# select hub with least vents (partner tile)
+	# create a list of candidate tiles (where vent could spawn)
+	# calculate their scores based on certain parameteres
+	# select the tile with the highest score and spawn the vent
+	# vent must spawn no matter what!
+	
+	# for hub:
+	# hubs are forced spawn to have the game progress
+	# gather candidate tiles 
+	# score them
+	# spawn hub on the best one
+	
+	# OLD SYSTEM
 	# send out a ping at a specific angle and distance from the center of the screen.
 	# if that ping hits an obstacle, find different angle and try again.
 	# this system requires no. of tries 
-	# lets start with 100
+	#var camera_bounds = get_camera_bounds()
+	#for i in range(MAX_SPAWN_POS_TRIES):
+		#var random_angle = randf_range(0, TAU)
+		#var direction = Vector2(cos(random_angle), sin(random_angle))
+		#var target_pos = from_center + (direction * radius_in_tiles * GameData.CELL_SIZE.x)
+		#
+		#var target_tile = Vector2i(floor(target_pos / GameData.CELL_SIZE))
+		#
+		##line_2d.points = [from_center, target_pos]
+		## check if the area is clear here for spawning hubs / vents
+		#if is_area_clear(target_tile, for_size, camera_bounds):
+			#return target_tile
+	#print("Director failed to find a spot after ", MAX_SPAWN_POS_TRIES, "tries.")
+	#return Vector2i(-1, -1)
+
+func calculate_candidate_tiles(center: Vector2, min_dist: int, max_dist: int, size: Vector2i, buffer: int) -> Array:
+	var candidates = []
+	var center_tile = Vector2i(center / GameData.CELL_SIZE.x)
 	var camera_bounds = get_camera_bounds()
-	for i in range(MAX_SPAWN_POS_TRIES):
-		var random_angle = randf_range(0, TAU)
-		var direction = Vector2(cos(random_angle), sin(random_angle))
-		var target_pos = from_center + (direction * radius_in_tiles * GameData.CELL_SIZE.x)
+	
+	# check all tiles from min dist to max dist in a square
+	for r in range(min_dist, max_dist):
+		# calculate the 4 walls of the sqaure 
+		var top_wall = center_tile.y - r
+		var bottom_wall = center_tile.y + r
+		var left_wall = center_tile.x - r
+		var right_wall = center_tile.x + r
 		
-		var target_tile = Vector2i(floor(target_pos / GameData.CELL_SIZE))
+		# loop through the walls
+		# top wall
+		for x in range(left_wall, right_wall + 1):
+			var t = Vector2i(x, top_wall)
+			if is_area_clear(t, size, camera_bounds, buffer):
+				candidates.append(t)
 		
-		#line_2d.points = [from_center, target_pos]
-		# check if the area is clear here for spawning hubs / vents
-		if is_area_clear(target_tile, for_size, camera_bounds):
-			return target_tile
-	print("Director failed to find a spot after ", MAX_SPAWN_POS_TRIES, "tries.")
-	return Vector2i(-1, -1)
+		# bottom wall
+		for x in range(left_wall, right_wall + 1):
+			var t = Vector2i(x, bottom_wall)
+			if is_area_clear(t, size, camera_bounds, buffer):
+				candidates.append(t)
+		
+		# left wall
+		for y in range(top_wall, bottom_wall):
+			var t = Vector2i(left_wall, y)
+			if is_area_clear(t, size, camera_bounds, buffer):
+				candidates.append(t)
+		
+		# right wall
+		for y in range(top_wall, bottom_wall):
+			var t = Vector2i(right_wall, y)
+			if is_area_clear(t, size, camera_bounds, buffer):
+				candidates.append(t)
+		
+		if candidates.size() >= 15:
+			break
+	
+	return candidates
+
+func score_tile(tile: Vector2i) -> int:
+	#NEW SYSTEM
+	return GameData.influence_grid.get(tile, 0.0)
+	
+	## OLD SYSTEM
+	#var final_score: int = 0
+	#
+	#match type:
+		#"hub":
+			#if is_near_road(tile, 2):
+				#final_score += 50
+			## Hubs check a wide area for penalties to stay spread out
+			#final_score -= get_building_proximity_penalty(tile, 6)
+			#
+		#"vent":
+			#if is_near_road(tile, 2):
+				#final_score += 30
+			## Vents get a bonus for being near other vents
+			#final_score += get_building_proximity_bonus(tile, 3)
+			## Vents check a smaller area for penalties so they can be closer to hubs
+			#final_score -= get_building_proximity_penalty(tile, 4)
+			#
+	#return final_score
+
+#func is_near_road(candidate: Vector2i, radius: int) -> bool:
+	#for x in range(-radius, radius + 1):
+		#for y in range(-radius, radius + 1):
+			#var check_tile = candidate + Vector2i(x, y)
+			#if GameData.road_grid.has(check_tile):
+				#return true
+	#return false
+#
+#func get_building_proximity_penalty(candidate: Vector2i, radius: int) -> int:
+	#var total_penalty: int = 0
+	#for x in range(-radius, radius + 1):
+		#for y in range(-radius, radius + 1):
+			#var check_tile = candidate + Vector2i(x, y)
+			#
+			#if GameData.building_grid.has(check_tile):
+				#var building = GameData.building_grid[check_tile]
+				## Hubs are a huge obstacle, Vents are a small obstacle
+				#if building.is_in_group("hubs"):
+					#total_penalty += 100 
+				#else:
+					#total_penalty += 20 
+	#return total_penalty
+#
+#func get_building_proximity_bonus(candidate: Vector2i, radius: int) -> int:
+	#var total_bonus: int = 0
+	#for x in range(-radius, radius + 1):
+		#for y in range(-radius, radius + 1):
+			#var check_tile = candidate + Vector2i(x, y)
+			#
+			#if GameData.building_grid.has(check_tile):
+				#var building = GameData.building_grid[check_tile]
+				#
+				## Vents like to be near other vents (Clustering)
+				#if building.is_in_group("vents"):
+					#total_bonus += 40
+					#
+				## Hubs don't really get bonuses from being near things, 
+				## but could add a bonus for being near specific resources here later!
+					#
+	#return total_bonus
 
 func transition_to_phase(phase_number: int) -> void:
+	#Damage/destroy unprotected buildings?
+	#Increase spawn rates?
+	#Fracture pipes/roads?
+	#Change the influence grid dynamics?
+	#Force map expansion?
 	if GameData.current_pressure_phase < GameData.MAX_PRESSURE_PHASE:
 		GameData.current_pressure_phase = phase_number
 	
 	match GameData.current_pressure_phase:
 		2:
 			print("Director: Pressure Critical. Phase 2 initiated!")
+			# increase spawn frequency
+			# trigger first event
+			fracture_check_interval *= 0.80 
 		3:
 			print("Director: Hull Integrity Failing. Phase 3 initiated!")
+			# increase fracture chance
+			fracture_check_interval *= 0.65
+			# more frequent events
+		4:
+			print("End of all. Launch or Die.")
+			# increase fracture chance
+			fracture_check_interval *= 0.50
+			# no new spawns 
+			# more events
+			
 	
 #endregion
 
@@ -215,70 +372,158 @@ func spawn_initial_colony() -> void:
 	"""
 	Spawn 1 research-hub and 1 vent at the start of the game to let the player get going.
 	"""
-	# first we spawn a hub.
-	var target_tile_for_hub = select_spawn_pos(screen_center, hub_base_radius, hub_size)
+	# First we spawn a hub using the new scoring system
+	var scored_tiles = []
+	var candidate_tiles = calculate_candidate_tiles(screen_center, 3, 8, hub_size, 1)
 	
-	if target_tile_for_hub != Vector2i(-1, -1):
-		# instantiate the hub scene at the tile.
-		var research_hub = research_hub_scene.instantiate()
-		entities.add_child(research_hub)
-		research_hub.position = Vector2(target_tile_for_hub * GameData.CELL_SIZE.x)
-		research_hub.register_building(research_hub)
-		# now we will spawn 2 vents near the hub
-		var hub_center = Vector2(target_tile_for_hub * GameData.CELL_SIZE.x)
+	print("Initial hub candidates found: ", candidate_tiles.size())
+	
+	# Score each candidate
+	for candidate in candidate_tiles:
+		var score = score_tile(candidate)
+		scored_tiles.append({
+			"tile": candidate,
+			"score": score
+		})
+		if scored_tiles.size() < 3:  # Debug first few
+			print("Candidate: ", candidate, " Score: ", score)
+	
+	if scored_tiles.is_empty():
+		print("Cannot spawn initial colony hub - no candidates!")
+		return
+	
+	# Sort and pick LEAST NEGATIVE tile for hub (highest score)
+	scored_tiles.sort_custom(func (a, b): return a.score > b.score)
+	var target_tile_for_hub = scored_tiles[0].tile
+	print("Selected hub tile: ", target_tile_for_hub, " with score: ", scored_tiles[0].score)
+	
+	# Instantiate the hub
+	var research_hub = research_hub_scene.instantiate()
+	entities.add_child(research_hub)
+	research_hub.position = Vector2(target_tile_for_hub * GameData.CELL_SIZE.x)
+	research_hub.register_building(research_hub)
+	
+	var hub_center_cell = target_tile_for_hub + Vector2i(1, 1)
+	GameData.apply_influence(hub_center_cell, "hub")
+	
+	# Now spawn a vent near the hub
+	var hub_world_pos = Vector2(target_tile_for_hub * GameData.CELL_SIZE.x)
+	var vent_scored_tiles = []
+	var vent_candidates = calculate_candidate_tiles(hub_world_pos, 6, 12, vent_size, 0)
+	
+	print("Initial vent candidates found: ", vent_candidates.size())
+	
+	# Score vent candidates
+	for candidate in vent_candidates:
+		var score = score_tile(candidate)
+		vent_scored_tiles.append({
+			"tile": candidate,
+			"score": score
+		})
+	
+	if not vent_scored_tiles.is_empty():
+		vent_scored_tiles.sort_custom(func (a, b): return a.score > b.score)
+		var target_tile_for_vent = vent_scored_tiles[0].tile
 		
-		var target_tile_for_vent_1 = select_spawn_pos(hub_center, vent_base_radius, vent_size)
-		
-		if target_tile_for_vent_1 != Vector2i(-1, -1):
-			var vent_1 = vent_scene.instantiate()
-			entities.add_child(vent_1)
-			vent_1.position = Vector2(target_tile_for_vent_1 * GameData.CELL_SIZE.x) + Vector2(GameData.CELL_SIZE.x / 2, GameData.CELL_SIZE.x / 2)
-			vent_1.register_building(vent_1)
+		var vent_1 = vent_scene.instantiate()
+		entities.add_child(vent_1)
+		vent_1.position = Vector2(target_tile_for_vent * GameData.CELL_SIZE.x) + Vector2(GameData.CELL_SIZE.x / 2, GameData.CELL_SIZE.x / 2)
+		vent_1.register_building(vent_1)
+		GameData.apply_influence(target_tile_for_vent, "vent")
+		print("Spawned initial vent at: ", target_tile_for_vent)
 	else:
-		print("Cannot spawn initial colony hub!")
+		print("Cannot spawn initial vent - no candidates!")
 #endregion
 
 #region HubSpawning
-
 func try_hub_spawn() -> void:
-	# lets figure out the radius for position here
+	# NEW SYSTEM
+	var scored_tiles = []
 	var map_stage = GameData.map_stages.find(GameData.current_map_size)
 	if map_stage == -1:
 		map_stage = 0
 	
-	var custom_spawn_radius = hub_base_radius + (map_stage * hub_radius_multiplier) + randi_range(-3, 1)
-	var hub_spawn_pos = select_spawn_pos(screen_center, custom_spawn_radius, hub_size)
+	var dynamic_min = 3 + (map_stage * 3)
+	var dynamic_max = 8 + (map_stage * 4)
 	
-	if hub_spawn_pos == Vector2i(-1, -1):
-		# it means the director failed to find a spot even after 100 tries.
-		# so we will increase the map size and try again.
+	dynamic_min = max(3, dynamic_min - 1)
+	
+	# get the candidate tiles
+	var candidate_tiles = calculate_candidate_tiles(screen_center, dynamic_min, dynamic_max, hub_size, 1)
+
+	# find score for each candidate tile
+	for candidate in candidate_tiles:
+		var score = score_tile(candidate)
+		scored_tiles.append({
+			"tile": candidate,
+			"score": score
+		})
+	
+	if scored_tiles.is_empty():
+		print("No valid tiles.")
 		if GameData.map_stages.find(GameData.current_map_size) < GameData.map_stages.size() - 1:
-			print("Out of space. Expanding Map")
 			GameData.increase_map_size()
-			
+			print("Increased Map Size.")
+			print("New map size: ", GameData.current_map_size)
+			print("New map stage index: ", GameData.map_stages.find(GameData.current_map_size))
+			print("retry_max will be: ", 8 + (GameData.map_stages.find(GameData.current_map_size) * 4) + 8)
 			try_hub_spawn()
+			return
 		else:
-			print("Failed to spawn hub even at max map size.")
-	else:
-		spawn_hub_at(hub_spawn_pos)
+			print("Director: Map is completely saturated!")
+			return
+
+	# sort the tiles based on score
+	scored_tiles.sort_custom(func (a, b) : return a.score > b.score)
+
+	# spawn hub at the candidate tile
+	var top_3_tiles = scored_tiles.slice(0, 3)
+	
+	if top_3_tiles.is_empty():
+		print("Top 3 is empty!")
+	var target_pos = top_3_tiles.pick_random()
+	var target_tile = target_pos.tile
+	spawn_hub_at(target_tile)
+	
+	
+	## OLD SYSTEM
+	## lets figure out the radius for position here
+	#var map_stage = GameData.map_stages.find(GameData.current_map_size)
+	#if map_stage == -1:
+		#map_stage = 0
+	#
+	#var custom_spawn_radius = hub_base_radius + (map_stage * hub_radius_multiplier) + randi_range(-3, 1)
+	#var hub_spawn_pos = select_spawn_pos(screen_center, custom_spawn_radius, hub_size)
+	#
+	#if hub_spawn_pos == Vector2i(-1, -1):
+		## it means the director failed to find a spot even after 100 tries.
+		## so we will increase the map size and try again.
+		#if GameData.map_stages.find(GameData.current_map_size) < GameData.map_stages.size() - 1:
+			#print("Out of space. Expanding Map")
+			#GameData.increase_map_size()
+			#
+			#try_hub_spawn()
+		#else:
+			#print("Failed to spawn hub even at max map size.")
+	#else:
+		#spawn_hub_at(hub_spawn_pos)
 
 func spawn_hub_at(position: Vector2i) -> void:
 	var hub = research_hub_scene.instantiate()
 	entities.add_child(hub)
 	hub.position = position * GameData.CELL_SIZE.x
 	hub.register_building(hub)
+	var hub_center_cell = position + Vector2i(1, 1)
+	GameData.apply_influence(hub_center_cell, "hub")
 #endregion
 
 #region VentSpawning
-
 func try_vent_spawn() -> void:
 	# lets figure out the radius for position here
 	var map_stage = GameData.map_stages.find(GameData.current_map_size)
 	
 	if map_stage == -1:
 		map_stage = 0
-	
-	var custom_spawn_radius = vent_base_radius + (map_stage * 1.5) + randi_range(-3, 1)
 	
 	# we want the vents to spawn relative to hubs
 	var available_hubs = get_tree().get_nodes_in_group("hubs")
@@ -297,16 +542,48 @@ func try_vent_spawn() -> void:
 	candidate.sort_custom(func (a, b): return a.assigned_vents < b.assigned_vents)
 	
 	var hub_with_lowest_vents = candidate[0].node
-	var center = hub_with_lowest_vents.global_position
-	var vent_spawn_pos = select_spawn_pos(center, custom_spawn_radius, vent_size)
+	var center = hub_with_lowest_vents.entrance_marker.global_position
 	
-	if vent_spawn_pos != Vector2i(-1, -1):
-		hub_with_lowest_vents.assigned_vents += 1
-		spawn_vent_at(vent_spawn_pos, hub_with_lowest_vents)
+	# NEW SYSTEM
+	# once the center is set (we find the center from the above code)
+	# find candidate tiles around that center in a dynamic radius
+	var scored_tiles = []
+	var candidate_tiles = calculate_candidate_tiles(center, 3, 10, vent_size, 0)
+	
+	for candidate_tile in candidate_tiles:
+		var score = score_tile(candidate_tile)
+		scored_tiles.append({
+			"tile": candidate_tile,
+			"score": score
+		})
+		
+	if scored_tiles.is_empty():
+		print("Director: Can't spawn vent in this call. Skipping")
+		return
+	
+	# sort the candidates based on their score
+	scored_tiles.sort_custom(func (a, b) : a.score > b.score)
+	
+	# select the top 3 
+	var top_3_tiles = scored_tiles.slice(0, 3)
+	
+	# pick one in random and spawn the vent at that position
+	var target_pos = top_3_tiles.pick_random()
+	var target_tile = target_pos.tile
+	
+	spawn_vent_at(target_tile)
+	
+	## OLD SYSTEM
+	#var vent_spawn_pos = select_spawn_pos(center, custom_spawn_radius, vent_size)
+	#
+	#if vent_spawn_pos != Vector2i(-1, -1):
+		#hub_with_lowest_vents.assigned_vents += 1
+		#spawn_vent_at(vent_spawn_pos, hub_with_lowest_vents)
 
-func spawn_vent_at(vent_position: Vector2, hub: Node2D) -> void:
+func spawn_vent_at(vent_position: Vector2i) -> void:
 	var vent = vent_scene.instantiate()
 	entities.add_child(vent)
 	vent.position = vent_position * GameData.CELL_SIZE.x + Vector2(GameData.CELL_SIZE.x / 2, GameData.CELL_SIZE.x / 2)
 	vent.register_building(vent)
+	GameData.apply_influence(vent_position, "vent")
 #endregion

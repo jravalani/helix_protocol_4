@@ -17,3 +17,7 @@ signal pressure_changed(new_phase: int)
 signal disaster_triggered(event_name: String)
 
 signal increase_map_size(map_size: Rect2i)
+
+signal pipes_upgraded(upgrade_level: int)
+
+signal check_fractures()

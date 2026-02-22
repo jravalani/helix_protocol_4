@@ -1,7 +1,8 @@
 [gd_scene format=3 uid="uid://hw3qvlf3keo4"]
 
 [ext_resource type="Script" uid="uid://d3uuj6eggwdq0" path="res://Scripts/hub.gd" id="1_dgge1"]
-[ext_resource type="Texture2D" uid="uid://cg0ondn2itbw4" path="res://Assets/Vent/Potentialvent.png" id="2_dgge1"]
+[ext_resource type="Texture2D" uid="uid://cdf1hfx6pwpar" path="res://Assets/Hub/Hub.png" id="2_dgge1"]
+[ext_resource type="Texture2D" uid="uid://cof1hn1iy08gl" path="res://Assets/Hub/HubShadow.png" id="2_hy6ll"]
 [ext_resource type="FontFile" uid="uid://bydys01ppahq3" path="res://Assets/Roboto-Medium.ttf" id="3_8fkum"]
 [ext_resource type="LabelSettings" uid="uid://cfd35apj0sieb" path="res://Resources/TestUIFont.tres" id="4_g348v"]
 
@@ -15,15 +16,21 @@ z_index = 10
 script = ExtResource("1_dgge1")
 grid_size = Vector2i(3, 2)
 
+[node name="Sprite2D2" type="Sprite2D" parent="." unique_id=1994668310]
+z_index = 10
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("2_hy6ll")
+centered = false
+offset = Vector2(10, 10)
+
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=206688007]
 z_index = 10
-scale = Vector2(0.45, 0.45)
+scale = Vector2(0.3, 0.3)
 texture = ExtResource("2_dgge1")
 centered = false
 offset = Vector2(10, 10)
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=486489043]
-visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0

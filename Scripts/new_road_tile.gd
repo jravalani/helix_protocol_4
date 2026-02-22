@@ -17,6 +17,7 @@ func get_cell() -> Vector2i:
 
 func _ready() -> void:
 	#SignalBus.on_road_updated.connect(_on_road_updated)
+	SignalBus.pipes_upgraded.connect(on_pipes_upgraded)
 	
 	road_base.position = Vector2.ZERO
 	road_outline.position = Vector2.ZERO
@@ -24,6 +25,12 @@ func _ready() -> void:
 	# THE FIX: Force all outlines to a lower layer than all bases
 	road_outline.z_index = 0
 	road_base.z_index = 1
+	
+	var glow_material = CanvasItemMaterial.new()
+	glow_material.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	road_outline.material = glow_material
+	
+	on_pipes_upgraded(GameData.current_pipe_upgrade_level)
 
 # NEW: Check if road has a visual connection in a specific direction
 func has_connection_in_direction(direction: Vector2i) -> bool:
@@ -59,7 +66,7 @@ func update_visuals() -> void:
 		
 		_draw_independent_segment(start_point, end_point)
 
-## Helper to draw a segment without connecting it to the previous one
+# Helper to draw a segment without connecting it to the previous one
 func _draw_independent_segment(start: Vector2, end: Vector2):
 	
 	road_outline.add_point(start)
@@ -67,3 +74,23 @@ func _draw_independent_segment(start: Vector2, end: Vector2):
 	
 	road_base.add_point(start)
 	road_base.add_point(end)
+
+#region pipe upgrades
+func on_pipes_upgraded(level: int) -> void:
+	match level:
+		0:  # No upgrade - original color, no glow
+			road_outline.default_color = Color("2a2f36")
+			road_outline.self_modulate = Color(1.0, 1.0, 1.0, 1.0)
+			
+		1:  # Level 1 - lighter, soft glow
+			road_outline.default_color = Color("5a6570")  # Lighter gray-blue
+			road_outline.self_modulate = Color(1.2, 1.2, 1.2, 1.0)
+			
+		2:  # Level 2 - even lighter, medium glow
+			road_outline.default_color = Color("9a9faa")  # Much lighter
+			road_outline.self_modulate = Color(1.5, 1.5, 1.5, 1.0)
+			
+		3:  # Level 3 - white, strong glow
+			road_outline.default_color = Color("ffffff")  # Pure white
+			road_outline.self_modulate = Color(2.0, 2.0, 2.0, 1.0)
+#endregion

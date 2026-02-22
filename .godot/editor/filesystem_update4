@@ -1,0 +1,15 @@
+res://UITestScenes/in_level_ui.tscn
+res://shaders/vignette.gdshader
+res://Scripts/packet.gd
+res://Scenes/road_tile.tscn
+res://Scripts/new_road_tile.gd
+res://Scripts/new_road_builder.gd
+res://Scenes/main.tscn
+res://Scenes/hub3x2.tscn
+res://Globals/game_data.gd
+res://Globals/resource_manager.gd
+res://Globals/signal_bus.gd
+res://UITest/in_level_ui.gd
+res://Resources/TestUIFont.tres
+res://Scripts/director_2.gd
+res://Scripts/hub.gd

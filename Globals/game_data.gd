@@ -7,7 +7,13 @@ const MAX_HEIGHT = 38
 
 const MAX_PRESSURE: float = 100.0
 const BASE_RATE: float = 0.025
-var MAX_PRESSURE_PHASE: int = 3
+var MAX_PRESSURE_PHASE: int = 4
+
+const MAX_PIPE_UPGRADES: int = 3
+const PIPE_UPGRADE_COSTS = [150, 300, 450]
+
+const MAX_HULL_SHIELD_UPGRADES: int = 4
+const HULL_SHIELD_UPGRADE_COSTS = [300, 500, 800, 1200]
 
 ## Building type constants
 #enum BuildingType {
@@ -46,9 +52,17 @@ var MAX_PRESSURE_PHASE: int = 3
 		#"oxygen_multiplier": 0.5
 	#}
 #}
-
 var current_pressure: float = 0.0
 var current_pressure_phase: int = 1
+
+var current_pipe_upgrade_level: int = 0
+
+var current_road_tiles: int = 25
+var total_data: int = 0
+var score_to_next_reward: int = 8
+
+var current_hull_shield_level: int = 1
+var hull_schield_integrity: float = 100.0
 
 var map_stages = [
 	Rect2i(-8, -4, 16, 8),
@@ -64,6 +78,7 @@ var current_map_size = Rect2i(-8, -4, 16, 8)
 var road_grid: Dictionary = {}
 var building_grid: Dictionary = {}
 var road_connections: Dictionary = {}
+var influence_grid: Dictionary = {}
 var astar = AStar2D.new()
 
 
@@ -175,3 +190,66 @@ func is_blocked_by_building(building: Variant, cell: Vector2i) -> bool:
 		
 	# For any other Building, same rule applies
 	return cell != building.entrance_cell
+
+#region Tile Influence
+func apply_influence(tile: Vector2i, type: String) -> void:
+	var radius: int = 0
+	var strength: int = 0
+	var is_penalty: bool = false
+	
+	match type:
+		"rocket":
+			radius = 3
+			strength = 100000
+			is_penalty = true
+		"hub":
+			radius = 6 # Wide spacing for hubs
+			strength = 100
+			is_penalty = true
+		"vent":
+			radius = 2 # Tight clustering for vents
+			strength = 80
+			is_penalty = false # This is a BONUS!
+		"road":
+			radius = 2
+			strength = 60
+			is_penalty = false
+
+	# apply certain strength on tile in radius
+	for x in range(-radius, radius + 1):
+		for y in range(-radius, radius + 1):
+			var current_tile = tile + Vector2i(x, y)
+			var dist = abs(x) + abs(y)
+			
+			if dist > radius:
+				continue
+				
+			var falloff_value = float(radius - dist + 1 ) / radius
+			var final_value = strength * falloff_value
+			
+			if is_penalty:
+				final_value *= -1
+			
+			# max absolute value
+			var current_score = influence_grid.get(current_tile, 0.0)
+			var new_score: float
+			if abs(final_value) > abs(current_score):
+				new_score = final_value
+			else:
+				new_score = current_score
+			
+			influence_grid[current_tile] = new_score
+#endregion
+
+#region Hull Shield Multiplier
+func get_hull_shield_multiplier() -> float:
+	# every shield upgrade will increase current integrity by 20%
+	var base_protection = current_hull_shield_level * 0.2
+	
+	# get current shield integrity and calculate the integrity factor
+	# example at 10 minute mark if integriy is at 90 so 90/100 = 0.9 and upgrade at level 1
+	# so the multiplier would be (1 - ( 0.2 * 0.9 ) ) = 0.82
+	# as integrity degrades the shield multiplier value will decrease 
+	var integrity_factor = hull_schield_integrity / 100.0
+	
+	return max(0.2, 1.0 - (base_protection * integrity_factor))

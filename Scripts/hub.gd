@@ -15,12 +15,16 @@ var request_timer: Timer
 
 var assigned_vents: int = 0
 
+var is_fractured: bool = false
+
 
 func _ready():
 	cell_type = "HUB"
 	
 	setup_request_timer()
 	update_ui()
+	
+	SignalBus.check_fractures.connect(on_check_fracture)
 
 func setup_request_timer():
 	request_timer = Timer.new()
@@ -61,6 +65,7 @@ func _on_request_timer_timeout():
 			var vent = entry.node
 			
 			while vent.get_current_capacity() < vent.get_max_capacity() and net_demand > 0:
+				# over here add the burst chances. pressure dependent.
 				vent.send_oxygen_packet_to(self)
 				oxygen_in_flight += 1
 				net_demand -= 1
@@ -75,4 +80,47 @@ func _on_request_timer_timeout():
 func receive_oxygen_packet() -> void:
 	oxygen_backlog = max(0, oxygen_backlog - 1)
 	oxygen_in_flight = max(0, oxygen_in_flight - 1)
+	ResourceManager.add_score()
 	update_ui()
+
+#region Fracture Check
+func on_check_fracture() -> void:
+	if is_fractured:
+		return
+	
+	var chance = calculate_fracture_chance()
+	if randf() < chance:
+		fracture()
+
+func calculate_fracture_chance() -> float:
+	# fracture chance depends on both current pressure and hull integrity
+	var base_chance = 0.02
+	
+	# first get the pressure modifier. this will be added to base chance
+	var pressure_modifier = (GameData.current_pressure / 100.0) * 0.8 #should tinker with this number later on
+	
+	# shield multiplier increases or decreases the final_chance value depending on the current
+	# shield integrity and the level of hull shield.
+	var shield_multiplier = GameData.get_hull_shield_multiplier()
+	var final_chance = (base_chance + pressure_modifier) * shield_multiplier
+	
+	return max(0.001, final_chance)
+
+func fracture() -> void:
+	is_fractured = true
+	request_timer.stop()
+	print("Hub integrity failed. Shutting Down.")
+		
+	modulate = Color(1.0, 0.3, 0.3, 0.7)
+	print("Failed Integrity Hub is at: ", position / GameData.CELL_SIZE.x)
+	
+	# emit a signal here if in future we decide to add something related to hub failure.
+
+func repair() -> void:
+	is_fractured = false
+	request_timer.start()
+	modulate = Color.WHITE
+	
+	# emit a signal here if in futute we decide to start something related to hub repair.
+
+#endregion

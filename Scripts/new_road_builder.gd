@@ -90,6 +90,7 @@ func build_road(cell: Vector2i) -> void:
 				
 			# CHANGE: Save to road_grid
 			GameData.road_grid[cell] = current_road
+			GameData.apply_influence(cell, "road")
 			GameData.add_navigation_point(cell)
 		else:
 			print("Out of Tiles")

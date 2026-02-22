@@ -1,8 +1,8 @@
 1b6fe65c9174fb55ef6ce19132d8663b
-::res://::1771524747
+::res://::1771766102
 export_presets.cfg::TextFile::-1::1770870309::0::1::::<><><>0<>0<><>::
 icon.svg::CompressedTexture2D::7724986702261325044::1769526026::1769526029::1::::<><><>0<>0<>901b190f45844d5a768d2fa966c01549<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
-::res://Assets/::1771516436
+::res://Assets/::1771769287
 base.png::CompressedTexture2D::3469653425117661942::1771429014::1771429022::1::::<><><>0<>0<>547d9fbb1e8853b4a0e7f8bf4caeb23f<>res://.godot/imported/base.png-dd7d291a0cd9caa27ae4eb477bdf5b65.ctex::
 building1.png::CompressedTexture2D::9047581462719538358::1769524967::1769526485::1::::<><><>0<>0<>8eda8128a9e1e45860912b22c5273445<>res://.godot/imported/building1.png-a7a87ae9dc24cfba33fe11777e52ee7e.ctex::
 building_blue.png::CompressedTexture2D::8018405379495345762::1770607270::1770607160::1::::<><><>0<>0<>00c18ce28c8d271aac7214092cacc39a<>res://.godot/imported/building_blue.png-1c24282007ddd83f9503b5cd421469f3.ctex::
@@ -19,6 +19,7 @@ intersection.png::CompressedTexture2D::3620356385922474619::1769524967::17695264
 outline.png::CompressedTexture2D::2142174993382265543::1771425686::1771425703::1::::<><><>0<>0<>5acb46f86b7e1f42c6ababdac27c4409<>res://.godot/imported/outline.png-f4c89b3dbeb1426004097a4d8ac375ff.ctex::
 Potential_Map_Background.png::CompressedTexture2D::6225369748133466404::1771429882::1771429883::1::::<><><>0<>0<>2f7de8f1f2c2331725fd61234a6782e0<>res://.godot/imported/Potential_Map_Background.png-01da0c5f3563e22070d9a2edf07aff36.ctex::
 Potential_Vent.png::CompressedTexture2D::3384005083004260161::1771434222::1771434223::1::::<><><>0<>0<>652f5ce67e85a5ee782d0d3789d98855<>res://.godot/imported/Potential_Vent.png-6a3931ee764a19f5bd5e5b1fc3acafda.ctex::
+roadtile.png::CompressedTexture2D::5701803341277669524::1771769287::1771769288::1::::<><><>0<>0<>995360edddf3b17d4ef69b0a73566526<>res://.godot/imported/roadtile.png-42b41d5dcefa74e04b5284769951d0a3.ctex::
 Roboto-Medium.ttf::FontFile::4078636770334994344::1770666622::1770666623::1::::<><><>0<>0<>d1adf3240d949e0cab62ae46bc99f151<>res://.godot/imported/Roboto-Medium.ttf-6a19ed7711599abf39d5e10fbe464cbe.fontdata::
 rocket_temp.png::CompressedTexture2D::3672641633971139453::1771302430::1771302430::1::::<><><>0<>0<>2d6b1d30e053567e60740dbd7d37f775<>res://.godot/imported/rocket_temp.png-8e35cf778ea414774970e94621ec9bb4.ctex::
 Untitled_Artwork (6).png::CompressedTexture2D::509495734499588174::1771510500::1771510506::1::::<><><>0<>0<>57c6fbcdd43b54ea55faa9164d858b7e<>res://.godot/imported/Untitled_Artwork (6).png-21c8964810942798138f08d163c76b26.ctex::
@@ -26,6 +27,9 @@ Untitled_Artwork (9).png::CompressedTexture2D::2955284059120823153::1771516431::
 vertical_road.png::CompressedTexture2D::8472203015294619626::1769524967::1769526485::1::::<><><>0<>0<>c392fe98a122f096d4254f7596840892<>res://.godot/imported/vertical_road.png-42fa1bebe14beb321d7258e762852ee9.ctex::
 workplace_temp2.png::CompressedTexture2D::1440757507246088033::1770910873::1770910873::1::::<><><>0<>0<>0de32e785dc48744260a1954e0c43e5a<>res://.godot/imported/workplace_temp2.png-352d245c92987f9cbc5261dad6a79b0a.ctex::
 workplace_temp.png::CompressedTexture2D::2809712391822757527::1770828800::1770828800::1::::<><><>0<>0<>fb8a74b73761a0ad1ffdeae286386c03<>res://.godot/imported/workplace_temp.png-da8a4e046fbf9490bdb401f33fee4e37.ctex::
+::res://Assets/Hub/::1771544726
+Hub.png::CompressedTexture2D::4995321229016537997::1771544713::1771544713::1::::<><><>0<>0<>9f535483fa180a5a728136882f40c6b5<>res://.godot/imported/Hub.png-f56edbfe6b40d0d81054e2d8a2b9fca7.ctex::
+HubShadow.png::CompressedTexture2D::5767398932823259811::1771544719::1771544726::1::::<><><>0<>0<>2ba98d35d48eb29bf46b0c2c7fbd1b42<>res://.godot/imported/HubShadow.png-9d89fe7562482f1472b465a1e8a22647.ctex::
 ::res://Assets/Vent/::1771516435
 Potentialvent.png::CompressedTexture2D::5246457305176088645::1771472943::1771472966::1::::<><><>0<>0<>7e3b4e7d48096ba37a3d6a0b9754df38<>res://.godot/imported/Potentialvent.png-c49df012fda716a6d80a751b6f692340.ctex::
 Untitled_Artwork (7).png::CompressedTexture2D::4926131586242494186::1771515612::1771515702::1::::<><><>0<>0<>27162117869598f68ef471f68dac1be2<>res://.godot/imported/Untitled_Artwork (7).png-b771ce77d984a4ac8edc0cbf2afc921b.ctex::
@@ -33,21 +37,21 @@ Untitled_Artwork (8).png::CompressedTexture2D::4440144348219352787::1771515678::
 Vent2.0.png::CompressedTexture2D::4622082847786300701::1771510391::1771510398::1::::<><><>0<>0<>a77ea9890635f3e0509c972385172ce6<>res://.godot/imported/Vent2.0.png-7434fe1725ec8074070a5740da1c5409.ctex::
 Ventoutline.png::CompressedTexture2D::822912128108723276::1771472943::1771472975::1::::<><><>0<>0<>f90756b41ff3f81e86f442d8b5541992<>res://.godot/imported/Ventoutline.png-107694f6c1128093da1c21ec8a35ece3.ctex::
 Ventvolcanooutline.png::CompressedTexture2D::8694961766800075953::1771472943::1771472975::1::::<><><>0<>0<>d886f710747a52cadc4aa8383c076a60<>res://.godot/imported/Ventvolcanooutline.png-23b4afc17968645b7c08e8d436e46e67.ctex::
-::res://Globals/::1771389265
-game_data.gd::GDScript::5114910174989692158::1771389265::0::1::::<>Node<><>0<>0<><>::
-resource_manager.gd::GDScript::3838459890227060854::1771135540::0::1::::<>Node<><>0<>0<><>::
+::res://Globals/::1771741789
+game_data.gd::GDScript::5114910174989692158::1771741789::0::1::::<>Node<><>0<>0<><>::
+resource_manager.gd::GDScript::3838459890227060854::1771739686::0::1::::<>Node<><>0<>0<><>::
 signal_bus.gd::GDScript::852131770515859461::1771385975::0::1::::<>Node<><>0<>0<><>::
 ::res://Resources/::1770868212
 TestUIFont.tres::LabelSettings::5131732392068261545::1770868212::0::1::::<><><>0<>0<><>::uid://bydys01ppahq3::::res://Assets/Roboto-Medium.ttf
-::res://Scenes/::1771516455
+::res://Scenes/::1771736638
 car.tscn::PackedScene::3934372045285347551::1770234067::0::1::::<><><>0<>0<><>::uid://cotnldtbh0pga::::res://Scripts/car.gd<>uid://d1dxfrslry84y::::res://Assets/car1.png
 fog_of_war.tscn::PackedScene::8088742273023985421::1770600123::0::1::::<><><>0<>0<><>::uid://bkxxvi0s8ce6c::::res://Scripts/fog_of_war.gd
 hub2x2.tscn::PackedScene::693965691815219413::1771307529::0::1::::<><><>0<>0<><>::uid://d3uuj6eggwdq0::::res://Scripts/hub.gd<>uid://cg3n1e07q2s0l::::res://Assets/hub_2x2.png<>uid://bydys01ppahq3::::res://Assets/Roboto-Medium.ttf<>uid://cfd35apj0sieb::::res://Resources/TestUIFont.tres
 hub2x3.tscn::PackedScene::6005761493105383424::1771307523::0::1::::<><><>0<>0<><>::uid://d3uuj6eggwdq0::::res://Scripts/hub.gd<>uid://qakr2j3e2031::::res://Assets/hub_2x3.png<>uid://bydys01ppahq3::::res://Assets/Roboto-Medium.ttf<>uid://cfd35apj0sieb::::res://Resources/TestUIFont.tres
-hub3x2.tscn::PackedScene::538467984803675385::1771516091::0::1::::<><><>0<>0<><>::uid://d3uuj6eggwdq0::::res://Scripts/hub.gd<>uid://cg0ondn2itbw4::::res://Assets/Vent/Potentialvent.png<>uid://bydys01ppahq3::::res://Assets/Roboto-Medium.ttf<>uid://cfd35apj0sieb::::res://Resources/TestUIFont.tres
+hub3x2.tscn::PackedScene::538467984803675385::1771544756::0::1::::<><><>0<>0<><>::uid://d3uuj6eggwdq0::::res://Scripts/hub.gd<>uid://cdf1hfx6pwpar::::res://Assets/Hub/Hub.png<>uid://cof1hn1iy08gl::::res://Assets/Hub/HubShadow.png<>uid://bydys01ppahq3::::res://Assets/Roboto-Medium.ttf<>uid://cfd35apj0sieb::::res://Resources/TestUIFont.tres
 hub3x3.tscn::PackedScene::8922511316622569101::1771258728::0::1::::<><><>0<>0<><>::uid://d3uuj6eggwdq0::::res://Scripts/hub.gd<>uid://c60woifdb6xm8::::res://Assets/hub_3x3.png<>uid://bydys01ppahq3::::res://Assets/Roboto-Medium.ttf<>uid://cfd35apj0sieb::::res://Resources/TestUIFont.tres
 input_manager.tscn::PackedScene::2013934641569623740::1770425835::0::1::::<><><>0<>0<><>::uid://c22orrtiuwl3c::::res://Scripts/input_manager.gd
-main.tscn::PackedScene::5711333360350851580::1771516454::0::1::::<><><>0<>0<><>::uid://6gp6mh68yo5t::::res://Scripts/main.gd<>uid://db103wkeppd8v::::res://Scenes/road_builder.tscn<>uid://bidtdj07ys2fl::::res://Assets/Untitled_Artwork (9).png<>uid://3xthd7uvwo1q::::res://Scenes/input_manager.tscn<>uid://dnpwluvfdcpl1::::res://UITestScenes/in_level_ui.tscn<>uid://dtgwxb8bypuhf::::res://Scripts/director_2.gd<>uid://coik2fhilbiw2::::res://Scripts/camera_2d.gd<>uid://boevdjmjawqve::::res://shaders/vignette.gdshader
+main.tscn::PackedScene::5711333360350851580::1771736638::0::1::::<><><>0<>0<><>::uid://6gp6mh68yo5t::::res://Scripts/main.gd<>uid://db103wkeppd8v::::res://Scenes/road_builder.tscn<>uid://bidtdj07ys2fl::::res://Assets/Untitled_Artwork (9).png<>uid://3xthd7uvwo1q::::res://Scenes/input_manager.tscn<>uid://dnpwluvfdcpl1::::res://UITestScenes/in_level_ui.tscn<>uid://dtgwxb8bypuhf::::res://Scripts/director_2.gd<>uid://coik2fhilbiw2::::res://Scripts/camera_2d.gd<>uid://boevdjmjawqve::::res://shaders/vignette.gdshader
 map.tscn::PackedScene::6004824408476319222::1770591492::0::1::::<><><>0<>0<><>::uid://ckcbmhbvmpifj::::res://Scripts/map.gd
 packet.tscn::PackedScene::5100799010794289805::1771427911::0::1::::<><><>0<>0<><>::uid://dqgpj0qupx1t3::::res://Scripts/packet.gd<>uid://d1dxfrslry84y::::res://Assets/car1.png
 road_builder.tscn::PackedScene::7284693814535516651::1770050753::0::1::::<><><>0<>0<><>::uid://fisxnk2arj7r::::res://Scripts/new_road_builder.gd
@@ -55,28 +59,28 @@ road_tile.tscn::PackedScene::6614835398758567574::1771429148::0::1::::<><><>0<>0
 rocket.tscn::PackedScene::6255341688125636705::1771432705::0::1::::<><><>0<>0<><>::uid://b8r1mhnyn31nx::::res://Scripts/rocket.gd<>uid://bslb4va732var::::res://Assets/rocket_temp.png
 title_screen.tscn::PackedScene::2102866651656660890::1771000019::0::1::::<><><>0<>0<><>::uid://bydys01ppahq3::::res://Assets/Roboto-Medium.ttf<>uid://vqw5jomv713o::::res://Scripts/title_screen.gd
 vent.tscn::PackedScene::271153808410755639::1771516455::0::1::::<><><>0<>0<><>::uid://dgmysj83wsaoe::::res://Scripts/vent.gd<>uid://ccgiwxv00o8w1::::res://Assets/Vent/Untitled_Artwork (7).png<>uid://b4i3r8gdp685l::::res://Assets/Vent/Untitled_Artwork (8).png<>uid://bydys01ppahq3::::res://Assets/Roboto-Medium.ttf
-::res://Scripts/::1771516075
+::res://Scripts/::1771766220
 building.gd::GDScript::6422676202196746145::1771380589::0::1::::Building<>Area2D<><>0<>0<><>::
 camera_2d.gd::GDScript::5772655860522844575::1771274746::0::1::::<>Camera2D<><>0<>0<><>::
 car.gd::GDScript::5795517507261833376::1770664205::0::1::::<>PathFollow2D<><>0<>0<><>::
 director.gd::GDScript::8128306718697973463::1771002989::0::1::::<>RefCounted<><>0<>0<><>::
-director_2.gd::GDScript::8506613297406968219::1771516075::0::1::::<>Node2D<><>0<>0<><>::
+director_2.gd::GDScript::8506613297406968219::1771742041::0::1::::<>Node2D<><>0<>0<><>::
 fog_of_war.gd::GDScript::3137224260591363792::1770600080::0::1::::<>CanvasLayer<><>0<>0<><>::
 house.gd::GDScript::5609067743694338424::1771002978::0::1::::<>RefCounted<><>0<>0<><>::
-hub.gd::GDScript::9167069274710450197::1771307034::0::1::::Hub<>Building<><>0<>0<><>::
+hub.gd::GDScript::9167069274710450197::1771742275::0::1::::Hub<>Building<><>0<>0<><>::
 input_manager.gd::GDScript::6724559664007128982::1770477298::0::1::::<>Node2D<><>0<>0<><>::
-main.gd::GDScript::2189207176353301687::1771368307::0::1::::<>Node2D<><>0<>0<><>::
+main.gd::GDScript::2189207176353301687::1771736291::0::1::::<>Node2D<><>0<>0<><>::
 map.gd::GDScript::5478941075973305067::1770591492::0::1::::<>Node2D<><>0<>0<><>::
-new_road_builder.gd::GDScript::368593918831281245::1770664741::0::1::::NewRoadBuilder<>Node2D<><>0<>0<><>::
+new_road_builder.gd::GDScript::368593918831281245::1771734300::0::1::::NewRoadBuilder<>Node2D<><>0<>0<><>::
 new_road_tile.gd::GDScript::5094137245337646074::1771429148::0::1::::NewRoadTile<>Node2D<><>0<>0<><>::
-packet.gd::GDScript::8295597981579133490::1771367667::0::1::::Packet<>PathFollow2D<><>0<>0<><>::
+packet.gd::GDScript::8295597981579133490::1771766220::0::1::::Packet<>PathFollow2D<><>0<>0<><>::
 rocket.gd::GDScript::4739347405760834729::1771248310::0::1::::Rocket<>Building<><>0<>0<><>::
 title_screen.gd::GDScript::1508385603033635582::1770867814::0::1::::<>Control<><>0<>0<><>::
 vent.gd::GDScript::7606657523063894288::1771270554::0::1::::Vent<>Building<><>0<>0<><>::
 workplace.gd::GDScript::663447066956186167::1771002998::0::1::::<>RefCounted<><>0<>0<><>::
-::res://shaders/::1771510416
-vignette.gdshader::Shader::3378602911529210974::1771510416::0::1::::<><><>0<>0<><>::
-::res://UITest/::1770869699
-in_level_ui.gd::GDScript::7919528598457765751::1770869699::0::1::::<>Control<><>0<>0<><>::
-::res://UITestScenes/::1770910138
-in_level_ui.tscn::PackedScene::8104039185397614956::1770910138::0::1::::<><><>0<>0<><>::uid://dk3jqjxae20fr::::res://UITest/in_level_ui.gd<>uid://bydys01ppahq3::::res://Assets/Roboto-Medium.ttf
+::res://shaders/::1771766149
+vignette.gdshader::Shader::3378602911529210974::1771766149::0::1::::<><><>0<>0<><>::
+::res://UITest/::1771739356
+in_level_ui.gd::GDScript::7919528598457765751::1771739356::0::1::::<>Control<><>0<>0<><>::
+::res://UITestScenes/::1771766220
+in_level_ui.tscn::PackedScene::8104039185397614956::1771766220::0::1::::<><><>0<>0<><>::uid://dk3jqjxae20fr::::res://UITest/in_level_ui.gd<>uid://bydys01ppahq3::::res://Assets/Roboto-Medium.ttf

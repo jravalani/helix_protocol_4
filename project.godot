@@ -18,14 +18,13 @@ config/icon="res://icon.svg"
 [autoload]
 
 GameData="*uid://ce4x28ymrtnxu"
-SignalBus="*uid://me1qrsn08x06"
 ResourceManager="*uid://buxm4x4opy20i"
+SignalBus="*uid://me1qrsn08x06"
 
 [display]
 
 window/size/viewport_width=1920
 window/size/viewport_height=1080
-window/size/mode=3
 window/stretch/mode="canvas_items"
 
 [global_group]

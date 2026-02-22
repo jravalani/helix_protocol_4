@@ -42,26 +42,26 @@ func setup_path(vent_node: Vent, start_cell: Vector2i, end_cell: Vector2i):
 	
 	# Build curve with lane offset (left lane = -6)
 	var new_curve = Curve2D.new()
-	var lane_offset_dist = -6.0  # Negative = left lane
+	#var lane_offset_dist = -6.0  # Negative = left lane
 	
 	for i in range(path_points.size()):
 		var current_point = path_points[i]
-		var offset = Vector2.ZERO
+		#var offset = Vector2.ZERO
+		#
+		#if i < path_points.size() - 1:
+			#var next_point = path_points[i + 1]
+			##var direction = (next_point - current_point).normalized()
+			## Left lane: perpendicular vector rotated clockwise (x,y) -> (-y,x)
+			##var left_dir = Vector2(-direction.y, direction.x)
+			##offset = left_dir * lane_offset_dist
+		#else:
+			## Last point – use previous direction to keep offset consistent
+			#var prev_point = path_points[i - 1]
+			##var direction = (current_point - prev_point).normalized()
+			##var left_dir = Vector2(-direction.y, direction.x)
+			##offset = left_dir * lane_offset_dist
 		
-		if i < path_points.size() - 1:
-			var next_point = path_points[i + 1]
-			var direction = (next_point - current_point).normalized()
-			# Left lane: perpendicular vector rotated clockwise (x,y) -> (-y,x)
-			var left_dir = Vector2(-direction.y, direction.x)
-			offset = left_dir * lane_offset_dist
-		else:
-			# Last point – use previous direction to keep offset consistent
-			var prev_point = path_points[i - 1]
-			var direction = (current_point - prev_point).normalized()
-			var left_dir = Vector2(-direction.y, direction.x)
-			offset = left_dir * lane_offset_dist
-		
-		new_curve.add_point(current_point + offset)
+		new_curve.add_point(current_point)
 	
 	get_parent().curve = new_curve
 	progress = 0
