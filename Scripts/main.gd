@@ -1,14 +1,18 @@
 extends Node2D
 @onready var camera_2d: Camera2D = $Camera2D
+
 const CELL_SIZE = 64
 const CELL_SIZE_VEC = Vector2(64, 64)
-var line_color = Color(0.8, 0.8, 0.8, 0.2)
+const PANEL_SIZE = 192  # 2x2 cells = one panel
+
+# Industrial color scheme
+var panel_line_color = Color(0.4, 0.45, 0.5, 0.3)  # Lighter, more metallic
+var panel_corner_color = Color(0.5, 0.55, 0.6, 0.5)  # Corner rivets/bolts
+var panel_fill_color = Color(0.32, 0.32, 0.32, 0.05)  # Subtle panel fill
 
 func _ready():
-	z_index = -10
-	# Connect to the size_changed signal so the grid redraws if you resize the window
+	z_index = 1
 	get_viewport().size_changed.connect(queue_redraw)
-
 
 func _process(_delta):
 	get_tree().create_timer(10.0).timeout.connect(queue_redraw)
@@ -18,47 +22,24 @@ func _draw() -> void:
 	var center = camera_2d.get_screen_center_position()
 	var top_left = center - (view_size / 2)
 	var bottom_right = center + (view_size / 2)
-	var start_x = int(floor(top_left.x / CELL_SIZE)) * CELL_SIZE
-	var start_y = int(floor(top_left.y / CELL_SIZE)) * CELL_SIZE
-	var end_x = int(floor(bottom_right.x / CELL_SIZE)) * CELL_SIZE
-	var end_y = int(floor(bottom_right.y / CELL_SIZE)) * CELL_SIZE
 	
-	## DEBUG: Print camera and viewport info
-	#print("=== DEBUG INFO ===")
-	#print("Camera position: ", camera_2d.global_position)
-	#print("Camera center: ", center)
-	#print("View size: ", view_size)
-	#print("Visible range X: ", top_left.x, " to ", bottom_right.x)
-	#print("Visible range Y: ", top_left.y, " to ", bottom_right.y)
-	#print("Influence grid size: ", GameData.influence_grid.size())
+	var start_x = int(floor(top_left.x / PANEL_SIZE)) * PANEL_SIZE
+	var start_y = int(floor(top_left.y / PANEL_SIZE)) * PANEL_SIZE
+	var end_x = int(ceil(bottom_right.x / PANEL_SIZE)) * PANEL_SIZE
+	var end_y = int(ceil(bottom_right.y / PANEL_SIZE)) * PANEL_SIZE
 	
-	# Draw heatmap FIRST (so it appears behind grid lines)
+	# Draw heatmap first (your existing code)
 	var drawn_count = 0
-	var positive_count = 0
-	var negative_count = 0
-	var max_positive = 0.0
-	var max_negative = 0.0
-	
 	for tile in GameData.influence_grid:
 		var score = GameData.influence_grid[tile]
 		if abs(score) < 0.1:
 			continue
 		
-		if score > 0:
-			positive_count += 1
-			max_positive = max(max_positive, score)
-		else:
-			negative_count += 1
-			max_negative = min(max_negative, score)
-		
-		# Smoother color gradient
 		var color: Color
 		if score > 0:
-			# Positive: Blue to Green gradient
 			var intensity = clamp(score / 150.0, 0.0, 1.0)
 			color = Color(0.0, 0.5 + intensity * 0.5, 0.3 + intensity * 0.7)
 		else:
-			# Negative: Orange to Red gradient
 			var intensity = clamp(abs(score) / 150.0, 0.0, 1.0)
 			color = Color(0.8 + intensity * 0.2, 0.3 - intensity * 0.3, 0.0)
 		
@@ -68,21 +49,73 @@ func _draw() -> void:
 		draw_rect(rect, color)
 		drawn_count += 1
 	
-	#print("Drew ", drawn_count, " heatmap tiles | Positive: ", positive_count, " (max: ", max_positive, ") | Negative: ", negative_count, " (min: ", max_negative, ")")
+	# Draw industrial panels (128x128)
+	for x in range(start_x, end_x + PANEL_SIZE, PANEL_SIZE):
+		for y in range(start_y, end_y + PANEL_SIZE, PANEL_SIZE):
+			_draw_industrial_panel(Vector2(x, y))
+
+func _draw_industrial_panel(top_left: Vector2) -> void:
+	var panel_rect = Rect2(top_left, Vector2(PANEL_SIZE, PANEL_SIZE))
 	
+	# 1. Subtle panel background
+	draw_rect(panel_rect, panel_fill_color)
 	
-	# Draw grid lines
-	for x in range(start_x, end_x + CELL_SIZE, CELL_SIZE):
-		draw_line(Vector2(x, top_left.y), Vector2(x, bottom_right.y), line_color)
-	for y in range(start_y, end_y + CELL_SIZE, CELL_SIZE):
-		draw_line(Vector2(top_left.x, y), Vector2(bottom_right.x, y), line_color)
+	# 2. Panel border (thicker lines)
+	var border_width = 2.0
+	# Top
+	draw_line(top_left, top_left + Vector2(PANEL_SIZE, 0), panel_line_color, border_width)
+	# Left
+	draw_line(top_left, top_left + Vector2(0, PANEL_SIZE), panel_line_color, border_width)
+	# Right
+	draw_line(top_left + Vector2(PANEL_SIZE, 0), top_left + Vector2(PANEL_SIZE, PANEL_SIZE), panel_line_color, border_width)
+	# Bottom
+	draw_line(top_left + Vector2(0, PANEL_SIZE), top_left + Vector2(PANEL_SIZE, PANEL_SIZE), panel_line_color, border_width)
 	
-	# Draw grid points and labels
-	var point_color = Color(1, 1, 1, 0.5)
-	var font = ThemeDB.get_fallback_font()
-	var font_size = 12
-	for x in range(start_x, end_x + CELL_SIZE, CELL_SIZE):
-		for y in range(start_y, end_y + CELL_SIZE, CELL_SIZE):
-			draw_circle(Vector2(x, y), 2.0, point_color)
-			var grid_pos = Vector2i(x / CELL_SIZE, y / CELL_SIZE)
-			draw_string(font, Vector2(x + 5, y + 15), str(grid_pos), HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, point_color)
+	# 3. Corner rivets/bolts (industrial detail)
+	var rivet_radius = 3.0
+	var rivet_inset = 8.0
+	
+	# Top-left corner
+	draw_circle(top_left + Vector2(rivet_inset, rivet_inset), rivet_radius, panel_corner_color)
+	# Top-right corner
+	draw_circle(top_left + Vector2(PANEL_SIZE - rivet_inset, rivet_inset), rivet_radius, panel_corner_color)
+	# Bottom-left corner
+	draw_circle(top_left + Vector2(rivet_inset, PANEL_SIZE - rivet_inset), rivet_radius, panel_corner_color)
+	# Bottom-right corner
+	draw_circle(top_left + Vector2(PANEL_SIZE - rivet_inset, PANEL_SIZE - rivet_inset), rivet_radius, panel_corner_color)
+	
+	# 4. Optional: Diagonal corner chamfers (more industrial feel)
+	var chamfer_size = 12.0
+	var chamfer_color = Color(0.35, 0.35, 0.35, 0.15)
+	
+	# Top-left chamfer
+	var tl_chamfer = PackedVector2Array([
+		top_left,
+		top_left + Vector2(chamfer_size, 0),
+		top_left + Vector2(0, chamfer_size)
+	])
+	draw_colored_polygon(tl_chamfer, chamfer_color)
+	
+	# Top-right chamfer
+	var tr_chamfer = PackedVector2Array([
+		top_left + Vector2(PANEL_SIZE, 0),
+		top_left + Vector2(PANEL_SIZE - chamfer_size, 0),
+		top_left + Vector2(PANEL_SIZE, chamfer_size)
+	])
+	draw_colored_polygon(tr_chamfer, chamfer_color)
+	
+	# Bottom-left chamfer
+	var bl_chamfer = PackedVector2Array([
+		top_left + Vector2(0, PANEL_SIZE),
+		top_left + Vector2(chamfer_size, PANEL_SIZE),
+		top_left + Vector2(0, PANEL_SIZE - chamfer_size)
+	])
+	draw_colored_polygon(bl_chamfer, chamfer_color)
+	
+	# Bottom-right chamfer
+	var br_chamfer = PackedVector2Array([
+		top_left + Vector2(PANEL_SIZE, PANEL_SIZE),
+		top_left + Vector2(PANEL_SIZE - chamfer_size, PANEL_SIZE),
+		top_left + Vector2(PANEL_SIZE, PANEL_SIZE - chamfer_size)
+	])
+	draw_colored_polygon(br_chamfer, chamfer_color)

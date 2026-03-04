@@ -1,13 +1,16 @@
 [gd_scene format=3 uid="uid://cnmu3c4pg7icy"]
 
-[ext_resource type="Script" uid="uid://6gp6mh68yo5t" path="res://Scripts/main.gd" id="1_21xkr"]
+[ext_resource type="Texture2D" uid="uid://df0o6u8xgxvao" path="res://Assets/Background/BackgroundFinal.png" id="1_d1ilt"]
 [ext_resource type="PackedScene" uid="uid://db103wkeppd8v" path="res://Scenes/road_builder.tscn" id="2_8gbba"]
-[ext_resource type="Texture2D" uid="uid://bidtdj07ys2fl" path="res://Assets/Untitled_Artwork (9).png" id="2_344ge"]
 [ext_resource type="PackedScene" uid="uid://3xthd7uvwo1q" path="res://Scenes/input_manager.tscn" id="3_kry3j"]
 [ext_resource type="PackedScene" uid="uid://dnpwluvfdcpl1" path="res://UITestScenes/in_level_ui.tscn" id="4_jjvhh"]
 [ext_resource type="Script" uid="uid://dtgwxb8bypuhf" path="res://Scripts/director_2.gd" id="4_kry3j"]
 [ext_resource type="Script" uid="uid://coik2fhilbiw2" path="res://Scripts/camera_2d.gd" id="6_21xkr"]
 [ext_resource type="Shader" uid="uid://boevdjmjawqve" path="res://shaders/vignette.gdshader" id="7_344ge"]
+[ext_resource type="PackedScene" uid="uid://chapr2oeoqwub" path="res://UITestScenes/tech_tree.tscn" id="9_ynf5e"]
+[ext_resource type="PackedScene" uid="uid://k61p1hw6lw5t" path="res://Scenes/GridPanels.tscn" id="10_d1ilt"]
+[ext_resource type="PackedScene" uid="uid://dtv18ee30jl71" path="res://UITestScenes/top_panel.tscn" id="10_hptm8"]
+[ext_resource type="PackedScene" uid="uid://bfq5ber3wwxdb" path="res://Scenes/dust_particles.tscn" id="11_d1ilt"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ynf5e"]
 shader = ExtResource("7_344ge")
@@ -18,13 +21,12 @@ shader_parameter/dither_strength = 0.03
 shader_parameter/vignette_color = Color(0, 0, 0, 1)
 
 [node name="Main" type="Node2D" unique_id=1733956007]
-script = ExtResource("1_21xkr")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=42502156]
-texture = ExtResource("2_344ge")
+[node name="Background" type="Sprite2D" parent="." unique_id=42502156]
+texture = ExtResource("1_d1ilt")
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=1153972873]
-script = ExtResource("6_21xkr")
+[node name="GridPanels" parent="." unique_id=341426757 instance=ExtResource("10_d1ilt")]
+visible = false
 
 [node name="RoadBuilder" parent="." unique_id=91564763 instance=ExtResource("2_8gbba")]
 
@@ -40,16 +42,27 @@ default_color = Color(3.85046e-07, 0.593914, 0.8248381, 1)
 
 [node name="Entities" type="Node" parent="." unique_id=578986959]
 
+[node name="DustParticles" parent="." unique_id=622471858 instance=ExtResource("11_d1ilt")]
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1153972873]
+script = ExtResource("6_21xkr")
+
 [node name="CanvasLayer2" type="CanvasLayer" parent="." unique_id=1486273393]
 
-[node name="ColorRect" type="ColorRect" parent="CanvasLayer2" unique_id=1332873070]
+[node name="VignetteEffect" type="ColorRect" parent="CanvasLayer2" unique_id=1332873070]
 material = SubResource("ShaderMaterial_ynf5e")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=113825014]
 
 [node name="InLevelUI" parent="CanvasLayer" unique_id=1777359505 instance=ExtResource("4_jjvhh")]
+
+[node name="TechTree" parent="CanvasLayer" unique_id=487823733 instance=ExtResource("9_ynf5e")]
+visible = false
+
+[node name="TopPanel" parent="CanvasLayer" unique_id=1650890439 instance=ExtResource("10_hptm8")]

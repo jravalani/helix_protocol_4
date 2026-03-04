@@ -2,10 +2,6 @@ extends Node
 
 signal map_changed
 
-signal build_road
-
-signal rotate_house
-
 signal car_returned_home
 
 signal building_spawned(building_type: String, position: Vector2i, color_id: int)
@@ -20,4 +16,8 @@ signal increase_map_size(map_size: Rect2i)
 
 signal pipes_upgraded(upgrade_level: int)
 
-signal check_fractures()
+signal check_fractures
+
+signal open_rocket_menu
+
+signal rocket_segment_purchased(new_phase: int)

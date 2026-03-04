@@ -7,7 +7,6 @@ class_name Building
 #@export var building_type: GameData.BuildingType = GameData.BuildingType.VENT
 
 @onready var entrance_marker: Marker2D = $EntranceMarker
-@onready var sprite: Sprite2D = $Sprite2D
 
 var cell_type: String = ""
 var entrance_cell: Vector2i

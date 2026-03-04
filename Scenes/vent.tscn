@@ -1,9 +1,12 @@
 [gd_scene format=3 uid="uid://d4l4mljcpr1h"]
 
 [ext_resource type="Script" uid="uid://dgmysj83wsaoe" path="res://Scripts/vent.gd" id="1_ticwc"]
-[ext_resource type="Texture2D" uid="uid://ccgiwxv00o8w1" path="res://Assets/Vent/Untitled_Artwork (7).png" id="2_7ak8b"]
-[ext_resource type="Texture2D" uid="uid://b4i3r8gdp685l" path="res://Assets/Vent/Untitled_Artwork (8).png" id="2_ticwc"]
+[ext_resource type="Texture2D" uid="uid://06fdjs53mhv7" path="res://Assets/Vent/VentShadowFinal.png" id="2_0rnbu"]
+[ext_resource type="Texture2D" uid="uid://olcus0t1n1pv" path="res://Assets/Vent/VentFrame.png" id="3_1mklc"]
 [ext_resource type="FontFile" uid="uid://bydys01ppahq3" path="res://Assets/Roboto-Medium.ttf" id="3_3jr7h"]
+[ext_resource type="Texture2D" uid="uid://b6p4ck3r5r4x5" path="res://Assets/Vent/VentFan.png" id="4_bgkev"]
+[ext_resource type="Material" uid="uid://ekewvfpne6lb" path="res://ParticleEffects/rising_smoke.tres" id="5_arggx"]
+[ext_resource type="Texture2D" uid="uid://b28a3xkcillgg" path="res://lights/vent_light_texture.tres" id="9_bgkev"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_iqtyj"]
 font = ExtResource("3_3jr7h")
@@ -13,20 +16,35 @@ font_color = Color(0, 0, 0, 1)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_okrnj"]
 size = Vector2(64, 64)
 
+[sub_resource type="Gradient" id="Gradient_0rnbu"]
+offsets = PackedFloat32Array(0, 0.34972677)
+colors = PackedColorArray(0.7411765, 0.14509805, 0.7411765, 1, 0.49010885, 0.025840001, 0.4945157, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_arggx"]
+gradient = SubResource("Gradient_0rnbu")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+
 [node name="Vent" type="Area2D" unique_id=174691631 groups=["houses", "vents"]]
 z_index = 10
 collision_layer = 2
 script = ExtResource("1_ticwc")
 grid_size = Vector2i(1, 1)
 
-[node name="Sprite2D3" type="Sprite2D" parent="." unique_id=555589115]
-position = Vector2(13, 13)
-scale = Vector2(0.13, 0.13)
-texture = ExtResource("2_7ak8b")
+[node name="Shadow" type="Sprite2D" parent="." unique_id=555589115]
+modulate = Color(0.03876, 0.06100855, 0.07846785, 0.4)
+position = Vector2(8, 8)
+scale = Vector2(0.1, 0.1)
+texture = ExtResource("2_0rnbu")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=336567385]
-scale = Vector2(0.13, 0.13)
-texture = ExtResource("2_ticwc")
+[node name="Base" type="Sprite2D" parent="." unique_id=336567385]
+position = Vector2(3.8146973e-06, 0)
+scale = Vector2(0.1, 0.1)
+texture = ExtResource("3_1mklc")
+
+[node name="Fan" type="Sprite2D" parent="." unique_id=780370858]
+scale = Vector2(0.1, 0.1)
+texture = ExtResource("4_bgkev")
 
 [node name="Label" type="Label" parent="." unique_id=748231541]
 visible = false
@@ -46,5 +64,16 @@ vertical_alignment = 1
 position = Vector2(0, 32)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=120943362]
+visible = false
 scale = Vector2(0.65, 0.65)
 shape = SubResource("RectangleShape2D_okrnj")
+
+[node name="SmokeParticleEffect" type="GPUParticles2D" parent="." unique_id=547876146]
+texture = SubResource("GradientTexture2D_arggx")
+lifetime = 2.0
+process_material = ExtResource("5_arggx")
+
+[node name="PointLight2D" type="PointLight2D" parent="." unique_id=1380527512]
+scale = Vector2(0.13, 0.13)
+texture = ExtResource("9_bgkev")
+texture_scale = 5.0

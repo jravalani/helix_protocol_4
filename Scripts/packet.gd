@@ -1,7 +1,10 @@
 extends PathFollow2D
 class_name Packet
 
-@export var speed: float = 150
+@onready var packet_line: Line2D = $PacketLine2D
+@onready var packet_light: PointLight2D = $PacketLight
+
+@export var speed: float = 200
 var target_hub_cell: Vector2i
 var source_vent_cell: Vector2i
 var source_vent: Vent
@@ -9,14 +12,40 @@ var is_delivered: bool = false
 
 signal packet_delivered
 
-func _ready():
+const TAIL_STEPS    := 2  # how many sample points behind the head
+const TAIL_DISTANCE := 20.0   # total tail length in pixels
+const PACKET_WIDTH  := 10.0
+
+func _ready() -> void:
 	loop = false
 
-func _process(delta):
+func _process(delta: float) -> void:
 	if progress_ratio < 1.0:
 		progress += speed * delta
+		_update_visuals()
 	else:
 		deliver_to_hub()
+
+func _update_visuals() -> void:
+	packet_line.clear_points()
+	
+	var curve: Curve2D = get_parent().curve
+	if not curve:
+		return
+	
+	var total_length := curve.get_baked_length()
+	
+	# Sample from tail → head so Line2D draws tail first (thin end)
+	for i in range(TAIL_STEPS + 1):
+		var t := float(i) / float(TAIL_STEPS)
+		var sample_progress := progress - TAIL_DISTANCE * (1.0 - t)
+		sample_progress = clamp(sample_progress, 0.0, total_length)
+		
+		var world_pos := curve.sample_baked(sample_progress)
+		packet_line.add_point(to_local(world_pos))
+	
+	# Light stays at head (this node's position is already the head)
+	packet_light.position = Vector2.ZERO
 
 func setup_path(vent_node: Vent, start_cell: Vector2i, end_cell: Vector2i):
 	source_vent = vent_node

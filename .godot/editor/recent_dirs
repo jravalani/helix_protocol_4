@@ -1,8 +1,10 @@
-res://Scripts/
 res://shaders/
+res://lights/
 res://Scenes/
+res://Scripts/
+res://ParticleEffects/
+res://UITestScenes/
 /home/jay/GodotGames/finalprojectprototype4/
 res://Resources/
 res://Globals/
 res://UITest/
-res://UITestScenes/

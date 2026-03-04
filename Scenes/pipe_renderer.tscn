@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://bfxt03fv38foh"]
+
+[ext_resource type="Script" uid="uid://c1nouj8wc677t" path="res://Scripts/pipe_renderer.gd" id="1_ndpdx"]
+
+[node name="PipeRenderer" type="Node2D" unique_id=249905004 groups=["pipe_renderer"]]
+script = ExtResource("1_ndpdx")
+
+[node name="MasterOutline" type="Line2D" parent="." unique_id=311242063]
+width = 40.0
+default_color = Color(0.16409835, 0.18281268, 0.21209751, 1)
+joint_mode = 2
+round_precision = 20
+antialiased = true
+
+[node name="MasterCaps" type="Line2D" parent="." unique_id=431448826]
+default_color = Color(0.25882354, 0.25882354, 0.25882354, 1)
+
+[node name="MasterCase" type="Line2D" parent="." unique_id=7146545]
+width = 36.0
+default_color = Color(0.16470589, 0.18431373, 0.21176471, 1)
+joint_mode = 2
+round_precision = 20
+antialiased = true
+
+[node name="MasterFracture" type="Line2D" parent="." unique_id=701645032]
+default_color = Color(0.79710615, 0.23040107, 0, 1)

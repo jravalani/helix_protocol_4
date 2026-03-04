@@ -1,0 +1,54 @@
+[gd_scene format=3 uid="uid://dtv18ee30jl71"]
+
+[ext_resource type="FontFile" uid="uid://bydys01ppahq3" path="res://Assets/Roboto-Medium.ttf" id="1_316ql"]
+[ext_resource type="Script" uid="uid://cef0ql384ei77" path="res://Scripts/top_panel.gd" id="1_l2cge"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_l2cge"]
+font = ExtResource("1_316ql")
+font_size = 40
+
+[sub_resource type="LabelSettings" id="LabelSettings_il7hk"]
+font = ExtResource("1_316ql")
+font_size = 40
+
+[node name="TopPanel" type="Control" unique_id=1650890439]
+layout_mode = 3
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+script = ExtResource("1_l2cge")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1021873343]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 76.0
+grow_horizontal = 2
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 60
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer" unique_id=1535723111]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 50
+alignment = 2
+
+[node name="PipeCount" type="Label" parent="MarginContainer/HBoxContainer" unique_id=226785252]
+layout_mode = 2
+text = "Pipe Count: "
+label_settings = SubResource("LabelSettings_l2cge")
+
+[node name="Pressure" type="Label" parent="MarginContainer/HBoxContainer" unique_id=524132634]
+layout_mode = 2
+text = "Pressure:"
+label_settings = SubResource("LabelSettings_l2cge")
+
+[node name="AutoReserve" type="Label" parent="MarginContainer/HBoxContainer" unique_id=1097720679]
+layout_mode = 2
+text = "Auto Repair Data: "
+label_settings = SubResource("LabelSettings_l2cge")
+
+[node name="DataLabel" type="Label" parent="MarginContainer/HBoxContainer" unique_id=881179059]
+layout_mode = 2
+text = "Data: "
+label_settings = SubResource("LabelSettings_il7hk")

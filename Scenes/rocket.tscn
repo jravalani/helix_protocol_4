@@ -1,15 +1,102 @@
 [gd_scene format=3 uid="uid://cveetfvewmakn"]
 
 [ext_resource type="Script" uid="uid://b8r1mhnyn31nx" path="res://Scripts/rocket.gd" id="1_kvp10"]
-[ext_resource type="Texture2D" uid="uid://bslb4va732var" path="res://Assets/rocket_temp.png" id="1_wrv6b"]
+[ext_resource type="Texture2D" uid="uid://bxlsh8s4vttgf" path="res://Assets/Rocket/Segment1Shadow.png" id="2_6mlh7"]
+[ext_resource type="Texture2D" uid="uid://dnsq7msi7f7nh" path="res://Assets/Rocket/Segment2Shadow.png" id="3_4eg6v"]
+[ext_resource type="Texture2D" uid="uid://dqc3eilcfbtwv" path="res://Assets/Rocket/Segment3Shadow.png" id="4_o7850"]
+[ext_resource type="Texture2D" uid="uid://b2aro16mbbp83" path="res://Assets/Rocket/Segment4Shadow.png" id="5_788xe"]
+[ext_resource type="Texture2D" uid="uid://dkona51bnsbsd" path="res://Assets/Rocket/Segment5Shadow.png" id="6_1n2vw"]
+[ext_resource type="Texture2D" uid="uid://bvr1gss1nfryq" path="res://Assets/Rocket/RocketSegment1.png" id="7_tk6j2"]
+[ext_resource type="Texture2D" uid="uid://dkbu02ygceir3" path="res://Assets/Rocket/RocketSegment2_Shadow.png" id="8_1n2vw"]
+[ext_resource type="Texture2D" uid="uid://ctx6fw2w7e6pn" path="res://Assets/Rocket/RocketSegment2_1.png" id="8_4eg6v"]
+[ext_resource type="Texture2D" uid="uid://dc25qiql70sqp" path="res://Assets/Rocket/RocketSegment3_1.png" id="9_o7850"]
+[ext_resource type="Texture2D" uid="uid://xo5axfk3tx1s" path="res://Assets/Rocket/RocketSegment4_1.png" id="10_788xe"]
+[ext_resource type="Texture2D" uid="uid://c4aexmmv4ucha" path="res://Assets/Rocket/RocketSegment5_1.png" id="11_1n2vw"]
+[ext_resource type="Texture2D" uid="uid://cgftlnl8ri4l0" path="res://Assets/Rocket/RocketSegment4_1Shadow.png" id="11_tk6j2"]
+[ext_resource type="Texture2D" uid="uid://obdlsfn4fdxw" path="res://Assets/Rocket/RocketSegment5_1Shadow.png" id="13_gg5sc"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_kvp10"]
+size = Vector2(256, 256)
 
 [node name="Rocket" type="Area2D" unique_id=158970432]
+z_index = 200
 script = ExtResource("1_kvp10")
+grid_size = Vector2i(4, 4)
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=935005763]
-modulate = Color(1, 1, 1, 0.60784316)
-texture = ExtResource("1_wrv6b")
+[node name="Shadow1" type="Sprite2D" parent="." unique_id=1592261778]
+position = Vector2(339.5, 212.7)
+scale = Vector2(0.42, 0.42)
+texture = ExtResource("2_6mlh7")
+
+[node name="Shadow2" type="Sprite2D" parent="." unique_id=427853378]
+position = Vector2(441, 201.9)
+scale = Vector2(0.42, 0.42)
+texture = ExtResource("3_4eg6v")
+
+[node name="Shadow3" type="Sprite2D" parent="." unique_id=2115304324]
+position = Vector2(441, 201.9)
+scale = Vector2(0.42, 0.42)
+texture = ExtResource("4_o7850")
+
+[node name="Shadow4" type="Sprite2D" parent="." unique_id=506498021]
+position = Vector2(441, 201.9)
+scale = Vector2(0.42, 0.42)
+texture = ExtResource("5_788xe")
+
+[node name="Shadow5" type="Sprite2D" parent="." unique_id=649567158]
+position = Vector2(441, 201.9)
+scale = Vector2(0.42, 0.42)
+texture = ExtResource("6_1n2vw")
+
+[node name="Segment1" type="Sprite2D" parent="." unique_id=631061440]
+scale = Vector2(0.43, 0.43)
+texture = ExtResource("7_tk6j2")
+centered = false
+
+[node name="Segment2_Shadow" type="Sprite2D" parent="." unique_id=27670453]
+scale = Vector2(0.43, 0.43)
+texture = ExtResource("8_1n2vw")
+centered = false
+
+[node name="Segment2" type="Sprite2D" parent="." unique_id=935005763]
+scale = Vector2(0.43, 0.43)
+texture = ExtResource("8_4eg6v")
+centered = false
+
+[node name="Segment3_Shadow" type="Sprite2D" parent="." unique_id=1547710537]
+scale = Vector2(0.43, 0.43)
+texture = ExtResource("8_1n2vw")
+centered = false
+
+[node name="Segment3" type="Sprite2D" parent="." unique_id=225479732]
+scale = Vector2(0.43, 0.43)
+texture = ExtResource("9_o7850")
+centered = false
+
+[node name="Segment4_Shadow" type="Sprite2D" parent="." unique_id=1150991052]
+scale = Vector2(0.43, 0.43)
+texture = ExtResource("11_tk6j2")
+centered = false
+
+[node name="Segment4" type="Sprite2D" parent="." unique_id=1394297274]
+scale = Vector2(0.43, 0.43)
+texture = ExtResource("10_788xe")
+centered = false
+
+[node name="Segment5_Shadow" type="Sprite2D" parent="." unique_id=2125414238]
+scale = Vector2(0.43, 0.43)
+texture = ExtResource("13_gg5sc")
+centered = false
+
+[node name="Segment5" type="Sprite2D" parent="." unique_id=2106121224]
+scale = Vector2(0.43, 0.43)
+texture = ExtResource("11_1n2vw")
 centered = false
 
 [node name="EntranceMarker" type="Marker2D" parent="." unique_id=919074711]
 position = Vector2(0, 96)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=871883852]
+visible = false
+position = Vector2(128, 128)
+shape = SubResource("RectangleShape2D_kvp10")

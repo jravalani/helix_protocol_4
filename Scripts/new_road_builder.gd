@@ -59,31 +59,48 @@ func mouse_to_cell() -> Vector2i:
 	)
 
 func build_road(cell: Vector2i) -> void:
+	print("=== BUILD_ROAD START ===")
+	print("Cell: ", cell)
+	
 	# 1. THE GATEKEEPER CHECK (Now checking building_grid)
 	var building_at_cell = GameData.building_grid.get(cell)
+	print("Building at cell: ", building_at_cell)
+	
 	var was_entrance := false
 	
 	if building_at_cell != null:
-		# Check if the object at this cell is a Workplace/House
-		# (Adjust these types based on your specific Building scripts)
+		print("Building exists, checking if it's a Building type...")
 		if building_at_cell is Building:
-			# If it's the main body, block it.
-			# If we are using a specific entrance cell system, we allow roads on the entrance.
 			if cell != building_at_cell.entrance_cell:
-				print("access denied: cell", cell, "belongs to a building body")
+				print("ACCESS DENIED: cell belongs to building body")
 				return
 			else:
+				print("This is an entrance cell, allowing road")
 				was_entrance = true
-
+	else:
+		print("No building at this cell")
+	
 	# 2. Get or Create the road (Now using road_grid)
 	var current_road = GameData.road_grid.get(cell)
+	print("Current road at cell: ", current_road)
 	
 	if not current_road is NewRoadTile:
-		if ResourceManager.spend_tile():
+		print("No road exists yet, checking resources...")
+		
+		if GameData.current_pipe_count > 0:
+			print("Resources available, creating road...")
+			
+			ResourceManager.spend_tile()
+			
 			current_road = road_tile.instantiate()
+			print("Road instantiated: ", current_road)
+			
 			current_road.position = GameData.get_cell_center(cell)
+			print("Road position: ", current_road.position)
+			
 			current_road.set_cell(cell)
 			add_child(current_road)
+			print("Road added as child")
 				
 			if was_entrance:
 				current_road.is_entrance = true
@@ -92,9 +109,12 @@ func build_road(cell: Vector2i) -> void:
 			GameData.road_grid[cell] = current_road
 			GameData.apply_influence(cell, "road")
 			GameData.add_navigation_point(cell)
+			print("ROAD CREATED SUCCESSFULLY!")
 		else:
 			print("Out of Tiles")
 			return
+	else:
+		print("Road already exists at this cell")
 	
 	# 3. THE HANDSHAKE (Connection logic using road_grid)
 	if last_build_cell != Vector2i(-1, -1) and last_build_cell != cell:
@@ -112,6 +132,7 @@ func build_road(cell: Vector2i) -> void:
 	
 	SignalBus.map_changed.emit.call_deferred()
 	last_build_cell = cell
+	print("=== BUILD_ROAD END ===")
 
 func build_road_line(target_cell: Vector2i) -> void:
 	if last_build_cell == Vector2i(-1, -1):
@@ -131,6 +152,9 @@ func remove_road(cell: Vector2i) -> void:
 	var object_at_cell = GameData.road_grid.get(cell)
 	
 	if object_at_cell is NewRoadTile:
+		
+		if object_at_cell.is_fractured:
+			return
 		
 		if object_at_cell.is_permanent:
 			return

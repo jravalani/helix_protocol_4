@@ -1,13 +1,33 @@
 [gd_scene format=3 uid="uid://cew4odenqled6"]
 
 [ext_resource type="Script" uid="uid://dqgpj0qupx1t3" path="res://Scripts/packet.gd" id="1_gq3dw"]
-[ext_resource type="Texture2D" uid="uid://d1dxfrslry84y" path="res://Assets/car1.png" id="2_t38f7"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_r0rbx"]
+blend_mode = 1
+
+[sub_resource type="Gradient" id="Gradient_r0rbx"]
+offsets = PackedFloat32Array(0, 0.91061455, 1)
+colors = PackedColorArray(0.13120982, 0.045111805, 0.015026998, 1, 0.7398832, 0.013506528, 0.70509785, 1, 0.9999996, 0.95954746, 0.99647146, 1)
+
+[sub_resource type="Gradient" id="Gradient_gq3dw"]
+offsets = PackedFloat32Array(0, 0.420765)
+colors = PackedColorArray(1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_t38f7"]
+gradient = SubResource("Gradient_gq3dw")
+fill = 1
+fill_from = Vector2(0.47863248, 0.53846157)
 
 [node name="Car" type="PathFollow2D" unique_id=1813453801]
+z_index = 2
 script = ExtResource("1_gq3dw")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1549460887]
-z_index = 20
-texture = ExtResource("2_t38f7")
+[node name="PacketLine2D" type="Line2D" parent="." unique_id=702864259]
+material = SubResource("CanvasItemMaterial_r0rbx")
+width = 8.0
+gradient = SubResource("Gradient_r0rbx")
+begin_cap_mode = 1
+end_cap_mode = 1
 
-[node name="RemoteTransform2D" type="RemoteTransform2D" parent="." unique_id=240354140]
+[node name="PacketLight" type="PointLight2D" parent="." unique_id=541508061]
+texture = SubResource("GradientTexture2D_t38f7")

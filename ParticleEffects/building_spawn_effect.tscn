@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cc5v664n2lxdm"]
+
+[ext_resource type="Script" uid="uid://dsvghfbtqluym" path="res://Scripts/building_spawn_effect.gd" id="1_jhfig"]
+
+[node name="BuildingSpawnEffect" type="Node2D" unique_id=271998760]
+script = ExtResource("1_jhfig")

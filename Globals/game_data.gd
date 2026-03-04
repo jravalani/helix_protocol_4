@@ -1,21 +1,162 @@
 extends Node
 
+## =============================================================================
+## GRID & SPATIAL CONSTANTS
+## =============================================================================
+
 const CELL_SIZE: Vector2 = Vector2(64, 64)
-const START_SIZE = 20
 const MAX_WIDTH = 52
 const MAX_HEIGHT = 38
 
+## Map expansion stages (progressive unlock areas)
+var map_stages = [
+	Rect2i(-8, -4, 16, 8),   # Stage 0: Starting area
+	Rect2i(-11, -6, 22, 12),  # Stage 1: First expansion
+	Rect2i(-13, -7, 26, 14),  # Stage 2: Second expansion
+	Rect2i(-16, -9, 32, 18)   # Stage 3: Full map
+]
+
+## =============================================================================
+## BUILDING LIMITS & COUNTS
+## =============================================================================
+
+const MAX_VENTS = 50
+const MAX_HUBS = 12
+const START_SIZE = 20
+
+var current_hub_count: int = 0
+var current_vent_count: int = 0
+var current_pipe_count: int = 25
+
+## =============================================================================
+## ZONE SYSTEM
+## =============================================================================
+
+enum Zone {
+	CORE,
+	INNER,
+	OUTER,
+	FRONTIER
+}
+
+const ZONE_REINFORCE_COSTS = [150, 200, 250, 300]
+
+var active_reinforcement_timer: SceneTreeTimer = null
+var current_reinforced_zone: int = -1
+var reinforcement_version: int = 0
+
+## =============================================================================
+## PRESSURE SYSTEM
+## =============================================================================
+
 const MAX_PRESSURE: float = 100.0
 const BASE_RATE: float = 0.025
-var MAX_PRESSURE_PHASE: int = 4
+var MAX_PRESSURE_PHASE: int = 10
 
+var current_pressure: float = 0.0
+var current_pressure_phase: int = 0
+
+## =============================================================================
+## UPGRADE SYSTEM
+## =============================================================================
+
+## Pipe upgrades (increase capacity/flow)
 const MAX_PIPE_UPGRADES: int = 3
 const PIPE_UPGRADE_COSTS = [150, 300, 450]
+var current_pipe_upgrade_level: int = 0
 
+## Hull/Shield upgrades (protect against damage)
 const MAX_HULL_SHIELD_UPGRADES: int = 4
 const HULL_SHIELD_UPGRADE_COSTS = [300, 500, 800, 1200]
+var current_hull_shield_level: int = 1
+var hull_schield_integrity: float = 100.0
 
-## Building type constants
+## Pipe repair costs
+const SINGLE_PIPE_REPAIR_COST: int = 5
+var auto_repair_enabled: bool = false
+var data_reserve_for_auto_repairs: int = 0
+
+## =============================================================================
+## ECONOMY & PROGRESSION
+## =============================================================================
+
+var total_data: int = 25000
+var score_to_next_reward: int = 8
+
+## =============================================================================
+## SYSTEM METRICS (updated per frame)
+## =============================================================================
+
+var total_hub_backlog: int = 0
+var total_backlog: int = 0
+var average_vent_utilization: float = 0.0
+var active_packet_count: int = 0
+
+## =============================================================================
+## MAP STATE
+## =============================================================================
+
+var current_stage: int = 0
+var current_map_size: Rect2i = Rect2i(-8, -4, 16, 8)
+var rocket_cell: Vector2i = Vector2i(0, 0)
+
+## =============================================================================
+## GRID DATA STRUCTURES
+## =============================================================================
+## All use Vector2i as keys for cell coordinates
+
+var road_grid: Dictionary = {}           # Tracks built roads
+var fractured_pipes: Dictionary = {}     # Tracks damaged pipes
+var building_grid: Dictionary = {}       # Tracks placed buildings
+var road_connections: Dictionary = {}    # Tracks road network connectivity
+var influence_grid: Dictionary = {}      # Tracks zone influence
+
+var astar: AStar2D = AStar2D.new()       # Pathfinding graph
+
+## =============================================================================
+## ROCKET 
+## =============================================================================
+
+var current_rocket_phase: int = 0
+
+const ROCKET_UPGRADES = {
+	1: {
+		"name": "Structural Frame",
+		"cost": 300,
+		"description": "Increases global hull integrity.",
+		"shield_boost": 1 # Increments current_hull_shield_level
+	},
+	2: {
+		"name": "Conduit Amplifier",
+		"cost": 500,
+		"description": "Upgrades Pipes to Tier 2: +15% Speed.",
+		"pipe_tier": 2
+	},
+	3: {
+		"name": "Oxygen Overdrive",
+		"cost": 800,
+		"description": "Hubs request oxygen faster.",
+		"demand_multiplier": 0.8 # Lower is faster
+	},
+	4: {
+		"name": "Pressure Regulator",
+		"cost": 1200,
+		"description": "Upgrades Pipes to Tier 3: High resistance.",
+		"pipe_tier": 3,
+		"shield_boost": 1
+	},
+	5: {
+		"name": "Launch Control",
+		"cost": 1500,
+		"description": "Final phase: Prepare for launch.",
+		"is_final": true
+	}
+}
+
+## =============================================================================
+## BUILDING TYPES (Currently commented out)
+## =============================================================================
+
 #enum BuildingType {
 	#VENT,           # Oxygen source
 	#RESEARCH_HUB,   # +50% data, -20% oxygen
@@ -24,7 +165,6 @@ const HULL_SHIELD_UPGRADE_COSTS = [300, 500, 800, 1200]
 	#ROCKET          # Final objective
 #}
 
-## Building type properties
 #const BUILDING_TYPE_DATA = {
 	#BuildingType.VENT: {
 		#"name": "Vent",
@@ -52,38 +192,42 @@ const HULL_SHIELD_UPGRADE_COSTS = [300, 500, 800, 1200]
 		#"oxygen_multiplier": 0.5
 	#}
 #}
-var current_pressure: float = 0.0
-var current_pressure_phase: int = 1
 
-var current_pipe_upgrade_level: int = 0
-
-var current_road_tiles: int = 25
-var total_data: int = 0
-var score_to_next_reward: int = 8
-
-var current_hull_shield_level: int = 1
-var hull_schield_integrity: float = 100.0
-
-var map_stages = [
-	Rect2i(-8, -4, 16, 8),
-	Rect2i(-11, -6, 22, 12),
-	Rect2i(-13, -7, 26, 14),
-	Rect2i(-16, -9, 32, 18)
-]
-var current_stage = 0
-var current_map_size = Rect2i(-8, -4, 16, 8)
-
-# Grid dictionaries - store every cell status
-# key: Vector2i (cell coordinates)
-var road_grid: Dictionary = {}
-var building_grid: Dictionary = {}
-var road_connections: Dictionary = {}
-var influence_grid: Dictionary = {}
-var astar = AStar2D.new()
-
+var metric_timer := 0.0
 
 func _ready() -> void:
-	pass
+	randomize()
+
+func _process(delta: float) -> void:
+	metric_timer += delta
+	if metric_timer >= 1.0:
+		update_system_metrics()
+		metric_timer = 0.0
+
+func update_system_metrics() -> void:
+	"""Calculate global system metrics once per second."""
+	# Calculate total hub backlog
+	total_hub_backlog = 0
+	var hubs = get_tree().get_nodes_in_group("hubs")
+	for hub in hubs:
+		if "oxygen_backlog" in hub:
+			total_hub_backlog += hub.oxygen_backlog
+	
+	# Calculate average vent utilization
+	var vents = get_tree().get_nodes_in_group("vents")
+	if vents.size() > 0:
+		var total_util = 0.0
+		for vent in vents:
+			if vent.has_method("get_current_capacity") and vent.has_method("get_max_capacity"):
+				var max_cap = vent.get_max_capacity()
+				if max_cap > 0:
+					total_util += float(vent.get_current_capacity()) / max_cap
+		average_vent_utilization = total_util / vents.size()
+	else:
+		average_vent_utilization = 0.0
+	
+	# Count active packets (optional - can add later)
+	# active_packet_count = get_tree().get_nodes_in_group("packets").size()
 
 func is_road_cell_empty(cell: Vector2i) -> bool:
 	# if the dictionary has that cell, then "no its not empty"
@@ -137,7 +281,7 @@ func add_marker_point(pos: Vector2) -> void:
 	if not astar.has_point(id):
 		astar.add_point(id, pos)
 
-func get_cell_id(cell: Vector2) -> int:
+func get_cell_id(cell: Vector2i) -> int:
 	return str(cell).hash()
 
 func add_navigation_point(cell: Vector2i) -> void:
@@ -253,3 +397,17 @@ func get_hull_shield_multiplier() -> float:
 	var integrity_factor = hull_schield_integrity / 100.0
 	
 	return max(0.2, 1.0 - (base_protection * integrity_factor))
+
+#region Zone
+func get_zone_for_cell(cell: Vector2i) -> Zone:
+	var distance = Vector2(cell).distance_to(Vector2(rocket_cell))
+
+	if distance < 5:
+		return Zone.CORE
+	elif distance < 10:
+		return Zone.INNER
+	elif distance < 15:
+		return Zone.OUTER
+	else:
+		return Zone.FRONTIER
+#endregion

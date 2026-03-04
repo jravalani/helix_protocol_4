@@ -1,73 +1,110 @@
 extends Node2D
 
-# =============================================================================
-# SCRIPT: THE ABYSSAL ARCHITECT (Director System)
-# =============================================================================
-# THEME: The Great Ascent - A journey from the crushing depths to the surface.
-# CORE LOOP: 
-#   1. Director seeds "The Colony" (Hubs & Vents).
-#   2. Player routes Oxygen from Vents to Hubs to generate Data.
-#   3. Resources are spent on Rocket Parts or protecting the colony.
-#   4. Global Pressure rises, threatening to crush unprotected structures.
-#
-# DESIGN PHILOSOPHY:
-# - AESTHETIC FLOW: Buildings should cluster naturally to look like a 
-#   deliberate undersea habitat rather than a scattered grid.
-# - RHYTHMIC PACING: Hubs are the "Anchor Points" of the colony. Vents are the 
-#   "Satellites." The Director must ensure a pleasing ratio between them.
-# - PRESSURE AS A GARDENER: Pressure isn't just difficulty; it's a force that
-#   prunes the map, forcing the player to choose what to save and where to expand.
-#
-# KEY METRICS:
-# - Hubs: Forced spawns (Mini Motorways style). High priority.
-# - Vents: Organic spawns. Often cluster near Hubs for visual cohesion.
-# - Map Expansion: Occurs when the Director "runs out of room" for the vision.
-# =============================================================================
+## =============================================================================
+## SCRIPT: THE ABYSSAL ARCHITECT (Director System)
+## =============================================================================
+## THEME: The Great Ascent - A journey from the crushing depths to the surface.
+## CORE LOOP: 
+##   1. Director seeds "The Colony" (Hubs & Vents).
+##   2. Player routes Oxygen from Vents to Hubs to generate Data.
+##   3. Resources are spent on Rocket Parts or protecting the colony.
+##   4. Global Pressure rises, threatening to crush unprotected structures.
+##
+## DESIGN PHILOSOPHY:
+## - AESTHETIC FLOW: Buildings should cluster naturally to look like a 
+##   deliberate undersea habitat rather than a scattered grid.
+## - RHYTHMIC PACING: Hubs are the "Anchor Points" of the colony. Vents are the 
+##   "Satellites." The Director must ensure a pleasing ratio between them.
+## - PRESSURE AS A GARDENER: Pressure isn't just difficulty; it's a force that
+##   prunes the map, forcing the player to choose what to save and where to expand.
+##
+## KEY METRICS:
+## - Hubs: Forced spawns (Mini Motorways style). High priority.
+## - Vents: Organic spawns. Often cluster near Hubs for visual cohesion.
+## - Map Expansion: Occurs when the Director "runs out of room" for the vision.
+## =============================================================================
 
-const MAX_SPAWN_POS_TRIES: int = 30
+## =============================================================================
+## SCENE PRELOADS
+## =============================================================================
 
-# scene preloads
 @onready var rocket_scene: PackedScene = preload("res://Scenes/rocket.tscn")
 @onready var research_hub_scene: PackedScene = preload("res://Scenes/hub3x2.tscn")
 @onready var vent_scene: PackedScene = preload("res://Scenes/vent.tscn")
 
-# node references
+## =============================================================================
+## NODE REFERENCES
+## =============================================================================
+
 @onready var camera_2d: Camera2D = $"../Camera2D"
 @onready var line_2d: Line2D = $Line2D
 @onready var entities: Node = $"../Entities"
 
-# Camera buffer 
-@onready var camera_buffer: int = 1
+## =============================================================================
+## SPAWN SYSTEM CONFIGURATION
+## =============================================================================
 
-# spawn radius
-var hub_base_radius: int = 4
-var vent_base_radius: int = 3
+const MAX_SPAWN_POS_TRIES: int = 30
 
-var hub_interval: float = 60.0
-var vent_interval: float = 20.0
-var vent_acceleration: float = 0.92
-var min_vent_interval: float = 8
-var hub_timer: float = 0.0
-var vent_timer: float = 0.0
-var hub_rotation = [0, PI/2, 3*PI/2]
-var hub_radius_multiplier: int = 2
+var use_dynamic_spawning: bool = true
+var intro_cooldown: float = 3.0
+
+## =============================================================================
+## BUILDING SIZE DEFINITIONS
+## =============================================================================
+
 var hub_size: Vector2i = Vector2i(3, 2)
 var vent_size: Vector2i = Vector2i(1, 1)
 var rocket_size: Vector2i = Vector2i(3, 3)
 
-var intro_cooldown: float = 3
+## Hub rotation options (in radians)
+var hub_rotation: Array = [0, PI/2, 3*PI/2]
+
+## =============================================================================
+## SPAWN TIMING & INTERVALS
+## =============================================================================
+
+## Hub spawning
+var min_vents_per_hub: int = 4        # Need at least 4 vents per hub
+var hub_spawn_cooldown: float = 15.0  # Minimum time between hub spawns
+var hub_cooldown_timer: float = 0.0
+var hub_interval: float = 60.0
+var hub_timer: float = 0.0
+var hub_spawn_eta: String = ""
+
+## Vent spawning (accelerates over time)
+var vent_interval: float = 20.0
+var vent_timer: float = 0.0
+var vent_acceleration: float = 0.92      # Multiplier applied each spawn
+var min_vent_interval: float = 8.0       # Fastest possible spawn rate
 
 
-# pressure system
-var increment = GameData.BASE_RATE * (1 + (GameData.current_pressure / GameData.MAX_PRESSURE))
+## =============================================================================
+## SPAWN RADIUS RULES
+## =============================================================================
 
-# hull shield degradation rate
-var degradation_rate: float = 0.05 * (GameData.current_pressure / 100) # need to tinker with this variable 
-var fracture_check_timer: float = 0.0
-var fracture_check_interval: float = 90.0
-# screen center
-var screen_center: Vector2
+var hub_base_radius: int = 4             # Base exclusion radius for hubs
+var hub_radius_multiplier: int = 2       # Additional spacing multiplier
+var vent_base_radius: int = 3            # Base exclusion radius for vents
 
+## =============================================================================
+## CAMERA & VIEWPORT
+## =============================================================================
+
+@onready var camera_buffer: int = 1      # Padding around camera view
+var screen_center: Vector2               # Cached center point
+
+## =============================================================================
+## PRESSURE SYSTEM
+## =============================================================================
+
+## Pressure increment calculation (quadratic scaling for late-game intensity)
+## Formula: BASE_RATE * (1 + (pressure_ratio^2))
+var pressure_ratio: float = 0.0
+var increment: float = 0.0
+
+## Hull shield degradation
+var degradation_rate: float = 0.0
 func _ready() -> void:
 	await get_tree().process_frame
 	
@@ -83,48 +120,53 @@ func _ready() -> void:
 	print("Current Map Size is ", GameData.current_map_size, " from ready function.")
 
 func _process(delta: float) -> void:
-	# every frame pressure increment will happen
-	# at certain pressure levels game states would change
-	GameData.current_pressure += increment * delta
+	# Pressure system
+	pressure_ratio = GameData.current_pressure / GameData.MAX_PRESSURE
+	increment = GameData.BASE_RATE * (1 + (pressure_ratio * pressure_ratio))
 	
-	# Hull shield degrades with pressure!
+	GameData.current_pressure += increment * delta
+	GameData.current_pressure = min(GameData.MAX_PRESSURE, GameData.current_pressure)
+	
+	# Hull shield degrades with pressure
+	degradation_rate = 0.05 * (GameData.current_pressure / 100)
 	GameData.hull_schield_integrity -= degradation_rate * delta
 	GameData.hull_schield_integrity = max(0, GameData.hull_schield_integrity)
 	
-	if GameData.current_pressure >= 30 and GameData.current_pressure_phase == 1:
-		transition_to_phase(2)
-	if GameData.current_pressure >= 60 and GameData.current_pressure_phase == 2:
-		transition_to_phase(3)
-	if GameData.current_pressure >= 90 and GameData.current_pressure_phase == 3:
-		transition_to_phase(4)
+	var target_phase = int(GameData.current_pressure / 10)
+	target_phase = clamp(target_phase, 0, 10)
+	
+	if target_phase > GameData.current_pressure_phase:
+		transition_to_phase(target_phase)
+	
 	if GameData.current_pressure >= 100:
 		print("Meltdown Triggered!")
 	
-	# every frame delta would be subtracted from hub interval and vent interval
-	# when the timer <= 0 we spawn hub and vent and set their intervals
+	# Intro cooldown
 	if intro_cooldown > 0:
 		intro_cooldown -= delta
 		return
 	
-	hub_timer -= delta
-	vent_timer -= delta
-	fracture_check_timer -= delta
+	# HUB SPAWNING - Vent-driven logic
+	if GameData.current_hub_count < GameData.MAX_HUBS:
+		hub_timer -= delta
+		
+		if hub_timer <= 0:
+			try_hub_spawn()
+			hub_timer = calculate_dynamic_hub_interval()
+				# Update debug display
+		hub_spawn_eta = "%.1fs" % max(0, hub_timer)
+	else:
+		hub_timer = hub_interval
+		hub_spawn_eta = "MAX"
 	
-	if hub_timer <= 0:
-		# spawn a hub
-		try_hub_spawn()
-		hub_timer += hub_interval
-		vent_interval = max(min_vent_interval, vent_interval * vent_acceleration)
-	
-	if vent_timer <= 0:
-		# spawn a vent
-		try_vent_spawn()
-		vent_timer += vent_interval
-	
-	if fracture_check_timer <= 0:
-		SignalBus.check_fractures.emit()
-		fracture_check_timer = fracture_check_interval
-
+	# VENT SPAWNING
+	if GameData.current_vent_count < GameData.MAX_VENTS:
+		vent_timer -= delta
+		if vent_timer <= 0:
+			try_vent_spawn()
+			vent_timer = calculate_dynamic_vent_interval()
+	else:
+		vent_timer = vent_interval
 #region Camera
 #func get_camera_bounds() -> Rect2i:
 	#var zoom = camera_2d.zoom
@@ -183,6 +225,71 @@ func spawn_rocket() -> void:
 #endregion
 
 #region Functions
+
+func calculate_dynamic_vent_interval() -> float:
+	var base_interval = 20.0
+	
+	var pressure_factor = GameData.current_pressure / GameData.MAX_PRESSURE
+	var pressure_multiplier = 1.0 - (pressure_factor * 0.5)
+	
+	var total_backlog = GameData.total_hub_backlog
+	var backlog_multiplier = 1.0/ (1.0 - (total_backlog / 20.0))
+	
+	var avg_utilization = GameData.average_vent_utilization
+	var utilization_multiplier = 1.0
+	if avg_utilization > 0.8:
+		utilization_multiplier = 0.6
+	if avg_utilization > 0.6:
+		utilization_multiplier = 0.8
+	
+	var final_interval = base_interval * pressure_multiplier * backlog_multiplier * utilization_multiplier
+	return clamp(final_interval, min_vent_interval, 30.0)
+
+
+func calculate_dynamic_hub_interval() -> float:
+	"""
+	Hub spawn interval based on:
+	1. Vent supply (more vents = faster spawns)
+	2. System backlog (high backlog = slower spawns, give time to recover)
+	"""
+	var base = 60.0
+	var current_vents = GameData.current_vent_count
+	
+	# 1. VENT FACTOR: More vents = pressure to spawn hubs faster
+	var vent_factor = 1.0
+	
+	if current_vents <= 3:
+		vent_factor = 1.2   # Very slow (72 sec)
+	elif current_vents <= 6:
+		vent_factor = 1.0   # Normal (60 sec)
+	elif current_vents <= 10:
+		vent_factor = 0.75  # Faster (45 sec)
+	elif current_vents <= 15:
+		vent_factor = 0.6   # Fast (36 sec)
+	elif current_vents <= 25:
+		vent_factor = 0.45  # Very fast (27 sec)
+	else:
+		vent_factor = 0.35  # Rapid (21 sec)
+	
+	# 2. BACKLOG FACTOR: High backlog = slow down hub spawning
+	var total_backlog = GameData.total_hub_backlog
+	var backlog_factor = 1.0
+	
+	if total_backlog > 50:
+		backlog_factor = 1.8   # CRITICAL backlog - spawn 80% slower
+	elif total_backlog > 30:
+		backlog_factor = 1.5   # High backlog - spawn 50% slower
+	elif total_backlog > 15:
+		backlog_factor = 1.2   # Medium backlog - spawn 20% slower
+	elif total_backlog < 10:
+		backlog_factor = 0.85  # Low backlog - spawn 15% faster (healthy!)
+	# else: normal (1.0)
+	
+	var final_interval = base * vent_factor * backlog_factor
+	
+	# Clamp to reasonable bounds
+	return clamp(final_interval, 20.0, 120.0)
+
 func is_area_clear(target_coord: Vector2i, area_size: Vector2i, camera_bounds: Rect2i, buffer: int = 0) -> bool:
 	for x in range(-buffer, area_size.x + buffer):
 		for y in range(-buffer, area_size.y + buffer):
@@ -272,9 +379,12 @@ func calculate_candidate_tiles(center: Vector2, min_dist: int, max_dist: int, si
 	
 	return candidates
 
-func score_tile(tile: Vector2i) -> int:
-	#NEW SYSTEM
-	return GameData.influence_grid.get(tile, 0.0)
+func score_tile(tile: Vector2i) -> float: # CHANGED from int to float
+	# Get the base score from the grid
+	var base_score = GameData.influence_grid.get(tile, 0.0)
+	
+	# Add a microscopic amount of noise to break perfect symmetrical ties
+	return base_score + randf_range(0.001, 0.050)
 	
 	## OLD SYSTEM
 	#var final_score: int = 0
@@ -343,28 +453,19 @@ func transition_to_phase(phase_number: int) -> void:
 	#Fracture pipes/roads?
 	#Change the influence grid dynamics?
 	#Force map expansion?
-	if GameData.current_pressure_phase < GameData.MAX_PRESSURE_PHASE:
+	if GameData.current_pressure_phase <= GameData.MAX_PRESSURE_PHASE:
 		GameData.current_pressure_phase = phase_number
+	print("----PHASE TRANSITION: ", phase_number, "----")
 	
-	match GameData.current_pressure_phase:
-		2:
-			print("Director: Pressure Critical. Phase 2 initiated!")
-			# increase spawn frequency
-			# trigger first event
-			fracture_check_interval *= 0.80 
-		3:
-			print("Director: Hull Integrity Failing. Phase 3 initiated!")
-			# increase fracture chance
-			fracture_check_interval *= 0.65
-			# more frequent events
-		4:
-			print("End of all. Launch or Die.")
-			# increase fracture chance
-			fracture_check_interval *= 0.50
-			# no new spawns 
-			# more events
-			
+	if phase_number >= 3:
+		trigger_fracture_wave()
 	
+	if phase_number >= 4:
+		vent_interval *= 0.95
+		print("Director: Logistics Boosted!")
+
+func trigger_fracture_wave() -> void:
+	SignalBus.check_fractures.emit()
 #endregion
 
 #region First Colony
@@ -394,8 +495,8 @@ func spawn_initial_colony() -> void:
 	
 	# Sort and pick LEAST NEGATIVE tile for hub (highest score)
 	scored_tiles.sort_custom(func (a, b): return a.score > b.score)
-	var target_tile_for_hub = scored_tiles[0].tile
-	print("Selected hub tile: ", target_tile_for_hub, " with score: ", scored_tiles[0].score)
+	var target_tile_for_hub = scored_tiles.pick_random().tile
+	print("Selected hub tile: ", target_tile_for_hub)
 	
 	# Instantiate the hub
 	var research_hub = research_hub_scene.instantiate()
@@ -405,6 +506,7 @@ func spawn_initial_colony() -> void:
 	
 	var hub_center_cell = target_tile_for_hub + Vector2i(1, 1)
 	GameData.apply_influence(hub_center_cell, "hub")
+	GameData.current_hub_count += 1
 	
 	# Now spawn a vent near the hub
 	var hub_world_pos = Vector2(target_tile_for_hub * GameData.CELL_SIZE.x)
@@ -423,13 +525,14 @@ func spawn_initial_colony() -> void:
 	
 	if not vent_scored_tiles.is_empty():
 		vent_scored_tiles.sort_custom(func (a, b): return a.score > b.score)
-		var target_tile_for_vent = vent_scored_tiles[0].tile
+		var target_tile_for_vent = vent_scored_tiles.pick_random().tile
 		
 		var vent_1 = vent_scene.instantiate()
 		entities.add_child(vent_1)
 		vent_1.position = Vector2(target_tile_for_vent * GameData.CELL_SIZE.x) + Vector2(GameData.CELL_SIZE.x / 2, GameData.CELL_SIZE.x / 2)
 		vent_1.register_building(vent_1)
 		GameData.apply_influence(target_tile_for_vent, "vent")
+		GameData.current_vent_count += 1
 		print("Spawned initial vent at: ", target_tile_for_vent)
 	else:
 		print("Cannot spawn initial vent - no candidates!")
@@ -512,9 +615,11 @@ func spawn_hub_at(position: Vector2i) -> void:
 	var hub = research_hub_scene.instantiate()
 	entities.add_child(hub)
 	hub.position = position * GameData.CELL_SIZE.x
+	#BuildingSpawnEffect.create_at(hub.position, get_parent(), hub_size)
 	hub.register_building(hub)
 	var hub_center_cell = position + Vector2i(1, 1)
 	GameData.apply_influence(hub_center_cell, "hub")
+	GameData.current_hub_count += 1
 #endregion
 
 #region VentSpawning
@@ -547,16 +652,25 @@ func try_vent_spawn() -> void:
 	# NEW SYSTEM
 	# once the center is set (we find the center from the above code)
 	# find candidate tiles around that center in a dynamic radius
+	var dynamic_min = 4 + (map_stage * 2)
+	var dynamic_max = 8 + (map_stage * 3)
+	
+	dynamic_min = max(3, dynamic_min - 1)
+	
 	var scored_tiles = []
-	var candidate_tiles = calculate_candidate_tiles(center, 3, 10, vent_size, 0)
+	var candidate_tiles = calculate_candidate_tiles(center, dynamic_min, dynamic_max, vent_size, 0)
 	
 	for candidate_tile in candidate_tiles:
 		var score = score_tile(candidate_tile)
+		
+		if score < -5000:
+			continue
+		
 		scored_tiles.append({
 			"tile": candidate_tile,
 			"score": score
 		})
-		
+	
 	if scored_tiles.is_empty():
 		print("Director: Can't spawn vent in this call. Skipping")
 		return
@@ -571,6 +685,8 @@ func try_vent_spawn() -> void:
 	var target_pos = top_3_tiles.pick_random()
 	var target_tile = target_pos.tile
 	
+	hub_with_lowest_vents.assigned_vents += 1
+	
 	spawn_vent_at(target_tile)
 	
 	## OLD SYSTEM
@@ -583,7 +699,9 @@ func try_vent_spawn() -> void:
 func spawn_vent_at(vent_position: Vector2i) -> void:
 	var vent = vent_scene.instantiate()
 	entities.add_child(vent)
-	vent.position = vent_position * GameData.CELL_SIZE.x + Vector2(GameData.CELL_SIZE.x / 2, GameData.CELL_SIZE.x / 2)
+	vent.position = Vector2(vent_position) * GameData.CELL_SIZE.x + Vector2(GameData.CELL_SIZE.x / 2, GameData.CELL_SIZE.x / 2)
+	#BuildingSpawnEffect.create_at(vent.position, get_parent(), vent_size)
 	vent.register_building(vent)
 	GameData.apply_influence(vent_position, "vent")
+	GameData.current_vent_count += 1
 #endregion

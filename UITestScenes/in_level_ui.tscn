@@ -1,21 +1,12 @@
 [gd_scene format=3 uid="uid://dnpwluvfdcpl1"]
 
 [ext_resource type="Script" uid="uid://dk3jqjxae20fr" path="res://UITest/in_level_ui.gd" id="1_s312j"]
-[ext_resource type="FontFile" uid="uid://bydys01ppahq3" path="res://Assets/Roboto-Medium.ttf" id="2_gwosu"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s312j"]
 bg_color = Color(0.6, 0.6, 0.6, 0.78431374)
 border_width_top = 3
 corner_radius_top_left = 10
 corner_radius_top_right = 10
-
-[sub_resource type="LabelSettings" id="LabelSettings_yowth"]
-font = ExtResource("2_gwosu")
-font_size = 40
-
-[sub_resource type="LabelSettings" id="LabelSettings_8c52c"]
-font = ExtResource("2_gwosu")
-font_size = 40
 
 [node name="InLevelUI" type="Control" unique_id=1777359505]
 layout_mode = 3
@@ -34,98 +25,144 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = -120.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_s312j")
 
-[node name="MarginContainer" type="MarginContainer" parent="Panel" unique_id=916433756]
+[node name="MarginContainer2" type="MarginContainer" parent="." unique_id=916433756]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -120.0
+offset_top = -196.0
 grow_horizontal = 2
 grow_vertical = 0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Panel/MarginContainer" unique_id=2120544331]
+[node name="FlowContainer" type="FlowContainer" parent="MarginContainer2" unique_id=1748498943]
+layout_mode = 2
+size_flags_vertical = 8
+theme_override_constants/h_separation = 64
+theme_override_constants/v_separation = 10
+alignment = 1
+
+[node name="TechTree" type="Button" parent="MarginContainer2/FlowContainer" unique_id=565887667]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/separation = 32
-alignment = 1
+theme_override_font_sizes/font_size = 18
+text = "TechTree"
 
-[node name="BuildRoadButton" type="Button" parent="Panel/MarginContainer/HBoxContainer" unique_id=1299942685]
-custom_minimum_size = Vector2(80, 80)
+[node name="UpgradePipes" type="Button" parent="MarginContainer2/FlowContainer" unique_id=231225114]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "Build Road"
-
-[node name="RotateHouseButton" type="Button" parent="Panel/MarginContainer/HBoxContainer" unique_id=615110545]
-layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "Rotate House
-"
-
-[node name="UpgradePipes" type="Button" parent="Panel/MarginContainer/HBoxContainer" unique_id=231225114]
-layout_mode = 2
-theme_override_font_sizes/font_size = 24
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 18
 text = "UpgradePipe
 "
 
-[node name="HullShield" type="Button" parent="Panel/MarginContainer/HBoxContainer" unique_id=358768480]
+[node name="HullShield" type="Button" parent="MarginContainer2/FlowContainer" unique_id=358768480]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 18
 text = "Upgrade
 Hull Integrity"
 
-[node name="HighwayButton2" type="Button" parent="Panel/MarginContainer/HBoxContainer" unique_id=1488870758]
+[node name="ReinforceZone" type="Button" parent="MarginContainer2/FlowContainer" unique_id=1488870758]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
-disabled = true
-text = "ComingSoon"
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 18
+text = "Reinforce Zone 
+Core"
 
-[node name="HighwayButton3" type="Button" parent="Panel/MarginContainer/HBoxContainer" unique_id=610994130]
+[node name="ReinforceZone2" type="Button" parent="MarginContainer2/FlowContainer" unique_id=1610623586]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
-disabled = true
-text = "ComingSoon"
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 18
+text = "Reinforce Zone 
+Inner"
 
-[node name="MarginContainer" type="MarginContainer" parent="." unique_id=680113447]
+[node name="ReinforceZone3" type="Button" parent="MarginContainer2/FlowContainer" unique_id=62590516]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 18
+text = "Reinforce Zone 
+Outer"
+
+[node name="ReinforceZone4" type="Button" parent="MarginContainer2/FlowContainer" unique_id=237321039]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 18
+text = "Reinforce Zone 
+Frontier"
+
+[node name="DataReserve" type="Button" parent="MarginContainer2/FlowContainer" unique_id=610994130]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 18
+text = "Add 100
+Data to
+ Auto Repairs"
+
+[node name="AutoRepair" type="Button" parent="MarginContainer2/FlowContainer" unique_id=980220459]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 18
+toggle_mode = true
+text = "Auto Repair
+Toggle"
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=1370430371]
 layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_bottom = 23.0
-grow_horizontal = 2
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 60
+offset_right = 1.0
+offset_bottom = 212.0
+mouse_filter = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer" unique_id=1806609271]
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer" unique_id=1358034559]
 layout_mode = 2
-size_flags_vertical = 0
-theme_override_constants/separation = 50
-alignment = 2
 
-[node name="RoadTiles" type="Label" parent="MarginContainer/HBoxContainer" unique_id=1531242638]
+[node name="PressurePhase" type="Label" parent="PanelContainer/VBoxContainer" unique_id=410234242]
 layout_mode = 2
-text = "Road Tiles:"
-label_settings = SubResource("LabelSettings_yowth")
 
-[node name="DataLabel" type="Label" parent="MarginContainer/HBoxContainer" unique_id=1839495792]
+[node name="CurrentHubCount" type="Label" parent="PanelContainer/VBoxContainer" unique_id=1976643508]
 layout_mode = 2
-text = "Data: "
-label_settings = SubResource("LabelSettings_8c52c")
 
-[node name="SpeedButton" type="Button" parent="MarginContainer/HBoxContainer" unique_id=1792044961]
+[node name="CurrentVentCount" type="Label" parent="PanelContainer/VBoxContainer" unique_id=1120877030]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("2_gwosu")
-theme_override_font_sizes/font_size = 40
-text = "Speed: 1x"
 
-[connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/BuildRoadButton" to="." method="_on_build_road_button_pressed"]
-[connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/RotateHouseButton" to="." method="_on_rotate_house_button_pressed"]
-[connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/UpgradePipes" to="." method="_on_upgrade_pipes_pressed"]
-[connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/HullShield" to="." method="_on_hull_shield_pressed"]
-[connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/HighwayButton2" to="." method="_on_highway_pressed"]
-[connection signal="pressed" from="Panel/MarginContainer/HBoxContainer/HighwayButton3" to="." method="_on_highway_pressed"]
-[connection signal="pressed" from="MarginContainer/HBoxContainer/SpeedButton" to="." method="_on_speed_button_pressed"]
+[node name="BacklogDebug" type="Label" parent="PanelContainer/VBoxContainer" unique_id=351732209]
+layout_mode = 2
+
+[node name="AverageVentUtilization" type="Label" parent="PanelContainer/VBoxContainer" unique_id=1453008219]
+layout_mode = 2
+
+[node name="ShieldHealth" type="Label" parent="PanelContainer/VBoxContainer" unique_id=600083236]
+layout_mode = 2
+
+[node name="DirectorTimers" type="Label" parent="PanelContainer/VBoxContainer" unique_id=417333228]
+layout_mode = 2
+
+[node name="HubStats" type="Label" parent="PanelContainer/VBoxContainer" unique_id=1853473433]
+layout_mode = 2
+
+[node name="OneSecTimer" type="Timer" parent="." unique_id=1038239928]
+autostart = true
+
+[connection signal="pressed" from="MarginContainer2/FlowContainer/TechTree" to="." method="_on_tech_tree_pressed"]
+[connection signal="pressed" from="MarginContainer2/FlowContainer/UpgradePipes" to="." method="_on_upgrade_pipes_pressed"]
+[connection signal="pressed" from="MarginContainer2/FlowContainer/HullShield" to="." method="_on_hull_shield_pressed"]
+[connection signal="pressed" from="MarginContainer2/FlowContainer/ReinforceZone" to="." method="_on_repair_zone_pressed" binds= [0]]
+[connection signal="pressed" from="MarginContainer2/FlowContainer/ReinforceZone2" to="." method="_on_repair_zone_pressed" binds= [1]]
+[connection signal="pressed" from="MarginContainer2/FlowContainer/ReinforceZone3" to="." method="_on_repair_zone_pressed" binds= [2]]
+[connection signal="pressed" from="MarginContainer2/FlowContainer/ReinforceZone4" to="." method="_on_repair_zone_pressed" binds= [3]]
+[connection signal="pressed" from="MarginContainer2/FlowContainer/DataReserve" to="." method="_on_data_reserve_pressed"]
+[connection signal="toggled" from="MarginContainer2/FlowContainer/AutoRepair" to="." method="_on_auto_repair_toggled"]
+[connection signal="timeout" from="OneSecTimer" to="." method="_on_one_sec_timer_timeout"]
