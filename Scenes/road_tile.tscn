@@ -2,6 +2,39 @@
 
 [ext_resource type="Script" uid="uid://cetvxw1gj01du" path="res://Scripts/new_road_tile.gd" id="1_1ugmq"]
 
+[sub_resource type="Gradient" id="Gradient_uww1h"]
+offsets = PackedFloat32Array(0, 0.08743169)
+colors = PackedColorArray(1, 0, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_ru0xg"]
+gradient = SubResource("Gradient_uww1h")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+
+[sub_resource type="Curve" id="Curve_uww1h"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_ru0xg"]
+curve = SubResource("Curve_uww1h")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_uww1h"]
+particle_flag_disable_z = true
+direction = Vector3(1, 1, 0)
+spread = 180.0
+initial_velocity_min = 150.0
+initial_velocity_max = 250.0
+gravity = Vector3(0, 98, 0)
+damping_min = 100.00001
+damping_max = 100.00001
+scale_min = 5.0
+scale_max = 10.0
+scale_curve = SubResource("CurveTexture_ru0xg")
+color = Color(1, 0, 1, 1)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_uww1h"]
+size = Vector2(64, 64)
+
 [node name="RoadTile" type="Node2D" unique_id=787101599]
 script = ExtResource("1_1ugmq")
 
@@ -28,3 +61,19 @@ default_color = Color(0.38039216, 0.38039216, 0.38039216, 1)
 joint_mode = 2
 round_precision = 20
 antialiased = true
+
+[node name="BurstParticleEffect" type="GPUParticles2D" parent="." unique_id=1835023659]
+emitting = false
+amount = 30
+texture = SubResource("GradientTexture2D_ru0xg")
+lifetime = 0.4
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_uww1h")
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1830695120]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=250374981]
+shape = SubResource("RectangleShape2D_uww1h")
+
+[connection signal="input_event" from="Area2D" to="." method="_on_area_2d_input_event"]

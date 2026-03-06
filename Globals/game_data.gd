@@ -50,7 +50,7 @@ var reinforcement_version: int = 0
 ## =============================================================================
 
 const MAX_PRESSURE: float = 100.0
-const BASE_RATE: float = 0.025
+const BASE_RATE: float = 0.25
 var MAX_PRESSURE_PHASE: int = 10
 
 var current_pressure: float = 0.0

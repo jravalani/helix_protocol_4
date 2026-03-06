@@ -8,9 +8,37 @@ var grid_pos: Vector2i
 var last_build_cell: Vector2i
 var is_building_road: bool = false
 
+var grid_lines: Node2D
+
 func _ready() -> void:
-	print("InputManager is ready!")
-	print("RoadBuilder exists: ", road_builder != null)
+	_draw_grid()
+	grid_lines.visible = false
+
+func _draw_grid() -> void:
+	grid_lines = Node2D.new()
+	add_child(grid_lines)
+
+	var grid_color := Color("4a4a4a")  # very subtle, low opacity
+	var cell := GameData.CELL_SIZE
+	var half_count := 60  # 120x120 cell grid, well beyond any screen size
+
+	# Vertical lines
+	for x in range(-half_count, half_count + 1):
+		var line := Line2D.new()
+		line.width = 2
+		line.default_color = grid_color
+		line.add_point(Vector2(x * cell.x, -half_count * cell.y))
+		line.add_point(Vector2(x * cell.x,  half_count * cell.y))
+		grid_lines.add_child(line)
+
+	# Horizontal lines
+	for y in range(-half_count, half_count + 1):
+		var line := Line2D.new()
+		line.width = 2
+		line.default_color = grid_color
+		line.add_point(Vector2(-half_count * cell.x, y * cell.y))
+		line.add_point(Vector2( half_count * cell.x, y * cell.y))
+		grid_lines.add_child(line)
 
 func _process(delta: float) -> void:
 	mouse_pos = get_global_mouse_position()
@@ -26,17 +54,20 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.is_pressed():
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			is_building_road = true
-			last_build_cell = Vector2i(-5000, -5000)  # ✅ FIXED - Reset to invalid
-		
+			last_build_cell = Vector2i(-5000, -5000)
+			grid_lines.visible = true
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
-			road_builder.remove_road(grid_pos)
-	
+			grid_lines.visible = true  # show grid on right click too
+
 	elif event is InputEventMouseButton and not event.is_pressed():
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			is_building_road = false
 			last_build_cell = Vector2i(-5000, -5000)
+			grid_lines.visible = false
 			if road_builder.ghost_road:
 				road_builder.ghost_road.hide()
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			grid_lines.visible = false  # hide on right release
 	
 	elif event is InputEventMouseMotion:
 		if event.button_mask == 0:

@@ -12,6 +12,15 @@
 [ext_resource type="PackedScene" uid="uid://dtv18ee30jl71" path="res://UITestScenes/top_panel.tscn" id="10_hptm8"]
 [ext_resource type="PackedScene" uid="uid://bfq5ber3wwxdb" path="res://Scenes/dust_particles.tscn" id="11_d1ilt"]
 
+[sub_resource type="Environment" id="Environment_d1ilt"]
+background_mode = 3
+tonemap_mode = 1
+tonemap_exposure = 1.2
+glow_enabled = true
+glow_intensity = 0.8
+glow_bloom = 0.2
+glow_blend_mode = 0
+
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ynf5e"]
 shader = ExtResource("7_344ge")
 shader_parameter/inner_radius = 0.1
@@ -43,6 +52,9 @@ default_color = Color(3.85046e-07, 0.593914, 0.8248381, 1)
 [node name="Entities" type="Node" parent="." unique_id=578986959]
 
 [node name="DustParticles" parent="." unique_id=622471858 instance=ExtResource("11_d1ilt")]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=552333695]
+environment = SubResource("Environment_d1ilt")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1153972873]
 script = ExtResource("6_21xkr")

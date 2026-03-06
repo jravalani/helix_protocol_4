@@ -12,7 +12,7 @@ var is_delivered: bool = false
 
 signal packet_delivered
 
-const TAIL_STEPS    := 2  # how many sample points behind the head
+const TAIL_STEPS    := 8  # how many sample points behind the head
 const TAIL_DISTANCE := 20.0   # total tail length in pixels
 const PACKET_WIDTH  := 10.0
 

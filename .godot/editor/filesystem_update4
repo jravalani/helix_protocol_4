@@ -1,6 +1,8 @@
-res://Scenes/dust_particles.tscn
+res://Scenes/road_tile.tscn
 res://lights/vent_light_texture.tres
 res://ParticleEffects/rising_smoke.tres
 res://shaders/vignette.gdshader
 res://shaders/fog.gdshader
 res://shaders/shadow.gdshader
+res://Scripts/new_road_tile.gd
+res://Scripts/input_manager.gd

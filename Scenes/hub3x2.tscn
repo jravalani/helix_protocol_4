@@ -22,6 +22,9 @@ gradient = SubResource("Gradient_afd8m")
 fill = 1
 fill_from = Vector2(0.5, 0.5)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_g348v"]
+size = Vector2(193, 128)
+
 [node name="Hub3x2" type="Area2D" unique_id=1975955870 groups=["hubs"]]
 z_index = 10
 script = ExtResource("1_dgge1")
@@ -99,3 +102,7 @@ position = Vector2(157, 101)
 texture = SubResource("GradientTexture2D_qvlgn")
 lifetime = 2.0
 process_material = ExtResource("7_g348v")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1397034651]
+position = Vector2(96.5, 64)
+shape = SubResource("RectangleShape2D_g348v")

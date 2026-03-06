@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://bfq5ber3wwxdb"]
 
 [sub_resource type="Gradient" id="Gradient_5jh1n"]
-offsets = PackedFloat32Array(0, 0.12568305)
+offsets = PackedFloat32Array(0, 0.1693989)
 colors = PackedColorArray(1, 0, 1, 1, 1, 1, 1, 0)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_y140b"]
@@ -9,28 +9,35 @@ gradient = SubResource("Gradient_5jh1n")
 fill = 1
 fill_from = Vector2(0.5, 0.5)
 
-[sub_resource type="Curve" id="Curve_j5mod"]
-_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.25333333, 1), 0.0, 0.0, 0, 0, Vector2(0.75, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+[sub_resource type="Gradient" id="Gradient_f5kgp"]
+colors = PackedColorArray(0.3529412, 0.19215687, 0.3647059, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_j5mod"]
+gradient = SubResource("Gradient_f5kgp")
+
+[sub_resource type="Curve" id="Curve_5jh1n"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.2, 1), 0.0, 0.0, 0, 0, Vector2(0.8, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
 point_count = 4
 metadata/_snap_enabled = true
-metadata/_snap_count = 24
 
-[sub_resource type="CurveTexture" id="CurveTexture_64swp"]
-curve = SubResource("Curve_j5mod")
+[sub_resource type="CurveTexture" id="CurveTexture_y140b"]
+curve = SubResource("Curve_5jh1n")
 
-[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_y140b"]
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_5jh1n"]
 particle_flag_disable_z = true
+emission_shape_scale = Vector3(1920, 1080, 1)
 emission_shape = 3
-emission_box_extents = Vector3(1920, 1080, 1)
-spread = 180.0
-initial_velocity_max = 10.0
-gravity = Vector3(0, 1, 0)
-scale_max = 1.5
-scale_over_velocity_curve = SubResource("CurveTexture_64swp")
-color = Color(0.735357, 0.7014107, 0.6651851, 1)
+emission_box_extents = Vector3(1, 1, 1)
+direction = Vector3(-1, 0, 0)
+initial_velocity_min = 40.0
+initial_velocity_max = 60.0
+gravity = Vector3(0, 0, 0)
+scale_min = 0.0
+scale_curve = SubResource("CurveTexture_y140b")
+color_ramp = SubResource("GradientTexture1D_j5mod")
 
 [node name="GPUParticles2D" type="GPUParticles2D" unique_id=680187056]
 amount = 200
 texture = SubResource("GradientTexture2D_y140b")
 lifetime = 10.0
-process_material = SubResource("ParticleProcessMaterial_y140b")
+process_material = SubResource("ParticleProcessMaterial_5jh1n")
