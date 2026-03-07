@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://djl3oc0smqdgx"]
+
+[ext_resource type="Script" uid="uid://c1fx1gbsgprc2" path="res://Scripts/fracture_wave.gd" id="1_bk4yj"]
+
+[node name="FractureWave" type="Node2D" unique_id=305859447]
+script = ExtResource("1_bk4yj")

@@ -5,6 +5,10 @@ class_name Vent
 @onready var fan: Sprite2D = $Fan
 @onready var max_capacity: int = 2
 
+
+@onready var left_cloud: GPUParticles2D = $LeftCloud
+@onready var right_cloud: GPUParticles2D = $RightCloud
+
 var packet_scene = preload("res://Scenes/packet.tscn")
 
 var is_connected_to_network: bool = false
@@ -16,13 +20,15 @@ var spawn_interval: float = 0.6
 
 var fan_rotation_speed = 4.0
 
-
 var click_position: Vector2
 var has_dragged: bool = false
 
+
+func get_top_left_px(step: float) -> Vector2:
+	return global_position - (Vector2(grid_size) * step / 2.0)
+
 func _physics_process(delta: float) -> void:
 	fan.rotation += fan_rotation_speed * delta
-
 
 func _input_event(viewport: Viewport, event: InputEvent, shape_idx: int) -> void:
 	if event is InputEventMouseButton:
@@ -47,6 +53,12 @@ func _input_event(viewport: Viewport, event: InputEvent, shape_idx: int) -> void
 				has_dragged = true
 
 func _ready():
+	
+	left_cloud.restart()
+	right_cloud.restart()
+	
+	SignalBus.camera_shake.emit(0.25, 4.0)
+	
 	cell_type = "VENT"
 	super() # Registers footprint and entrance
 	

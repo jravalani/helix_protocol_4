@@ -1,14 +1,14 @@
+ColorRect
+BackBufferCopy
+GPUParticles2D
 CollisionShape2D
 Area2D
-GPUParticles2D
 WorldEnvironment
 Sprite2D
 PointLight2D
-ColorRect
 CPUParticles2D
 LightOccluder2D
 Line2D
 AnimationPlayer
 Button
 Label
-VBoxContainer

@@ -50,7 +50,7 @@ var reinforcement_version: int = 0
 ## =============================================================================
 
 const MAX_PRESSURE: float = 100.0
-const BASE_RATE: float = 0.25
+const BASE_RATE: float = 0.04
 var MAX_PRESSURE_PHASE: int = 10
 
 var current_pressure: float = 0.0
@@ -81,7 +81,7 @@ var data_reserve_for_auto_repairs: int = 0
 ## =============================================================================
 
 var total_data: int = 25000
-var score_to_next_reward: int = 8
+var score_to_next_reward: int = 50
 
 ## =============================================================================
 ## SYSTEM METRICS (updated per frame)
@@ -194,6 +194,8 @@ const ROCKET_UPGRADES = {
 #}
 
 var metric_timer := 0.0
+
+var input_consumed: bool = false
 
 func _ready() -> void:
 	randomize()
@@ -319,20 +321,8 @@ func increase_map_size() -> void:
 		print("Max Capacity Reached")
 
 func is_blocked_by_building(building: Variant, cell: Vector2i) -> bool:
-	"""Check if a cell is blocked by a building (only entrance cells are navigable)"""
-	# If there's no building, it's not blocked
-	if not building is Building: 
+	if not building is Building:
 		return false
-	
-	# For Vents (1x1), only allow navigation if this is the entrance cell
-	if building is Vent:
-		return cell != building.entrance_cell
-	
-	# For Hubs (multi-cell), only allow navigation if this is the entrance cell
-	if building is Hub:
-		return cell != building.entrance_cell
-		
-	# For any other Building, same rule applies
 	return cell != building.entrance_cell
 
 #region Tile Influence

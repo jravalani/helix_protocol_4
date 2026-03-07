@@ -25,8 +25,51 @@ fill_from = Vector2(0.5, 0.5)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_g348v"]
 size = Vector2(193, 128)
 
+[sub_resource type="Gradient" id="Gradient_1mklc"]
+offsets = PackedFloat32Array(0, 0.12568305)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_g348v"]
+gradient = SubResource("Gradient_1mklc")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+
+[sub_resource type="Gradient" id="Gradient_qvlgn"]
+offsets = PackedFloat32Array(0.28057554, 1)
+colors = PackedColorArray(0.101960786, 0.11372549, 0.13333334, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_g2aut"]
+gradient = SubResource("Gradient_qvlgn")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_iw1ut"]
+particle_flag_disable_z = true
+emission_shape_scale = Vector3(0, 64, 1)
+emission_shape = 3
+emission_box_extents = Vector3(1, 1, 1)
+direction = Vector3(-1, -1, 0)
+initial_velocity_min = 40.0
+initial_velocity_max = 60.0
+gravity = Vector3(0, -10, 0)
+scale_min = 5.0
+scale_max = 10.0
+color_ramp = SubResource("GradientTexture1D_g2aut")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_1584i"]
+particle_flag_disable_z = true
+emission_shape_scale = Vector3(0, 64, 1)
+emission_shape = 3
+emission_box_extents = Vector3(1, 1, 1)
+direction = Vector3(1, -1, 0)
+initial_velocity_min = 40.0
+initial_velocity_max = 60.0
+gravity = Vector3(0, -10, 0)
+scale_min = 5.0
+scale_max = 10.0
+color_ramp = SubResource("GradientTexture1D_g2aut")
+
 [node name="Hub3x2" type="Area2D" unique_id=1975955870 groups=["hubs"]]
 z_index = 10
+collision_layer = 2
 script = ExtResource("1_dgge1")
 grid_size = Vector2i(3, 2)
 
@@ -106,3 +149,23 @@ process_material = ExtResource("7_g348v")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1397034651]
 position = Vector2(96.5, 64)
 shape = SubResource("RectangleShape2D_g348v")
+
+[node name="LeftCloud" type="GPUParticles2D" parent="." unique_id=2059185690]
+position = Vector2(-20, 64)
+emitting = false
+amount = 12
+texture = SubResource("GradientTexture2D_g348v")
+lifetime = 0.8
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_iw1ut")
+
+[node name="RightCloud" type="GPUParticles2D" parent="." unique_id=1296236964]
+position = Vector2(215, 64)
+emitting = false
+amount = 12
+texture = SubResource("GradientTexture2D_g348v")
+lifetime = 0.8
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_1584i")

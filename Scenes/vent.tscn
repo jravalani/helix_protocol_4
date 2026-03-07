@@ -25,6 +25,48 @@ gradient = SubResource("Gradient_0rnbu")
 fill = 1
 fill_from = Vector2(0.5, 0.5)
 
+[sub_resource type="Gradient" id="Gradient_1mklc"]
+offsets = PackedFloat32Array(0, 0.12568305)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_bgkev"]
+gradient = SubResource("Gradient_1mklc")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+
+[sub_resource type="Gradient" id="Gradient_bgkev"]
+offsets = PackedFloat32Array(0.28057554, 1)
+colors = PackedColorArray(0.101960786, 0.11372549, 0.13333334, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_bgkev"]
+gradient = SubResource("Gradient_bgkev")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_0rnbu"]
+particle_flag_disable_z = true
+emission_shape_scale = Vector3(0, 16, 1)
+emission_shape = 3
+emission_box_extents = Vector3(1, 1, 1)
+direction = Vector3(-1, -1, 0)
+initial_velocity_min = 40.0
+initial_velocity_max = 60.0
+gravity = Vector3(0, -10, 0)
+scale_min = 0.0
+scale_max = 2.0
+color_ramp = SubResource("GradientTexture1D_bgkev")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_1mklc"]
+particle_flag_disable_z = true
+emission_shape_scale = Vector3(0, 16, 1)
+emission_shape = 3
+emission_box_extents = Vector3(1, 1, 1)
+direction = Vector3(1, -1, 0)
+initial_velocity_min = 40.0
+initial_velocity_max = 60.0
+gravity = Vector3(0, -10, 0)
+scale_min = 0.0
+scale_max = 2.0
+color_ramp = SubResource("GradientTexture1D_bgkev")
+
 [node name="Vent" type="Area2D" unique_id=174691631 groups=["houses", "vents"]]
 z_index = 10
 collision_layer = 2
@@ -69,6 +111,7 @@ scale = Vector2(0.65, 0.65)
 shape = SubResource("RectangleShape2D_okrnj")
 
 [node name="SmokeParticleEffect" type="GPUParticles2D" parent="." unique_id=547876146]
+visible = false
 texture = SubResource("GradientTexture2D_arggx")
 lifetime = 2.0
 process_material = ExtResource("5_arggx")
@@ -77,3 +120,23 @@ process_material = ExtResource("5_arggx")
 scale = Vector2(0.13, 0.13)
 texture = ExtResource("9_bgkev")
 texture_scale = 5.0
+
+[node name="LeftCloud" type="GPUParticles2D" parent="." unique_id=888334279]
+position = Vector2(-20, 0)
+emitting = false
+amount = 12
+texture = SubResource("GradientTexture2D_bgkev")
+lifetime = 0.8
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_0rnbu")
+
+[node name="RightCloud" type="GPUParticles2D" parent="." unique_id=395288080]
+position = Vector2(20, 0)
+emitting = false
+amount = 12
+texture = SubResource("GradientTexture2D_bgkev")
+lifetime = 0.8
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_1mklc")

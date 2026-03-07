@@ -21,6 +21,12 @@ GameData="*uid://ce4x28ymrtnxu"
 ResourceManager="*uid://buxm4x4opy20i"
 SignalBus="*uid://me1qrsn08x06"
 
+[debug]
+
+settings/stdout/print_fps=true
+settings/stdout/print_gpu_profile=true
+settings/stdout/verbose_stdout=true
+
 [display]
 
 window/size/viewport_width=1920

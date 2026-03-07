@@ -29,10 +29,11 @@ emission_shape_scale = Vector3(1920, 1080, 1)
 emission_shape = 3
 emission_box_extents = Vector3(1, 1, 1)
 direction = Vector3(-1, 0, 0)
-initial_velocity_min = 40.0
-initial_velocity_max = 60.0
+initial_velocity_min = 250.0
+initial_velocity_max = 500.0
 gravity = Vector3(0, 0, 0)
 scale_min = 0.0
+scale_max = 2.0
 scale_curve = SubResource("CurveTexture_y140b")
 color_ramp = SubResource("GradientTexture1D_j5mod")
 

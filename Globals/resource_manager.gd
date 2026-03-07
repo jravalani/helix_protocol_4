@@ -24,8 +24,8 @@ func add_score() -> void:
 	resources_updated.emit(GameData.current_pipe_count, GameData.total_data, GameData.data_reserve_for_auto_repairs) # Notify UI
 
 func grant_reward() -> void:
-	GameData.current_pipe_count += 10
-	GameData.score_to_next_reward += 8
+	GameData.current_pipe_count += 5
+	GameData.score_to_next_reward += 30
 	resources_updated.emit(GameData.current_pipe_count, GameData.total_data, GameData.data_reserve_for_auto_repairs) # Notify UI
 
 #region pipe upgrades

@@ -4,13 +4,16 @@ class_name Hub
 
 @onready var info_label: Label = $MarginContainer/VBoxContainer/InfoLabel
 @onready var backlog_label: Label = $MarginContainer/VBoxContainer/BacklogLabel
-@onready var base_request_interval: float = 6.0
+
 @onready var request_interval: float = 2.0  # Will be updated dynamically
 @onready var oxygen_demand_per_timer: int = 1
 
 
 @onready var smoke_particle_effect1: GPUParticles2D = $SmokeParticleEffect
 @onready var smoke_particle_effect2: GPUParticles2D = $SmokeParticleEffect2
+
+@onready var left_cloud: GPUParticles2D = $LeftCloud
+@onready var right_cloud: GPUParticles2D = $RightCloud
 
 var oxygen_backlog: int = 0
 var oxygen_in_flight: int = 0
@@ -22,8 +25,10 @@ var assigned_vents: int = 0
 var is_fractured: bool = false
 
 var utilization_responsiveness := 0.2
-var min_interval := 2.0
-var max_interval := 8.0
+
+var base_request_interval: float = 20.0  # was 6.0
+var min_interval: float = 4.0            
+var max_interval: float = 25.0           
 
 var _dead_pulse_tween: Tween = null
 
@@ -66,6 +71,12 @@ func _spawn_floating_label(text: String, color: Color) -> void:
 	t.tween_callback(label.queue_free).set_delay(0.8)
 
 func _ready():
+	
+	left_cloud.restart()
+	right_cloud.restart()
+	
+	SignalBus.camera_shake.emit(0.50, 6.0)
+	
 	cell_type = "HUB"
 	request_interval *= randf_range(0.85, 1.15)
 	request_interval = calculate_dynamic_request_interval()
@@ -86,59 +97,39 @@ func update_ui():
 	backlog_label.text = "Backlog: %d" % oxygen_backlog
 
 func calculate_dynamic_request_interval() -> float:
-	"""
-	Demand based on BOTH total vents (gentle pressure) 
-	AND connected vents (reward for connecting).
-	"""
-	var base = base_request_interval
-	
 	var vents = get_tree().get_nodes_in_group("vents")
-	var total_vents = vents.size()
 	var connected_vents = 0
 	
 	for vent in vents:
 		if vent.is_connected_to_network:
 			connected_vents += 1
 	
-	# 1. BASE DEMAND: Scales with total vents (gentle pressure to connect)
-	# This makes demand increase even if vents aren't connected
-	var base_demand_multiplier = 1.0
-	
-	if total_vents <= 3:
-		base_demand_multiplier = 1.1
-	elif total_vents <= 8:
-		base_demand_multiplier = 1.0
-	elif total_vents <= 15:
-		base_demand_multiplier = 0.85
-	elif total_vents <= 25:
-		base_demand_multiplier = 0.7
-	elif total_vents <= 40:
-		base_demand_multiplier = 0.55
+	# Demand driven purely by connected vents
+	# More connections = faster requests = busier network
+	var connection_multiplier = 1.0
+	if connected_vents <= 1:
+		connection_multiplier = 1.5    # barely any supply — slow (30s)
+	elif connected_vents <= 3:
+		connection_multiplier = 1.2    # getting started (24s)
+	elif connected_vents <= 6:
+		connection_multiplier = 1.0    # normal (20s)
+	elif connected_vents <= 12:
+		connection_multiplier = 0.75   # well connected (15s)
+	elif connected_vents <= 20:
+		connection_multiplier = 0.55   # busy network (11s)
 	else:
-		base_demand_multiplier = 0.4
+		connection_multiplier = 0.4    # bustling (8s)
 	
-	# 2. CONNECTION BONUS: If you connect vents, you handle demand better
-	# This is the REWARD for connecting
-	var connection_ratio = float(connected_vents) / max(1, total_vents)
-	var connection_bonus = 1.0
-	
-	if connection_ratio > 0.8:
-		connection_bonus = 1.1   # 10% slower requests (breathing room!)
-	elif connection_ratio > 0.6:
-		connection_bonus = 1.0   # Normal
-	elif connection_ratio < 0.4:
-		connection_bonus = 0.85  # 15% FASTER (punishment for not connecting!)
-	
-	# 3. Backlog regulation (always present)
+	# Backlog regulation — if hub is drowning, slow down requests
 	var backlog_multiplier = 1.0
 	if oxygen_backlog > 20:
 		backlog_multiplier = 1.4
 	elif oxygen_backlog > 12:
 		backlog_multiplier = 1.2
 	
-	var final_interval = base * base_demand_multiplier * connection_bonus * backlog_multiplier
-	
-	return clamp(final_interval, 2.0, 8.0)
+	var final_interval = base_request_interval * connection_multiplier * backlog_multiplier
+	return clamp(final_interval, min_interval, max_interval)
+
 func _on_request_timer_timeout():
 	# On timer timeout, hub will demand for oxygen, currently it will demand 1
 	# but later on we will add the burst demands as well.
@@ -239,7 +230,7 @@ func on_check_fracture() -> void:
 
 func calculate_fracture_chance() -> float:
 	# fracture chance depends on both current pressure and hull integrity
-	var base_chance = 0.80
+	var base_chance = 0.03
 	
 	# first get the pressure modifier. this will be added to base chance
 	var pressure_modifier = (GameData.current_pressure / 100.0) * 0.8 #should tinker with this number later on
@@ -266,10 +257,11 @@ func fracture() -> void:
 	flicker.tween_property(self, "modulate", Color("1a0a1f"), 0.2)
 
 	await flicker.finished
-	_start_dead_pulse()
 	
 	smoke_particle_effect1.emitting = false
 	smoke_particle_effect2.emitting = false
+	
+	_start_dead_pulse()
 
 func _start_dead_pulse() -> void:
 	if not is_fractured:

@@ -1,12 +1,13 @@
 extends Camera2D
 
-# We don't necessarily need these as variables at the top anymore 
-# if we calculate them fresh inside the function!
+var _shake_tween: Tween = null
+var _base_offset: Vector2 = Vector2.ZERO
+
 
 func _ready() -> void:
 	# 1. Connect first so we don't miss any signals
 	SignalBus.increase_map_size.connect(increase_camera_bounds)
-	
+	SignalBus.camera_shake.connect(shake)
 	# 2. Call it once to set the starting view
 	increase_camera_bounds(GameData.current_map_size)
 
@@ -40,3 +41,25 @@ func increase_camera_bounds(new_map_size: Rect2i) -> void:
 	limit_top = new_map_size.position.y * GameData.CELL_SIZE.x
 	limit_right = limit_left + int(pixel_map_size.x)
 	limit_bottom = limit_top + int(pixel_map_size.y)
+
+func shake(duration: float, strength: float) -> void:
+	# Kill any existing shake so they don't stack
+	if _shake_tween:
+		_shake_tween.kill()
+		offset = _base_offset
+
+	_shake_tween = create_tween()
+	var elapsed := 0.0
+	var steps := int(duration / 0.05)  # one shake step every 50ms
+
+	for i in range(steps):
+		var remaining := 1.0 - (float(i) / float(steps))
+		var current_strength := strength * remaining  # decays over time
+		var rand_offset := Vector2(
+			randf_range(-current_strength, current_strength),
+			randf_range(-current_strength, current_strength)
+		)
+		_shake_tween.tween_property(self, "offset", rand_offset, 0.05)
+
+	# Settle back to base offset cleanly
+	_shake_tween.tween_property(self, "offset", _base_offset, 0.05)

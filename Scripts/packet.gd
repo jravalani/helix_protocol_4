@@ -4,7 +4,7 @@ class_name Packet
 @onready var packet_line: Line2D = $PacketLine2D
 @onready var packet_light: PointLight2D = $PacketLight
 
-@export var speed: float = 200
+@export var speed: float = 120.0
 var target_hub_cell: Vector2i
 var source_vent_cell: Vector2i
 var source_vent: Vent

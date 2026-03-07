@@ -8,7 +8,11 @@ signal building_spawned(building_type: String, position: Vector2i, color_id: int
 
 signal pressure_updated(new_value: int, percentage: float)
 
-signal pressure_changed(new_phase: int)
+signal pressure_phase_changed(new_phase: int)
+
+signal fracture_wave
+
+signal fracture_wave_impact
 
 signal disaster_triggered(event_name: String)
 
@@ -21,3 +25,5 @@ signal check_fractures
 signal open_rocket_menu
 
 signal rocket_segment_purchased(new_phase: int)
+
+signal camera_shake(duration: float, strength: float)

@@ -68,15 +68,15 @@ var hub_rotation: Array = [0, PI/2, 3*PI/2]
 var min_vents_per_hub: int = 4        # Need at least 4 vents per hub
 var hub_spawn_cooldown: float = 15.0  # Minimum time between hub spawns
 var hub_cooldown_timer: float = 0.0
-var hub_interval: float = 60.0
+var hub_interval: float = 90.0
 var hub_timer: float = 0.0
 var hub_spawn_eta: String = ""
 
 ## Vent spawning (accelerates over time)
-var vent_interval: float = 20.0
+var vent_interval: float = 35.0
 var vent_timer: float = 0.0
 var vent_acceleration: float = 0.92      # Multiplier applied each spawn
-var min_vent_interval: float = 8.0       # Fastest possible spawn rate
+var min_vent_interval: float = 6.0       # Fastest possible spawn rate
 
 
 ## =============================================================================
@@ -227,13 +227,14 @@ func spawn_rocket() -> void:
 #region Functions
 
 func calculate_dynamic_vent_interval() -> float:
-	var base_interval = 20.0
+	var base_interval = 35.0
 	
 	var pressure_factor = GameData.current_pressure / GameData.MAX_PRESSURE
-	var pressure_multiplier = 1.0 - (pressure_factor * 0.5)
+	var pressure_multiplier = 1.0 - (pressure_factor * 0.6)
 	
-	var total_backlog = GameData.total_hub_backlog
+	var total_backlog = clamp(GameData.total_hub_backlog, 8, 18)
 	var backlog_multiplier = 1.0/ (1.0 - (total_backlog / 20.0))
+	backlog_multiplier = clamp(backlog_multiplier, 0.5, 2.0)
 	
 	var avg_utilization = GameData.average_vent_utilization
 	var utilization_multiplier = 1.0
@@ -243,52 +244,44 @@ func calculate_dynamic_vent_interval() -> float:
 		utilization_multiplier = 0.8
 	
 	var final_interval = base_interval * pressure_multiplier * backlog_multiplier * utilization_multiplier
-	return clamp(final_interval, min_vent_interval, 30.0)
-
+	return clamp(final_interval, min_vent_interval, 50.0)
 
 func calculate_dynamic_hub_interval() -> float:
-	"""
-	Hub spawn interval based on:
-	1. Vent supply (more vents = faster spawns)
-	2. System backlog (high backlog = slower spawns, give time to recover)
-	"""
-	var base = 60.0
+	var base = 90.0  # hubs are rarer early
 	var current_vents = GameData.current_vent_count
-	
-	# 1. VENT FACTOR: More vents = pressure to spawn hubs faster
+
+	# Vent factor — more vents = hubs needed sooner
 	var vent_factor = 1.0
-	
-	if current_vents <= 3:
-		vent_factor = 1.2   # Very slow (72 sec)
-	elif current_vents <= 6:
-		vent_factor = 1.0   # Normal (60 sec)
-	elif current_vents <= 10:
-		vent_factor = 0.75  # Faster (45 sec)
-	elif current_vents <= 15:
-		vent_factor = 0.6   # Fast (36 sec)
-	elif current_vents <= 25:
-		vent_factor = 0.45  # Very fast (27 sec)
+	if current_vents <= 2:
+		vent_factor = 1.5    # very slow early (135s)
+	elif current_vents <= 4:
+		vent_factor = 1.2    # slow (108s)
+	elif current_vents <= 7:
+		vent_factor = 1.0    # normal (90s)
+	elif current_vents <= 12:
+		vent_factor = 0.75   # faster (67s)
+	elif current_vents <= 20:
+		vent_factor = 0.55   # fast (49s)
+	elif current_vents <= 35:
+		vent_factor = 0.4    # very fast (36s)
 	else:
-		vent_factor = 0.35  # Rapid (21 sec)
-	
-	# 2. BACKLOG FACTOR: High backlog = slow down hub spawning
+		vent_factor = 0.3    # rapid (27s)
+
+	# Backlog factor
 	var total_backlog = GameData.total_hub_backlog
 	var backlog_factor = 1.0
-	
 	if total_backlog > 50:
-		backlog_factor = 1.8   # CRITICAL backlog - spawn 80% slower
+		backlog_factor = 1.8
 	elif total_backlog > 30:
-		backlog_factor = 1.5   # High backlog - spawn 50% slower
+		backlog_factor = 1.5
 	elif total_backlog > 15:
-		backlog_factor = 1.2   # Medium backlog - spawn 20% slower
+		backlog_factor = 1.2
 	elif total_backlog < 10:
-		backlog_factor = 0.85  # Low backlog - spawn 15% faster (healthy!)
-	# else: normal (1.0)
-	
+		backlog_factor = 0.85
+
 	var final_interval = base * vent_factor * backlog_factor
-	
-	# Clamp to reasonable bounds
-	return clamp(final_interval, 20.0, 120.0)
+	return clamp(final_interval, 20.0, 150.0)  # max 150s early game
+
 
 func is_area_clear(target_coord: Vector2i, area_size: Vector2i, camera_bounds: Rect2i, buffer: int = 0) -> bool:
 	for x in range(-buffer, area_size.x + buffer):
@@ -379,12 +372,30 @@ func calculate_candidate_tiles(center: Vector2, min_dist: int, max_dist: int, si
 	
 	return candidates
 
-func score_tile(tile: Vector2i) -> float: # CHANGED from int to float
-	# Get the base score from the grid
+func score_tile(tile: Vector2i) -> float:
 	var base_score = GameData.influence_grid.get(tile, 0.0)
-	
-	# Add a microscopic amount of noise to break perfect symmetrical ties
-	return base_score + randf_range(0.001, 0.050)
+
+	# Zone bonus — on larger maps push buildings outward
+	var zone_bonus := 0.0
+	var map_stage = GameData.map_stages.find(GameData.current_map_size)
+	if map_stage == -1:
+		map_stage = 0
+
+	if map_stage >= 2:
+		var zone = GameData.get_zone_for_cell(tile)
+		match zone:
+			GameData.Zone.FRONTIER: zone_bonus = 80.0
+			GameData.Zone.OUTER:    zone_bonus = 40.0
+			GameData.Zone.INNER:    zone_bonus = 10.0
+			GameData.Zone.CORE:     zone_bonus = 0.0
+	elif map_stage == 1:
+		var zone = GameData.get_zone_for_cell(tile)
+		match zone:
+			GameData.Zone.OUTER:    zone_bonus = 30.0
+			GameData.Zone.INNER:    zone_bonus = 10.0
+			_:                      zone_bonus = 0.0
+
+	return base_score + zone_bonus + randf_range(0.001, 0.050)
 	
 	## OLD SYSTEM
 	#var final_score: int = 0
@@ -455,6 +466,7 @@ func transition_to_phase(phase_number: int) -> void:
 	#Force map expansion?
 	if GameData.current_pressure_phase <= GameData.MAX_PRESSURE_PHASE:
 		GameData.current_pressure_phase = phase_number
+		SignalBus.pressure_phase_changed.emit(phase_number)
 	print("----PHASE TRANSITION: ", phase_number, "----")
 	
 	if phase_number >= 3:
@@ -465,7 +477,100 @@ func transition_to_phase(phase_number: int) -> void:
 		print("Director: Logistics Boosted!")
 
 func trigger_fracture_wave() -> void:
-	SignalBus.check_fractures.emit()
+	SignalBus.fracture_wave.emit()
+	SignalBus.camera_shake.emit(0.4, 6.0)
+	
+	await get_tree().create_timer(5.0).timeout
+	SignalBus.camera_shake.emit(0.5, 8.0)
+	
+	_execute_fracture_wave()
+
+func _execute_fracture_wave() -> void:
+	var phase := GameData.current_pressure_phase
+	
+	# Guaranteed fractures scale with phase
+	var guaranteed_pipe_fractures := _get_guaranteed_pipe_fractures(phase)
+	var guaranteed_hub_fractures := _get_guaranteed_hub_fractures(phase)
+	
+	# Get all fracturable pipes and shuffle them
+	var fracturable_pipes: Array = []
+	for cell in GameData.road_grid:
+		var pipe = GameData.road_grid[cell]
+		if pipe is NewRoadTile and not pipe.is_fractured and not pipe.is_reinforced:
+			fracturable_pipes.append(pipe)
+			
+	# Guarantee minimum fractures — prioritize outer/frontier zones
+	fracturable_pipes.sort_custom(func(a, b): 
+		return _zone_priority(a.my_zone) > _zone_priority(b.my_zone)
+	)
+	
+	for pipe in fracturable_pipes.slice(0, guaranteed_pipe_fractures):
+		pipe.fracture()
+	
+	# Remaining pipes still roll probability
+	for pipe in fracturable_pipes.slice(guaranteed_pipe_fractures):
+		pipe.on_check_fracture()
+	
+	# Hub fractures
+	var fracturable_hubs: Array = []
+	var hubs = get_tree().get_nodes_in_group("hubs")
+	for hub in hubs:
+		if not hub.is_fractured:
+			fracturable_hubs.append(hub)
+	
+	var hub_fractured_count := 0
+	for hub in fracturable_hubs:
+		if hub_fractured_count >= guaranteed_hub_fractures:
+			break
+		hub.fracture()
+		hub_fractured_count += 1
+	
+	# Remaining hubs roll probability
+	for hub in fracturable_hubs.slice(hub_fractured_count):
+		hub.on_check_fracture()
+
+func _get_guaranteed_pipe_fractures(phase: int) -> int:
+	var total_pipes = GameData.road_grid.size()
+	
+	# Never fracture more than a percentage of total pipes
+	# Early game (20 pipes): phase 3 = max 2, phase 5 = max 4
+	# Late game (200 pipes): phase 3 = 2, phase 10 = 20
+	var raw_count: int
+	match phase:
+		3:  raw_count = 2
+		4:  raw_count = 3
+		5:  raw_count = 4
+		6:  raw_count = 5
+		7:  raw_count = 9
+		8:  raw_count = 11
+		9:  raw_count = 15
+		10: raw_count = 20
+		_:  raw_count = 0
+
+	# Cap at 25% of total pipes so early game isn't destroyed
+	var max_allowed = max(1, int(total_pipes * 0.25))
+	return min(raw_count, max_allowed)
+
+func _get_guaranteed_hub_fractures(phase: int) -> int:
+	match phase:
+		3: return 1  
+		4: return 1
+		5: return 2   
+		6: return 2
+		7: return 3
+		8: return 2
+		9: return 3
+		10: return 5
+		_: return 0
+
+func _zone_priority(zone: GameData.Zone) -> int:
+	# Frontier pipes fracture first, core last
+	match zone:
+		GameData.Zone.FRONTIER: return 4
+		GameData.Zone.OUTER:    return 3
+		GameData.Zone.INNER:    return 2
+		GameData.Zone.CORE:     return 1
+		_: return 0
 #endregion
 
 #region First Colony
@@ -676,7 +781,7 @@ func try_vent_spawn() -> void:
 		return
 	
 	# sort the candidates based on their score
-	scored_tiles.sort_custom(func (a, b) : a.score > b.score)
+	scored_tiles.sort_custom(func (a, b) : return a.score > b.score)
 	
 	# select the top 3 
 	var top_3_tiles = scored_tiles.slice(0, 3)

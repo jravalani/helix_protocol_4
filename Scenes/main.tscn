@@ -6,9 +6,11 @@
 [ext_resource type="PackedScene" uid="uid://dnpwluvfdcpl1" path="res://UITestScenes/in_level_ui.tscn" id="4_jjvhh"]
 [ext_resource type="Script" uid="uid://dtgwxb8bypuhf" path="res://Scripts/director_2.gd" id="4_kry3j"]
 [ext_resource type="Script" uid="uid://coik2fhilbiw2" path="res://Scripts/camera_2d.gd" id="6_21xkr"]
+[ext_resource type="PackedScene" uid="uid://djl3oc0smqdgx" path="res://Scenes/fracture_wave.tscn" id="6_jkdf5"]
 [ext_resource type="Shader" uid="uid://boevdjmjawqve" path="res://shaders/vignette.gdshader" id="7_344ge"]
+[ext_resource type="PackedScene" uid="uid://crjalt6n7n0in" path="res://Scenes/vignette.tscn" id="9_6iyac"]
 [ext_resource type="PackedScene" uid="uid://chapr2oeoqwub" path="res://UITestScenes/tech_tree.tscn" id="9_ynf5e"]
-[ext_resource type="PackedScene" uid="uid://k61p1hw6lw5t" path="res://Scenes/GridPanels.tscn" id="10_d1ilt"]
+[ext_resource type="PackedScene" uid="uid://oksegi45gqak" path="res://Scenes/heat_haze.tscn" id="10_fdnlq"]
 [ext_resource type="PackedScene" uid="uid://dtv18ee30jl71" path="res://UITestScenes/top_panel.tscn" id="10_hptm8"]
 [ext_resource type="PackedScene" uid="uid://bfq5ber3wwxdb" path="res://Scenes/dust_particles.tscn" id="11_d1ilt"]
 
@@ -34,13 +36,7 @@ shader_parameter/vignette_color = Color(0, 0, 0, 1)
 [node name="Background" type="Sprite2D" parent="." unique_id=42502156]
 texture = ExtResource("1_d1ilt")
 
-[node name="GridPanels" parent="." unique_id=341426757 instance=ExtResource("10_d1ilt")]
-visible = false
-
 [node name="RoadBuilder" parent="." unique_id=91564763 instance=ExtResource("2_8gbba")]
-
-[node name="InputManager" parent="." unique_id=306014539 node_paths=PackedStringArray("road_builder") instance=ExtResource("3_kry3j")]
-road_builder = NodePath("../RoadBuilder")
 
 [node name="Director" type="Node2D" parent="." unique_id=1786159827]
 script = ExtResource("4_kry3j")
@@ -50,6 +46,11 @@ width = 5.0
 default_color = Color(3.85046e-07, 0.593914, 0.8248381, 1)
 
 [node name="Entities" type="Node" parent="." unique_id=578986959]
+
+[node name="InputManager" parent="." unique_id=306014539 node_paths=PackedStringArray("road_builder") instance=ExtResource("3_kry3j")]
+road_builder = NodePath("../RoadBuilder")
+
+[node name="FractureWave" parent="." unique_id=305859447 instance=ExtResource("6_jkdf5")]
 
 [node name="DustParticles" parent="." unique_id=622471858 instance=ExtResource("11_d1ilt")]
 
@@ -61,7 +62,10 @@ script = ExtResource("6_21xkr")
 
 [node name="CanvasLayer2" type="CanvasLayer" parent="." unique_id=1486273393]
 
-[node name="VignetteEffect" type="ColorRect" parent="CanvasLayer2" unique_id=1332873070]
+[node name="BackBufferCopy" type="BackBufferCopy" parent="CanvasLayer2" unique_id=1946144542]
+copy_mode = 2
+
+[node name="Vignette_Black" type="ColorRect" parent="CanvasLayer2" unique_id=1332873070]
 material = SubResource("ShaderMaterial_ynf5e")
 anchors_preset = 15
 anchor_right = 1.0
@@ -69,6 +73,10 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="Vignette_Color" parent="CanvasLayer2" unique_id=128150804 instance=ExtResource("9_6iyac")]
+
+[node name="HeatHaze" parent="CanvasLayer2" unique_id=127510232 instance=ExtResource("10_fdnlq")]
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=113825014]
 

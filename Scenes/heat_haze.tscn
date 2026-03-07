@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://oksegi45gqak"]
+
+[ext_resource type="Shader" uid="uid://csbwxtccddfcn" path="res://shaders/heat_haze.gdshader" id="1_irowv"]
+[ext_resource type="Script" uid="uid://671o4jkv1l3h" path="res://Scripts/heat_haze.gd" id="2_oardf"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_oardf"]
+shader = ExtResource("1_irowv")
+shader_parameter/strength = 0.0
+shader_parameter/speed = 3.0
+
+[node name="HeatHaze" type="ColorRect" unique_id=127510232]
+material = SubResource("ShaderMaterial_oardf")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_oardf")

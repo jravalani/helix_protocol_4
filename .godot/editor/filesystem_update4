@@ -1,8 +1,13 @@
-res://Scenes/road_tile.tscn
+res://Scenes/main.tscn
 res://lights/vent_light_texture.tres
 res://ParticleEffects/rising_smoke.tres
 res://shaders/vignette.gdshader
+res://shaders/vignette_with_color.gdshader
+res://shaders/heat_haze.gdshader
 res://shaders/fog.gdshader
 res://shaders/shadow.gdshader
-res://Scripts/new_road_tile.gd
-res://Scripts/input_manager.gd
+res://Scripts/director_2.gd
+res://Scenes/fracture_wave.tscn
+res://Scripts/fracture_wave.gd
+res://Scripts/hub.gd
+res://Globals/game_data.gd

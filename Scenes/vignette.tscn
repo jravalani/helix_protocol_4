@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://crjalt6n7n0in"]
+
+[ext_resource type="Shader" uid="uid://b1e3nor7pxlhs" path="res://shaders/vignette_with_color.gdshader" id="1_ttjoe"]
+[ext_resource type="Script" uid="uid://bw2gqwoi3ows0" path="res://Scripts/vignette_color.gd" id="2_52fm7"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_oardf"]
+shader = ExtResource("1_ttjoe")
+shader_parameter/tint_color = Color(0, 0, 0, 0)
+shader_parameter/vignette_strength = 0.0
+
+[node name="Vignette" type="ColorRect" unique_id=128150804]
+material = SubResource("ShaderMaterial_oardf")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_52fm7")

@@ -185,9 +185,10 @@ func launch_rocket() -> void:
 	).set_delay(2.5)
 	
 	# When launch complete
-	tween.finished.connect(_on_launch_complete)
+	tween.finished.connect(_on_launch_complete, CONNECT_ONE_SHOT)
 
 func _on_launch_complete() -> void:
 	print("Rocket has left the atmosphere!")
 	print("You Win!")
 	# segment_1 (launchpad) remains on the ground
+	# add the signal here for the actual panel to show.
