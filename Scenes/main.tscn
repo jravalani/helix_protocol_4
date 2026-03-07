@@ -53,6 +53,7 @@ road_builder = NodePath("../RoadBuilder")
 [node name="FractureWave" parent="." unique_id=305859447 instance=ExtResource("6_jkdf5")]
 
 [node name="DustParticles" parent="." unique_id=622471858 instance=ExtResource("11_d1ilt")]
+z_index = 200
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=552333695]
 environment = SubResource("Environment_d1ilt")

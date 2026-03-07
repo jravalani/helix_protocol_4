@@ -65,6 +65,9 @@ func _on_area_2d_input_event(viewport: Node, event: InputEvent, shape_idx: int) 
 					get_viewport().set_input_as_handled()
 				else:
 					_spawn_floating_label("Insufficient Data", Color("d946ef"))
+			elif is_permanent:
+				_spawn_floating_label("Pipe Online", Color("8b92a3"))
+				get_viewport().set_input_as_handled()
 			else:
 				_spawn_floating_label("Pipe Online", Color("8b92a3"))
 			
@@ -252,6 +255,8 @@ func on_pipes_upgraded(level: int) -> void:
 
 func on_check_fracture() -> void:
 	if is_fractured:
+		return
+	if is_permanent:
 		return
 	if randf() < calculate_fracture_chance():
 		fracture()

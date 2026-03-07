@@ -106,12 +106,10 @@ vertical_alignment = 1
 position = Vector2(0, 32)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=120943362]
-visible = false
 scale = Vector2(0.65, 0.65)
 shape = SubResource("RectangleShape2D_okrnj")
 
 [node name="SmokeParticleEffect" type="GPUParticles2D" parent="." unique_id=547876146]
-visible = false
 texture = SubResource("GradientTexture2D_arggx")
 lifetime = 2.0
 process_material = ExtResource("5_arggx")

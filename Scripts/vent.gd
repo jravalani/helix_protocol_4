@@ -1,6 +1,9 @@
 extends Building
 class_name Vent
 
+const DRIVEWAY_OFFSET := Vector2(0, 32)  # base offset, unrotated
+
+
 @onready var driveway_marker: Marker2D = $DrivewayMarker
 @onready var fan: Sprite2D = $Fan
 @onready var max_capacity: int = 2
@@ -53,21 +56,22 @@ func _input_event(viewport: Viewport, event: InputEvent, shape_idx: int) -> void
 				has_dragged = true
 
 func _ready():
-	
 	left_cloud.restart()
 	right_cloud.restart()
-	
 	SignalBus.camera_shake.emit(0.25, 4.0)
-	
 	cell_type = "VENT"
-	super() # Registers footprint and entrance
-	
-	# Listen for road changes
+	super()
 	SignalBus.map_changed.connect(_on_map_changed)
 	
-	# Check connection after one frame (A* must be ready)
-	await get_tree().process_frame
+	await get_tree().process_frame  # wait for marker to be positioned
+	
+	var dir_vec = (driveway_marker.global_position - global_position).normalized()
+	var driveway_direction = Vector2i(round(dir_vec.x), round(dir_vec.y))
+	SignalBus.building_spawned.emit(entrance_cell, driveway_direction)
+	
 	_on_map_changed()
+	
+	
 
 func _process(delta: float) -> void:
 	if shipment_queue.size() > 0:
@@ -77,47 +81,38 @@ func _process(delta: float) -> void:
 			_spawn_packet(next_hub)
 			spawn_timer = spawn_interval
 
+func get_driveway_direction() -> Vector2i:
+	var rotated := DRIVEWAY_OFFSET.rotated(deg_to_rad(driveway_marker.rotation_degrees))
+	return Vector2i(round(rotated.normalized().x), round(rotated.normalized().y))
+
 func rotate_45_degrees() -> void:
-	rotation_degrees += 45
-	if rotation_degrees >= 360:
-		rotation_degrees = 0
+	driveway_marker.rotation_degrees += 45
+	if driveway_marker.rotation_degrees >= 360:
+		driveway_marker.rotation_degrees = 0
+
+	# Strip the arm on the old neighbor that was pointing back at the stub
+	var stub = GameData.road_grid.get(entrance_cell)
+	if stub is NewRoadTile:
+		for old_dir in stub.manual_connections.duplicate():
+			var old_neighbor = GameData.road_grid.get(entrance_cell + old_dir)
+			if old_neighbor is NewRoadTile:
+				old_neighbor.remove_connection(-old_dir)
+
+	var driveway_direction = get_driveway_direction()
+
+	# Disconnect old A* connections
+	var my_id = GameData.get_cell_id(entrance_cell)
+	var connections = GameData.astar.get_point_connections(my_id)
+	for conn_id in connections:
+		GameData.astar.disconnect_points(my_id, conn_id, true)
+
+	SignalBus.building_spawned.emit(entrance_cell, driveway_direction)
 	_on_map_changed()
 
 func _on_map_changed():
-	"""Connect vent to road network ONLY through the driveway cell, as a one-way exit."""
 	var my_id = GameData.get_cell_id(entrance_cell)
-	
 	if not GameData.astar.has_point(my_id):
 		return
-
-	# 1. CLEANUP: Wipe every existing connection for this specific entrance_cell.
-	# This ensures that when you rotate, the 'old' driveway connection is killed.
-	var connections = GameData.astar.get_point_connections(my_id)
-	for conn_id in connections:
-		# We use true here to ensure it disconnects from both ends
-		GameData.astar.disconnect_points(my_id, conn_id, true)
-	
-	# 2. DIRECTION MATH: Use the marker's offset from the Vent center to get a Vector2i direction
-	# Since driveway is 32px below entrance, this vec will be (0, 1) when unrotated.
-	var dir_vec = (driveway_marker.global_position - global_position).normalized()
-	var driveway_direction = Vector2i(round(dir_vec.x), round(dir_vec.y))
-	
-	# 3. TARGET THE ROAD: Find the exact cell the driveway is pointing at
-	var adjacent_road_cell = entrance_cell + driveway_direction
-	var road_tile = GameData.road_grid.get(adjacent_road_cell)
-	
-	# 4. VALIDATE & CONNECT: Only connect if there is a road facing us
-	if road_tile != null and road_tile.has_method("has_connection_in_direction"):
-		var road_id = GameData.get_cell_id(adjacent_road_cell)
-		if GameData.astar.has_point(road_id):
-			var opposite_direction = -driveway_direction
-			
-			if road_tile.has_connection_in_direction(opposite_direction):
-				# CRITICAL: bidirectional = false. 
-				# This makes it a ONE-WAY exit. Packets can't enter the vent from the road.
-				GameData.astar.connect_points(my_id, road_id, false) 
-				print("Vent at ", entrance_cell, " connected to road at ", adjacent_road_cell)
-	
 	update_connection_status()
 
 func update_connection_status():

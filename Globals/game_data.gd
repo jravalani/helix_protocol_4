@@ -26,7 +26,7 @@ const START_SIZE = 20
 
 var current_hub_count: int = 0
 var current_vent_count: int = 0
-var current_pipe_count: int = 25
+var current_pipe_count: int = 50
 
 ## =============================================================================
 ## ZONE SYSTEM
@@ -80,7 +80,7 @@ var data_reserve_for_auto_repairs: int = 0
 ## ECONOMY & PROGRESSION
 ## =============================================================================
 
-var total_data: int = 25000
+var total_data: int = 0
 var score_to_next_reward: int = 50
 
 ## =============================================================================

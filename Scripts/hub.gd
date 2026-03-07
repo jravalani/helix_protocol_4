@@ -26,9 +26,9 @@ var is_fractured: bool = false
 
 var utilization_responsiveness := 0.2
 
-var base_request_interval: float = 20.0  # was 6.0
+var base_request_interval: float = 15.0  # was 6.0
 var min_interval: float = 4.0            
-var max_interval: float = 25.0           
+var max_interval: float = 20.0           
 
 var _dead_pulse_tween: Tween = null
 
@@ -76,6 +76,7 @@ func _ready():
 	right_cloud.restart()
 	
 	SignalBus.camera_shake.emit(0.50, 6.0)
+	SignalBus.building_spawned.emit(entrance_cell, Vector2i(-99, -99))
 	
 	cell_type = "HUB"
 	request_interval *= randf_range(0.85, 1.15)
@@ -143,7 +144,7 @@ func _on_request_timer_timeout():
 	
 	var oxygen_demand = 1
 	
-	if connected_vents > 10:
+	if connected_vents > 1:
 		var r = randf()
 		if r < 0.12:          # 12% chance
 			oxygen_demand = 3

@@ -4,7 +4,7 @@ signal map_changed
 
 signal car_returned_home
 
-signal building_spawned(building_type: String, position: Vector2i, color_id: int)
+signal building_spawned(entrance_cell: Vector2i, driveway_direction: Vector2i)
 
 signal pressure_updated(new_value: int, percentage: float)
 

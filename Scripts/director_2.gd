@@ -244,7 +244,7 @@ func calculate_dynamic_vent_interval() -> float:
 		utilization_multiplier = 0.8
 	
 	var final_interval = base_interval * pressure_multiplier * backlog_multiplier * utilization_multiplier
-	return clamp(final_interval, min_vent_interval, 50.0)
+	return clamp(final_interval, min_vent_interval, 35.0)
 
 func calculate_dynamic_hub_interval() -> float:
 	var base = 90.0  # hubs are rarer early
@@ -517,17 +517,9 @@ func _execute_fracture_wave() -> void:
 	for hub in hubs:
 		if not hub.is_fractured:
 			fracturable_hubs.append(hub)
-	
-	var hub_fractured_count := 0
-	for hub in fracturable_hubs:
-		if hub_fractured_count >= guaranteed_hub_fractures:
-			break
+		
+	for hub in fracturable_hubs.slice(0, guaranteed_hub_fractures):
 		hub.fracture()
-		hub_fractured_count += 1
-	
-	# Remaining hubs roll probability
-	for hub in fracturable_hubs.slice(hub_fractured_count):
-		hub.on_check_fracture()
 
 func _get_guaranteed_pipe_fractures(phase: int) -> int:
 	var total_pipes = GameData.road_grid.size()
@@ -554,12 +546,12 @@ func _get_guaranteed_pipe_fractures(phase: int) -> int:
 func _get_guaranteed_hub_fractures(phase: int) -> int:
 	match phase:
 		3: return 1  
-		4: return 1
+		4: return 2
 		5: return 2   
 		6: return 2
 		7: return 3
-		8: return 2
-		9: return 3
+		8: return 3
+		9: return 4
 		10: return 5
 		_: return 0
 
