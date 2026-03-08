@@ -27,3 +27,7 @@ signal open_rocket_menu
 signal rocket_segment_purchased(new_phase: int)
 
 signal camera_shake(duration: float, strength: float)
+
+signal zone_unlocked(zone: int)
+
+signal game_over

@@ -47,7 +47,23 @@ theme_override_constants/h_separation = 64
 theme_override_constants/v_separation = 10
 alignment = 1
 
-[node name="TechTree" type="Button" parent="MarginContainer2/FlowContainer" unique_id=565887667]
+[node name="SpawnVent" type="Button" parent="MarginContainer2/FlowContainer" unique_id=565887667]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 18
+text = "+Vent
+Cost: "
+
+[node name="SpawnHub" type="Button" parent="MarginContainer2/FlowContainer" unique_id=438337116]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 18
+text = "+Hub
+Cost: "
+
+[node name="TechTree3" type="Button" parent="MarginContainer2/FlowContainer" unique_id=871569821]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -156,7 +172,9 @@ layout_mode = 2
 [node name="OneSecTimer" type="Timer" parent="." unique_id=1038239928]
 autostart = true
 
-[connection signal="pressed" from="MarginContainer2/FlowContainer/TechTree" to="." method="_on_tech_tree_pressed"]
+[connection signal="pressed" from="MarginContainer2/FlowContainer/SpawnVent" to="." method="_on_spawn_vent_pressed"]
+[connection signal="pressed" from="MarginContainer2/FlowContainer/SpawnHub" to="." method="_on_spawn_hub_pressed"]
+[connection signal="pressed" from="MarginContainer2/FlowContainer/TechTree3" to="." method="_on_tech_tree_pressed"]
 [connection signal="pressed" from="MarginContainer2/FlowContainer/UpgradePipes" to="." method="_on_upgrade_pipes_pressed"]
 [connection signal="pressed" from="MarginContainer2/FlowContainer/HullShield" to="." method="_on_hull_shield_pressed"]
 [connection signal="pressed" from="MarginContainer2/FlowContainer/ReinforceZone" to="." method="_on_repair_zone_pressed" binds= [0]]

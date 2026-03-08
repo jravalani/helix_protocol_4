@@ -3,11 +3,15 @@ class_name Vent
 
 const DRIVEWAY_OFFSET := Vector2(0, 32)  # base offset, unrotated
 
+# Zone-based send intervals (seconds per packet)
+const INTERVAL_CORE     := 4.0
+const INTERVAL_INNER    := 4.0
+const INTERVAL_OUTER    := 3.0
+const INTERVAL_FRONTIER := 2.0
 
 @onready var driveway_marker: Marker2D = $DrivewayMarker
 @onready var fan: Sprite2D = $Fan
 @onready var max_capacity: int = 2
-
 
 @onready var left_cloud: GPUParticles2D = $LeftCloud
 @onready var right_cloud: GPUParticles2D = $RightCloud
@@ -17,11 +21,18 @@ var packet_scene = preload("res://Scenes/packet.tscn")
 var is_connected_to_network: bool = false
 var current_capacity: int = 0
 
-var shipment_queue: Array[Node2D] = []
-var spawn_timer: float = 0.0
-var spawn_interval: float = 0.6
+var send_interval: float = INTERVAL_CORE
+var send_timer: float = 0.0
+var _notify_cooldown: float = 0.0
+
+const BURST_DURATION   := 10.0
+const BURST_MULTIPLIER := 1.5
+var _burst_timer: float = 0.0
+var _is_bursting: bool  = false
 
 var fan_rotation_speed = 4.0
+const FAN_BASE_SPEED := 4.0
+var _fan_tween: Tween = null
 
 var click_position: Vector2
 var has_dragged: bool = false
@@ -37,22 +48,19 @@ func _input_event(viewport: Viewport, event: InputEvent, shape_idx: int) -> void
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			if event.is_pressed():
-				# Remember where we clicked
-				get_viewport().set_input_as_handled() 
+				get_viewport().set_input_as_handled()
 				click_position = get_global_mouse_position()
 				has_dragged = false
 			else:
-				# Released - only rotate if we didn't drag
 				if not has_dragged:
 					print("Vent clicked (no drag) - rotating!")
 					rotate_45_degrees()
 				get_viewport().set_input_as_handled()
-	
+
 	elif event is InputEventMouseMotion:
-		# If mouse moved more than a small threshold, it's a drag
 		if event.button_mask & MOUSE_BUTTON_MASK_LEFT:
 			var current_pos = get_global_mouse_position()
-			if click_position.distance_to(current_pos) > 5.0:  # 10 pixel threshold
+			if click_position.distance_to(current_pos) > 5.0:
 				has_dragged = true
 
 func _ready():
@@ -62,24 +70,92 @@ func _ready():
 	cell_type = "VENT"
 	super()
 	SignalBus.map_changed.connect(_on_map_changed)
-	
-	await get_tree().process_frame  # wait for marker to be positioned
-	
+	SignalBus.fracture_wave.connect(_on_fracture_wave)
+
+	await get_tree().process_frame
+
 	var dir_vec = (driveway_marker.global_position - global_position).normalized()
 	var driveway_direction = Vector2i(round(dir_vec.x), round(dir_vec.y))
 	SignalBus.building_spawned.emit(entrance_cell, driveway_direction)
-	
+
+	_set_interval_from_zone()
+	send_timer = randf_range(0.0, send_interval)
+
 	_on_map_changed()
-	
-	
+
+func _set_interval_from_zone() -> void:
+	var zone = GameData.get_zone_for_cell(entrance_cell)
+	match zone:
+		GameData.Zone.CORE:     send_interval = INTERVAL_CORE
+		GameData.Zone.INNER:    send_interval = INTERVAL_INNER
+		GameData.Zone.OUTER:    send_interval = INTERVAL_OUTER
+		GameData.Zone.FRONTIER: send_interval = INTERVAL_FRONTIER
+		_:                      send_interval = INTERVAL_CORE
 
 func _process(delta: float) -> void:
-	if shipment_queue.size() > 0:
-		spawn_timer -= delta
-		if spawn_timer <= 0:
-			var next_hub = shipment_queue.pop_front()
-			_spawn_packet(next_hub)
-			spawn_timer = spawn_interval
+	if not is_connected_to_network:
+		return
+	if _notify_cooldown > 0.0:
+		_notify_cooldown -= delta
+	# Burst countdown
+	if _is_bursting:
+		_burst_timer -= delta
+		if _burst_timer <= 0.0:
+			_end_burst()
+	send_timer -= delta
+	if send_timer <= 0.0:
+		send_timer = _current_interval()
+		if current_capacity < max_capacity:
+			_try_send_packet()
+
+func _current_interval() -> float:
+	return send_interval / BURST_MULTIPLIER if _is_bursting else send_interval
+
+func _on_fracture_wave() -> void:
+	_is_bursting = true
+	_burst_timer = BURST_DURATION
+	# Visual — tint fan/vent orange to signal instability
+	var t := create_tween()
+	t.tween_property(self, "modulate", Color(1.4, 0.6, 0.2, 1.0), 0.1)
+
+func _end_burst() -> void:
+	_is_bursting = false
+	var t := create_tween()
+	t.tween_property(self, "modulate", Color.WHITE, 0.4)
+
+func _try_send_packet() -> void:
+	# Score all reachable, non-rate-limited hubs: higher backlog + shorter path = better
+	var best_hub: Hub = null
+	var best_score: float = -1.0
+
+	var my_id = GameData.get_cell_id(entrance_cell)
+
+	for cell in GameData.building_grid:
+		var building = GameData.building_grid[cell]
+		if not building is Hub:
+			continue
+		if building.is_fractured or building.is_rate_limited:
+			continue
+
+		var hub_id = GameData.get_cell_id(building.entrance_cell)
+		if not GameData.astar.has_point(my_id) or not GameData.astar.has_point(hub_id):
+			continue
+
+		var path = GameData.astar.get_id_path(my_id, hub_id)
+		if path.size() < 2:
+			continue
+
+		var path_length: float = path.size()
+		# backlog + 1 avoids division weirdness when backlog is 0
+		var score: float = (building.oxygen_backlog + 1.0) / path_length
+		if score > best_score:
+			best_score = score
+			best_hub = building
+
+	if best_hub == null:
+		return  # no eligible hub — discard this pulse
+
+	_spawn_packet(best_hub)
 
 func get_driveway_direction() -> Vector2i:
 	var rotated := DRIVEWAY_OFFSET.rotated(deg_to_rad(driveway_marker.rotation_degrees))
@@ -90,7 +166,6 @@ func rotate_45_degrees() -> void:
 	if driveway_marker.rotation_degrees >= 360:
 		driveway_marker.rotation_degrees = 0
 
-	# Strip the arm on the old neighbor that was pointing back at the stub
 	var stub = GameData.road_grid.get(entrance_cell)
 	if stub is NewRoadTile:
 		for old_dir in stub.manual_connections.duplicate():
@@ -100,7 +175,6 @@ func rotate_45_degrees() -> void:
 
 	var driveway_direction = get_driveway_direction()
 
-	# Disconnect old A* connections
 	var my_id = GameData.get_cell_id(entrance_cell)
 	var connections = GameData.astar.get_point_connections(my_id)
 	for conn_id in connections:
@@ -116,13 +190,12 @@ func _on_map_changed():
 	update_connection_status()
 
 func update_connection_status():
-	"""Check if there is a valid A* path to any hub."""
 	var was_connected = is_connected_to_network
 	is_connected_to_network = false
-	
+
 	if GameData.building_grid.is_empty():
 		return
-	
+
 	for cell in GameData.building_grid:
 		var building = GameData.building_grid[cell]
 		if building is Hub:
@@ -133,26 +206,40 @@ func update_connection_status():
 				if path.size() > 0:
 					is_connected_to_network = true
 					break
-	
-	if was_connected != is_connected_to_network:
-		print("Vent at %s connected to network: %s" % [entrance_cell, is_connected_to_network])
 
-func can_send_oxygen_packet_to(requester: Node2D) -> bool:
-	if current_capacity < max_capacity and is_connected_to_network:
-		current_capacity += 1
-		shipment_queue.append(requester)
-		return true
-	return false
+	if was_connected and not is_connected_to_network:
+		send_timer = send_interval
+		print("Vent at %s disconnected from network" % entrance_cell)
+	elif not was_connected and is_connected_to_network:
+		send_timer = randf_range(0.5, 1.5)
+		print("Vent at %s reconnected to network" % entrance_cell)
 
+func notify_capacity_freed() -> void:
+	if _notify_cooldown > 0.0:
+		return
+	if is_connected_to_network and current_capacity < max_capacity:
+		_notify_cooldown = 0.2
+		_try_send_packet()
 
-func _spawn_packet(requester: Node2D) -> void:
-	var target_cell = requester.entrance_cell
+func _spawn_packet(target_hub: Hub) -> void:
+	current_capacity += 1
 	var path_container = Path2D.new()
-	get_parent().add_child(path_container)
+	get_parent().add_child.call_deferred(path_container)
 	var oxygen_packet = packet_scene.instantiate()
 	path_container.add_child(oxygen_packet)
 	oxygen_packet.global_position = global_position
-	oxygen_packet.setup_path(self, entrance_cell, target_cell)
+	oxygen_packet.setup_path(self, entrance_cell, target_hub.entrance_cell)
+	_on_packet_spawned()
+
+func _on_packet_spawned() -> void:
+	var glow := create_tween()
+	glow.tween_property(self, "modulate", Color(1.4, 1.4, 1.6, 1.0), 0.08)
+	glow.tween_property(self, "modulate", Color.WHITE, 0.35)
+	if _fan_tween:
+		_fan_tween.kill()
+	_fan_tween = create_tween()
+	_fan_tween.tween_method(func(v): fan_rotation_speed = v, fan_rotation_speed, FAN_BASE_SPEED * 3.5, 0.1)
+	_fan_tween.tween_method(func(v): fan_rotation_speed = v, FAN_BASE_SPEED * 3.5, FAN_BASE_SPEED, 0.8)
 
 func get_max_capacity() -> int:
 	return max_capacity

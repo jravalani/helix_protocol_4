@@ -61,31 +61,13 @@ var rocket_size: Vector2i = Vector2i(3, 3)
 var hub_rotation: Array = [0, PI/2, 3*PI/2]
 
 ## =============================================================================
-## SPAWN TIMING & INTERVALS
+## ZONE UNLOCK STATE
 ## =============================================================================
+## Core + Inner always unlocked.
+## Outer unlocks on Rocket Segment 1.
+## Frontier unlocks on Rocket Segment 3.
 
-## Hub spawning
-var min_vents_per_hub: int = 4        # Need at least 4 vents per hub
-var hub_spawn_cooldown: float = 15.0  # Minimum time between hub spawns
-var hub_cooldown_timer: float = 0.0
-var hub_interval: float = 90.0
-var hub_timer: float = 0.0
-var hub_spawn_eta: String = ""
-
-## Vent spawning (accelerates over time)
-var vent_interval: float = 35.0
-var vent_timer: float = 0.0
-var vent_acceleration: float = 0.92      # Multiplier applied each spawn
-var min_vent_interval: float = 6.0       # Fastest possible spawn rate
-
-
-## =============================================================================
-## SPAWN RADIUS RULES
-## =============================================================================
-
-var hub_base_radius: int = 4             # Base exclusion radius for hubs
-var hub_radius_multiplier: int = 2       # Additional spacing multiplier
-var vent_base_radius: int = 3            # Base exclusion radius for vents
+var unlocked_zones: Array[GameData.Zone] = [GameData.Zone.CORE, GameData.Zone.INNER]
 
 ## =============================================================================
 ## CAMERA & VIEWPORT
@@ -111,12 +93,7 @@ func _ready() -> void:
 	screen_center = camera_2d.get_screen_center_position()
 	get_camera_bounds()
 	spawn_rocket()
-	
 	spawn_initial_colony()
-	
-	vent_timer = vent_interval
-	hub_timer = hub_interval
-	
 	print("Current Map Size is ", GameData.current_map_size, " from ready function.")
 
 func _process(delta: float) -> void:
@@ -140,33 +117,7 @@ func _process(delta: float) -> void:
 	
 	if GameData.current_pressure >= 100:
 		print("Meltdown Triggered!")
-	
-	# Intro cooldown
-	if intro_cooldown > 0:
-		intro_cooldown -= delta
-		return
-	
-	# HUB SPAWNING - Vent-driven logic
-	if GameData.current_hub_count < GameData.MAX_HUBS:
-		hub_timer -= delta
-		
-		if hub_timer <= 0:
-			try_hub_spawn()
-			hub_timer = calculate_dynamic_hub_interval()
-				# Update debug display
-		hub_spawn_eta = "%.1fs" % max(0, hub_timer)
-	else:
-		hub_timer = hub_interval
-		hub_spawn_eta = "MAX"
-	
-	# VENT SPAWNING
-	if GameData.current_vent_count < GameData.MAX_VENTS:
-		vent_timer -= delta
-		if vent_timer <= 0:
-			try_vent_spawn()
-			vent_timer = calculate_dynamic_vent_interval()
-	else:
-		vent_timer = vent_interval
+		SignalBus.game_over.emit()
 #region Camera
 #func get_camera_bounds() -> Rect2i:
 	#var zoom = camera_2d.zoom
@@ -196,14 +147,14 @@ func _process(delta: float) -> void:
 	#return bounds
 
 func get_camera_bounds() -> Rect2i:
-	# Ignore the viewport/zoom math entirely. 
-	# Use the pre-defined map size as the absolute truth.
 	var bounds = GameData.current_map_size
-	
-	# If you want a safety buffer so things don't spawn on the very edge:
-	var playable_bounds = bounds.grow(-camera_buffer) 
-	
-	print("Director: Canvas locked to GameData: ", playable_bounds)
+	# 1 cell padding left/right, 2 cell padding top/bottom
+	var playable_bounds = Rect2i(
+		bounds.position.x,
+		bounds.position.y + 1,
+		bounds.size.x,
+		bounds.size.y - 3
+	)
 	return playable_bounds
 #endregion
 
@@ -226,71 +177,40 @@ func spawn_rocket() -> void:
 
 #region Functions
 
-func calculate_dynamic_vent_interval() -> float:
-	var base_interval = 35.0
-	
-	var pressure_factor = GameData.current_pressure / GameData.MAX_PRESSURE
-	var pressure_multiplier = 1.0 - (pressure_factor * 0.6)
-	
-	var total_backlog = clamp(GameData.total_hub_backlog, 8, 18)
-	var backlog_multiplier = 1.0/ (1.0 - (total_backlog / 20.0))
-	backlog_multiplier = clamp(backlog_multiplier, 0.5, 2.0)
-	
-	var avg_utilization = GameData.average_vent_utilization
-	var utilization_multiplier = 1.0
-	if avg_utilization > 0.8:
-		utilization_multiplier = 0.6
-	if avg_utilization > 0.6:
-		utilization_multiplier = 0.8
-	
-	var final_interval = base_interval * pressure_multiplier * backlog_multiplier * utilization_multiplier
-	return clamp(final_interval, min_vent_interval, 35.0)
+#region Public API — called by ResourceManager
 
-func calculate_dynamic_hub_interval() -> float:
-	var base = 90.0  # hubs are rarer early
-	var current_vents = GameData.current_vent_count
+func request_hub_spawn() -> void:
+	if GameData.current_hub_count >= GameData.MAX_HUBS:
+		print("Director: Hub cap reached.")
+		return
+	try_hub_spawn()
 
-	# Vent factor — more vents = hubs needed sooner
-	var vent_factor = 1.0
-	if current_vents <= 2:
-		vent_factor = 1.5    # very slow early (135s)
-	elif current_vents <= 4:
-		vent_factor = 1.2    # slow (108s)
-	elif current_vents <= 7:
-		vent_factor = 1.0    # normal (90s)
-	elif current_vents <= 12:
-		vent_factor = 0.75   # faster (67s)
-	elif current_vents <= 20:
-		vent_factor = 0.55   # fast (49s)
-	elif current_vents <= 35:
-		vent_factor = 0.4    # very fast (36s)
-	else:
-		vent_factor = 0.3    # rapid (27s)
+func request_vent_spawn() -> void:
+	if GameData.current_vent_count >= GameData.MAX_VENTS:
+		print("Director: Vent cap reached.")
+		return
+	try_vent_spawn()
 
-	# Backlog factor
-	var total_backlog = GameData.total_hub_backlog
-	var backlog_factor = 1.0
-	if total_backlog > 50:
-		backlog_factor = 1.8
-	elif total_backlog > 30:
-		backlog_factor = 1.5
-	elif total_backlog > 15:
-		backlog_factor = 1.2
-	elif total_backlog < 10:
-		backlog_factor = 0.85
+func unlock_zone(zone: GameData.Zone) -> void:
+	if zone not in unlocked_zones:
+		unlocked_zones.append(zone)
+		GameData.increase_map_size()
+		print("Director: Zone unlocked — ", zone)
+		SignalBus.zone_unlocked.emit(zone)
 
-	var final_interval = base * vent_factor * backlog_factor
-	return clamp(final_interval, 20.0, 150.0)  # max 150s early game
+#endregion
 
+func _is_tile_in_unlocked_zone(tile: Vector2i) -> bool:
+	return GameData.get_zone_for_cell(tile) in unlocked_zones
 
 func is_area_clear(target_coord: Vector2i, area_size: Vector2i, camera_bounds: Rect2i, buffer: int = 0) -> bool:
 	for x in range(-buffer, area_size.x + buffer):
 		for y in range(-buffer, area_size.y + buffer):
 			var current_tile = target_coord + Vector2i(x, y)
-			
 			if not camera_bounds.has_point(current_tile):
 				return false
-			
+			if not _is_tile_in_unlocked_zone(current_tile):
+				return false
 			if GameData.building_grid.has(current_tile) or GameData.road_grid.has(current_tile):
 				return false
 	return true
@@ -375,27 +295,15 @@ func calculate_candidate_tiles(center: Vector2, min_dist: int, max_dist: int, si
 func score_tile(tile: Vector2i) -> float:
 	var base_score = GameData.influence_grid.get(tile, 0.0)
 
-	# Zone bonus — on larger maps push buildings outward
-	var zone_bonus := 0.0
-	var map_stage = GameData.map_stages.find(GameData.current_map_size)
-	if map_stage == -1:
-		map_stage = 0
+	# Push toward the edges of the current map.
+	# Tiles further from the rocket (map center) score higher.
+	var map = GameData.current_map_size
+	var map_half = Vector2(map.size) / 2.0
+	var max_dist = min(map_half.x, map_half.y)
+	var dist_from_center = Vector2(tile).distance_to(Vector2(GameData.rocket_cell))
+	var edge_bonus = (dist_from_center / max(max_dist, 1.0)) * 60.0
 
-	if map_stage >= 2:
-		var zone = GameData.get_zone_for_cell(tile)
-		match zone:
-			GameData.Zone.FRONTIER: zone_bonus = 80.0
-			GameData.Zone.OUTER:    zone_bonus = 40.0
-			GameData.Zone.INNER:    zone_bonus = 10.0
-			GameData.Zone.CORE:     zone_bonus = 0.0
-	elif map_stage == 1:
-		var zone = GameData.get_zone_for_cell(tile)
-		match zone:
-			GameData.Zone.OUTER:    zone_bonus = 30.0
-			GameData.Zone.INNER:    zone_bonus = 10.0
-			_:                      zone_bonus = 0.0
-
-	return base_score + zone_bonus + randf_range(0.001, 0.050)
+	return base_score + edge_bonus + randf_range(0.001, 0.050)
 	
 	## OLD SYSTEM
 	#var final_score: int = 0
@@ -459,11 +367,6 @@ func score_tile(tile: Vector2i) -> float:
 	#return total_bonus
 
 func transition_to_phase(phase_number: int) -> void:
-	#Damage/destroy unprotected buildings?
-	#Increase spawn rates?
-	#Fracture pipes/roads?
-	#Change the influence grid dynamics?
-	#Force map expansion?
 	if GameData.current_pressure_phase <= GameData.MAX_PRESSURE_PHASE:
 		GameData.current_pressure_phase = phase_number
 		SignalBus.pressure_phase_changed.emit(phase_number)
@@ -471,10 +374,6 @@ func transition_to_phase(phase_number: int) -> void:
 	
 	if phase_number >= 3:
 		trigger_fracture_wave()
-	
-	if phase_number >= 4:
-		vent_interval *= 0.95
-		print("Director: Logistics Boosted!")
 
 func trigger_fracture_wave() -> void:
 	SignalBus.fracture_wave.emit()
@@ -603,7 +502,6 @@ func spawn_initial_colony() -> void:
 	
 	var hub_center_cell = target_tile_for_hub + Vector2i(1, 1)
 	GameData.apply_influence(hub_center_cell, "hub")
-	GameData.current_hub_count += 1
 	
 	# Now spawn a vent near the hub
 	var hub_world_pos = Vector2(target_tile_for_hub * GameData.CELL_SIZE.x)
@@ -629,7 +527,6 @@ func spawn_initial_colony() -> void:
 		vent_1.position = Vector2(target_tile_for_vent * GameData.CELL_SIZE.x) + Vector2(GameData.CELL_SIZE.x / 2, GameData.CELL_SIZE.x / 2)
 		vent_1.register_building(vent_1)
 		GameData.apply_influence(target_tile_for_vent, "vent")
-		GameData.current_vent_count += 1
 		print("Spawned initial vent at: ", target_tile_for_vent)
 	else:
 		print("Cannot spawn initial vent - no candidates!")
@@ -637,76 +534,26 @@ func spawn_initial_colony() -> void:
 
 #region HubSpawning
 func try_hub_spawn() -> void:
-	# NEW SYSTEM
 	var scored_tiles = []
-	var map_stage = GameData.map_stages.find(GameData.current_map_size)
-	if map_stage == -1:
-		map_stage = 0
-	
-	var dynamic_min = 3 + (map_stage * 3)
-	var dynamic_max = 8 + (map_stage * 4)
-	
-	dynamic_min = max(3, dynamic_min - 1)
-	
-	# get the candidate tiles
-	var candidate_tiles = calculate_candidate_tiles(screen_center, dynamic_min, dynamic_max, hub_size, 1)
+	var camera_bounds = get_camera_bounds()
 
-	# find score for each candidate tile
-	for candidate in candidate_tiles:
-		var score = score_tile(candidate)
-		scored_tiles.append({
-			"tile": candidate,
-			"score": score
-		})
-	
+	# Scan every tile in the current map bounds
+	for x in range(camera_bounds.position.x, camera_bounds.end.x):
+		for y in range(camera_bounds.position.y, camera_bounds.end.y):
+			var tile = Vector2i(x, y)
+			if is_area_clear(tile, hub_size, camera_bounds, 1):
+				scored_tiles.append({
+					"tile": tile,
+					"score": score_tile(tile)
+				})
+
 	if scored_tiles.is_empty():
-		print("No valid tiles.")
-		if GameData.map_stages.find(GameData.current_map_size) < GameData.map_stages.size() - 1:
-			GameData.increase_map_size()
-			print("Increased Map Size.")
-			print("New map size: ", GameData.current_map_size)
-			print("New map stage index: ", GameData.map_stages.find(GameData.current_map_size))
-			print("retry_max will be: ", 8 + (GameData.map_stages.find(GameData.current_map_size) * 4) + 8)
-			try_hub_spawn()
-			return
-		else:
-			print("Director: Map is completely saturated!")
-			return
+		print("Director: No valid hub tiles in current map. Player needs to unlock more zones.")
+		return
 
-	# sort the tiles based on score
-	scored_tiles.sort_custom(func (a, b) : return a.score > b.score)
-
-	# spawn hub at the candidate tile
-	var top_3_tiles = scored_tiles.slice(0, 3)
-	
-	if top_3_tiles.is_empty():
-		print("Top 3 is empty!")
-	var target_pos = top_3_tiles.pick_random()
-	var target_tile = target_pos.tile
+	scored_tiles.sort_custom(func(a, b): return a.score > b.score)
+	var target_tile = scored_tiles.slice(0, 3).pick_random().tile
 	spawn_hub_at(target_tile)
-	
-	
-	## OLD SYSTEM
-	## lets figure out the radius for position here
-	#var map_stage = GameData.map_stages.find(GameData.current_map_size)
-	#if map_stage == -1:
-		#map_stage = 0
-	#
-	#var custom_spawn_radius = hub_base_radius + (map_stage * hub_radius_multiplier) + randi_range(-3, 1)
-	#var hub_spawn_pos = select_spawn_pos(screen_center, custom_spawn_radius, hub_size)
-	#
-	#if hub_spawn_pos == Vector2i(-1, -1):
-		## it means the director failed to find a spot even after 100 tries.
-		## so we will increase the map size and try again.
-		#if GameData.map_stages.find(GameData.current_map_size) < GameData.map_stages.size() - 1:
-			#print("Out of space. Expanding Map")
-			#GameData.increase_map_size()
-			#
-			#try_hub_spawn()
-		#else:
-			#print("Failed to spawn hub even at max map size.")
-	#else:
-		#spawn_hub_at(hub_spawn_pos)
 
 func spawn_hub_at(position: Vector2i) -> void:
 	var hub = research_hub_scene.instantiate()
@@ -716,82 +563,132 @@ func spawn_hub_at(position: Vector2i) -> void:
 	hub.register_building(hub)
 	var hub_center_cell = position + Vector2i(1, 1)
 	GameData.apply_influence(hub_center_cell, "hub")
-	GameData.current_hub_count += 1
 #endregion
 
 #region VentSpawning
-func try_vent_spawn() -> void:
-	# lets figure out the radius for position here
-	var map_stage = GameData.map_stages.find(GameData.current_map_size)
-	
-	if map_stage == -1:
-		map_stage = 0
-	
-	# we want the vents to spawn relative to hubs
-	var available_hubs = get_tree().get_nodes_in_group("hubs")
-	
-	if available_hubs.is_empty():
-		return
-	
-	var candidate = []
-	
-	for hub in available_hubs:
-		candidate.append({
-			"node": hub,
-			"assigned_vents": hub.assigned_vents
-		})
-	
-	candidate.sort_custom(func (a, b): return a.assigned_vents < b.assigned_vents)
-	
-	var hub_with_lowest_vents = candidate[0].node
-	var center = hub_with_lowest_vents.entrance_marker.global_position
-	
-	# NEW SYSTEM
-	# once the center is set (we find the center from the above code)
-	# find candidate tiles around that center in a dynamic radius
-	var dynamic_min = 4 + (map_stage * 2)
-	var dynamic_max = 8 + (map_stage * 3)
-	
-	dynamic_min = max(3, dynamic_min - 1)
-	
+
+const VENT_CLUSTER_MAX: int = 4
+const VENT_CLUSTER_RADIUS: int = 8    # Tiles — vents within this range belong to the same cluster
+const VENT_CLUSTER_MIN_DIST: int = 8  # Minimum tile distance between cluster centers
+const VENT_SPAWN_RADIUS: int = 5      # Search radius around a cluster center for new vent
+
+## Groups all existing vents into clusters.
+## Two vents are in the same cluster if they are within VENT_CLUSTER_RADIUS tiles of each other.
+func get_vent_clusters() -> Array:
+	var vents = get_tree().get_nodes_in_group("vents")
+	var clusters: Array = []
+
+	for vent in vents:
+		var vent_cell = GameData.world_to_cell(vent.global_position)
+		var added = false
+
+		for cluster in clusters:
+			for member_cell in cluster:
+				if vent_cell.distance_to(member_cell) <= VENT_CLUSTER_RADIUS:
+					cluster.append(vent_cell)
+					added = true
+					break
+			if added:
+				break
+
+		if not added:
+			clusters.append([vent_cell])
+
+	return clusters
+
+## Returns the center tile of a cluster (average of all member positions).
+func get_cluster_center(cluster: Array) -> Vector2i:
+	var sum = Vector2i.ZERO
+	for cell in cluster:
+		sum += cell
+	return sum / cluster.size()
+
+## Finds the first cluster that still has room for more vents.
+func find_open_cluster(clusters: Array) -> Array:
+	for cluster in clusters:
+		if cluster.size() < VENT_CLUSTER_MAX:
+			return cluster
+	return []
+
+## Finds a new cluster center far enough from all existing clusters.
+func find_new_cluster_center(clusters: Array) -> Vector2i:
+	var camera_bounds = get_camera_bounds()
+	var existing_centers: Array = []
+	for cluster in clusters:
+		existing_centers.append(get_cluster_center(cluster))
+
 	var scored_tiles = []
-	var candidate_tiles = calculate_candidate_tiles(center, dynamic_min, dynamic_max, vent_size, 0)
-	
-	for candidate_tile in candidate_tiles:
-		var score = score_tile(candidate_tile)
-		
-		if score < -5000:
-			continue
-		
-		scored_tiles.append({
-			"tile": candidate_tile,
-			"score": score
-		})
-	
+
+	for x in range(camera_bounds.position.x, camera_bounds.end.x):
+		for y in range(camera_bounds.position.y, camera_bounds.end.y):
+			var tile = Vector2i(x, y)
+
+			if not is_area_clear(tile, vent_size, camera_bounds, 0):
+				continue
+
+			# Must be far enough from all existing cluster centers
+			var too_close = false
+			for center in existing_centers:
+				if tile.distance_to(center) < VENT_CLUSTER_MIN_DIST:
+					too_close = true
+					break
+			if too_close:
+				continue
+
+			scored_tiles.append({
+				"tile": tile,
+				"score": score_tile(tile)
+			})
+
 	if scored_tiles.is_empty():
-		print("Director: Can't spawn vent in this call. Skipping")
+		print("Director: No valid new cluster center found.")
+		return Vector2i(-1, -1)
+
+	scored_tiles.sort_custom(func(a, b): return a.score > b.score)
+	return scored_tiles.slice(0, 3).pick_random().tile
+
+func try_vent_spawn() -> void:
+	var clusters = get_vent_clusters()
+	var camera_bounds = get_camera_bounds()
+	var spawn_center: Vector2i
+
+	var open_cluster = find_open_cluster(clusters)
+
+	if not open_cluster.is_empty():
+		# Spawn near the existing open cluster's center
+		spawn_center = get_cluster_center(open_cluster)
+		print("Director: Spawning vent near existing cluster at ", spawn_center)
+	else:
+		# All clusters full — find a new center far from existing ones
+		spawn_center = find_new_cluster_center(clusters)
+		if spawn_center == Vector2i(-1, -1):
+			print("Director: No room for a new vent cluster.")
+			return
+		print("Director: Starting new vent cluster at ", spawn_center)
+
+	# Find candidate tiles within spawn radius of the center, clamped to current map bounds
+	var scored_tiles = []
+	for x in range(spawn_center.x - VENT_SPAWN_RADIUS, spawn_center.x + VENT_SPAWN_RADIUS + 1):
+		for y in range(spawn_center.y - VENT_SPAWN_RADIUS, spawn_center.y + VENT_SPAWN_RADIUS + 1):
+			var tile = Vector2i(x, y)
+			if tile.distance_to(spawn_center) > VENT_SPAWN_RADIUS:
+				continue
+			if not camera_bounds.has_point(tile):
+				continue
+			if not is_area_clear(tile, vent_size, camera_bounds, 0):
+				continue
+			scored_tiles.append({
+				"tile": tile,
+				"score": score_tile(tile)
+			})
+
+	if scored_tiles.is_empty():
+		print("Director: No valid vent tiles near cluster center ", spawn_center)
 		return
-	
-	# sort the candidates based on their score
-	scored_tiles.sort_custom(func (a, b) : return a.score > b.score)
-	
-	# select the top 3 
-	var top_3_tiles = scored_tiles.slice(0, 3)
-	
-	# pick one in random and spawn the vent at that position
-	var target_pos = top_3_tiles.pick_random()
-	var target_tile = target_pos.tile
-	
-	hub_with_lowest_vents.assigned_vents += 1
-	
+
+	scored_tiles.sort_custom(func(a, b): return a.score > b.score)
+	var target_tile = scored_tiles.slice(0, 3).pick_random().tile
 	spawn_vent_at(target_tile)
-	
-	## OLD SYSTEM
-	#var vent_spawn_pos = select_spawn_pos(center, custom_spawn_radius, vent_size)
-	#
-	#if vent_spawn_pos != Vector2i(-1, -1):
-		#hub_with_lowest_vents.assigned_vents += 1
-		#spawn_vent_at(vent_spawn_pos, hub_with_lowest_vents)
 
 func spawn_vent_at(vent_position: Vector2i) -> void:
 	var vent = vent_scene.instantiate()
@@ -800,5 +697,4 @@ func spawn_vent_at(vent_position: Vector2i) -> void:
 	#BuildingSpawnEffect.create_at(vent.position, get_parent(), vent_size)
 	vent.register_building(vent)
 	GameData.apply_influence(vent_position, "vent")
-	GameData.current_vent_count += 1
 #endregion

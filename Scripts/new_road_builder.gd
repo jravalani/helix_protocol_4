@@ -157,7 +157,7 @@ func remove_road(cell: Vector2i) -> void:
 		for dir in object_at_cell.manual_connections:
 			var neighbor_cell = cell + dir
 			var neighbor = GameData.road_grid.get(neighbor_cell)
-			if neighbor is NewRoadTile:
+			if neighbor is NewRoadTile and not neighbor.is_permanent:
 				neighbor.remove_connection(-dir)
 
 		var id = GameData.get_cell_id(cell)
@@ -165,6 +165,7 @@ func remove_road(cell: Vector2i) -> void:
 			GameData.astar.remove_point(id)
 
 		object_at_cell.queue_free()
+		GameData.remove_road_influence(cell)
 		GameData.road_grid.erase(cell)
 
 	SignalBus.map_changed.emit.call_deferred()

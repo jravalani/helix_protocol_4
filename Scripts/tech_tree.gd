@@ -15,7 +15,7 @@ func _on_open_rocket_menu() -> void:
 		purchase_button.disabled = false  # Or true if already launched
 	else:
 		var next = GameData.current_rocket_phase + 1
-		purchase_button.text = "Purchase " + GameData.ROCKET_UPGRADES[next]["name"]
+		purchase_button.text = "Purchase " + GameData.ROCKET_UPGRADES[next]["name"] + " (%d Data)" % GameData.ROCKET_UPGRADES[next]["cost"]
 		purchase_button.disabled = false
 
 

@@ -5,19 +5,50 @@ class_name Packet
 @onready var packet_light: PointLight2D = $PacketLight
 
 @export var speed: float = 120.0
+var _base_speed: float = 120.0
+var _speed_multiplier: float = 1.0
+
+# Speed per pipe upgrade level — tweak here
+const SPEED_PER_LEVEL := [120.0, 150.0, 185.0, 225.0]
+
 var target_hub_cell: Vector2i
 var source_vent_cell: Vector2i
 var source_vent: Vent
 var is_delivered: bool = false
+var _fading_out: bool = false
+var _waiting_to_free: bool = false
 
 signal packet_delivered
 
-const TAIL_STEPS    := 8  # how many sample points behind the head
-const TAIL_DISTANCE := 20.0   # total tail length in pixels
+const TAIL_STEPS    := 8
+const TAIL_DISTANCE := 20.0
 const PACKET_WIDTH  := 10.0
 
 func _ready() -> void:
 	loop = false
+	# Base speed driven by current pipe upgrade level
+	_base_speed = SPEED_PER_LEVEL[clamp(GameData.current_pipe_upgrade_level, 0, 3)]
+	speed = _base_speed
+	SignalBus.fracture_wave.connect(_on_fracture_wave)
+	SignalBus.pipes_upgraded.connect(_on_pipes_upgraded)
+
+func _on_pipes_upgraded(level: int) -> void:
+	_base_speed = SPEED_PER_LEVEL[clamp(level, 0, 3)]
+	speed = _base_speed * _speed_multiplier
+
+func apply_slowdown(multiplier: float) -> void:
+	_speed_multiplier = multiplier
+	speed = _base_speed * _speed_multiplier
+	# Tint the packet orange-red to signal slowdown
+	packet_line.modulate = Color(1.0, 0.5, 0.2, packet_line.modulate.a)
+
+func restore_speed() -> void:
+	_speed_multiplier = 1.0
+	speed = _base_speed
+	packet_line.modulate = Color(1.0, 1.0, 1.0, packet_line.modulate.a)
+
+func _on_fracture_wave() -> void:
+	apply_slowdown(0.7)
 
 func _process(delta: float) -> void:
 	if progress_ratio < 1.0:
@@ -111,14 +142,7 @@ func deliver_to_hub():
 	get_parent().queue_free()
 
 func _exit_tree() -> void:
-	# 1. Always free up the Vent capacity no matter what
+	# Free up vent capacity
 	if source_vent:
 		source_vent.current_capacity = max(0, source_vent.current_capacity - 1)
-	
-	# 2. If it WASN'T delivered (e.g. road deleted), we must fix the Hub's in_flight
-	# so the Hub knows it needs to re-order that oxygen.
-	if not is_delivered:
-		var hub = GameData.building_grid.get(target_hub_cell)
-		if hub is Hub:
-			hub.oxygen_in_flight = max(0, hub.oxygen_in_flight - 1)
-			hub.update_ui()
+		source_vent.notify_capacity_freed()

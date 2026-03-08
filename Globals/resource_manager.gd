@@ -161,7 +161,51 @@ func process_auto_repair() -> void:
 			break
 #endregion
 
-#region rocket
+#region building spawns
+func spawn_hub() -> bool:
+	if GameData.current_hub_count >= GameData.MAX_HUBS:
+		print("Hub cap reached.")
+		return false
+	
+	if GameData.total_data < GameData.current_hub_spawn_cost:
+		print("Insufficient data to spawn hub. Need %d, have %d" % [GameData.current_hub_spawn_cost, GameData.total_data])
+		return false
+	
+	GameData.total_data -= GameData.current_hub_spawn_cost
+	GameData.current_hub_spawn_cost += GameData.HUB_SPAWN_COST_INCREMENT
+	GameData.current_hub_count += 1
+	resources_updated.emit(GameData.current_pipe_count, GameData.total_data, GameData.data_reserve_for_auto_repairs)
+	
+	var director = get_node_or_null("/root/Main/Director")
+	if director:
+		director.request_hub_spawn()
+		return true
+	
+	print("Director not found.")
+	return false
+
+func spawn_vent() -> bool:
+	if GameData.current_vent_count >= GameData.MAX_VENTS:
+		print("Vent cap reached.")
+		return false
+	
+	if GameData.total_data < GameData.current_vent_spawn_cost:
+		print("Insufficient data to spawn vent. Need %d, have %d" % [GameData.current_vent_spawn_cost, GameData.total_data])
+		return false
+	
+	GameData.total_data -= GameData.current_vent_spawn_cost
+	GameData.current_vent_spawn_cost += GameData.VENT_SPAWN_COST_INCREMENT
+	GameData.current_vent_count += 1
+	resources_updated.emit(GameData.current_pipe_count, GameData.total_data, GameData.data_reserve_for_auto_repairs)
+	
+	var director = get_node_or_null("/root/Main/Director")
+	if director:
+		director.request_vent_spawn()
+		return true
+	
+	print("Director not found.")
+	return false
+#endregion
 func upgrade_rocket_phase() -> bool:
 	var next_phase = GameData.current_rocket_phase + 1
 	
@@ -177,6 +221,13 @@ func upgrade_rocket_phase() -> bool:
 		GameData.current_rocket_phase = next_phase
 		
 		# handle all the upgrades here.
+		# handle all the upgrades here.
+	var director = get_node_or_null("/root/Main/Director")
+	if director:
+		match next_phase:
+			1: director.unlock_zone(GameData.Zone.INNER)
+			2: director.unlock_zone(GameData.Zone.OUTER)
+			3: director.unlock_zone(GameData.Zone.FRONTIER)
 		
 		resources_updated.emit(GameData.current_pipe_count, GameData.total_data, GameData.data_reserve_for_auto_repairs) # Notify UI
 		

@@ -10,10 +10,10 @@ const MAX_HEIGHT = 38
 
 ## Map expansion stages (progressive unlock areas)
 var map_stages = [
-	Rect2i(-8, -4, 16, 8),   # Stage 0: Starting area
-	Rect2i(-11, -6, 22, 12),  # Stage 1: First expansion
-	Rect2i(-13, -7, 26, 14),  # Stage 2: Second expansion
-	Rect2i(-16, -9, 32, 18)   # Stage 3: Full map
+	Rect2i(-10, -6, 20, 12),  # Stage 0: Starting area
+	Rect2i(-13, -7, 26, 14),  # Stage 1: First expansion
+	Rect2i(-16, -9, 32, 18),  # Stage 2: Second expansion
+	Rect2i(-20, -11, 40, 22)  # Stage 3: Full map
 ]
 
 ## =============================================================================
@@ -60,6 +60,19 @@ var current_pressure_phase: int = 0
 ## UPGRADE SYSTEM
 ## =============================================================================
 
+## Hub upgrades
+const MAX_HUB_UPGRADES: int = 3
+const HUB_UPGRADE_COSTS = [200, 400, 600]
+
+## Spawn costs (scale per purchase)
+const HUB_SPAWN_BASE_COST: int = 100
+const HUB_SPAWN_COST_INCREMENT: int = 20
+const VENT_SPAWN_BASE_COST: int = 10
+const VENT_SPAWN_COST_INCREMENT: int = 10
+
+var current_hub_spawn_cost: int = HUB_SPAWN_BASE_COST
+var current_vent_spawn_cost: int = VENT_SPAWN_BASE_COST
+
 ## Pipe upgrades (increase capacity/flow)
 const MAX_PIPE_UPGRADES: int = 3
 const PIPE_UPGRADE_COSTS = [150, 300, 450]
@@ -97,7 +110,7 @@ var active_packet_count: int = 0
 ## =============================================================================
 
 var current_stage: int = 0
-var current_map_size: Rect2i = Rect2i(-8, -4, 16, 8)
+var current_map_size: Rect2i = Rect2i(-10, -6, 20, 12)
 var rocket_cell: Vector2i = Vector2i(0, 0)
 
 ## =============================================================================
@@ -214,7 +227,7 @@ func update_system_metrics() -> void:
 	for hub in hubs:
 		if "oxygen_backlog" in hub:
 			total_hub_backlog += hub.oxygen_backlog
-	
+
 	# Calculate average vent utilization
 	var vents = get_tree().get_nodes_in_group("vents")
 	if vents.size() > 0:
@@ -227,9 +240,9 @@ func update_system_metrics() -> void:
 		average_vent_utilization = total_util / vents.size()
 	else:
 		average_vent_utilization = 0.0
-	
-	# Count active packets (optional - can add later)
-	# active_packet_count = get_tree().get_nodes_in_group("packets").size()
+
+	# Count active packets
+	active_packet_count = get_tree().get_nodes_in_group("packets").size()
 
 func is_road_cell_empty(cell: Vector2i) -> bool:
 	# if the dictionary has that cell, then "no its not empty"
@@ -328,51 +341,56 @@ func is_blocked_by_building(building: Variant, cell: Vector2i) -> bool:
 #region Tile Influence
 func apply_influence(tile: Vector2i, type: String) -> void:
 	var radius: int = 0
-	var strength: int = 0
+	var strength: float = 0.0
 	var is_penalty: bool = false
-	
+
 	match type:
 		"rocket":
 			radius = 3
-			strength = 100000
+			strength = 100000.0
 			is_penalty = true
 		"hub":
-			radius = 6 # Wide spacing for hubs
-			strength = 100
+			radius = 6
+			strength = 120.0
 			is_penalty = true
-		"vent":
-			radius = 2 # Tight clustering for vents
-			strength = 80
-			is_penalty = false # This is a BONUS!
 		"road":
 			radius = 2
-			strength = 60
+			strength = 20.0
 			is_penalty = false
+		_:
+			return  # Unknown type, do nothing
 
-	# apply certain strength on tile in radius
+	# Additive stacking — each new building adds to existing influence
 	for x in range(-radius, radius + 1):
 		for y in range(-radius, radius + 1):
 			var current_tile = tile + Vector2i(x, y)
 			var dist = abs(x) + abs(y)
-			
+
 			if dist > radius:
 				continue
-				
-			var falloff_value = float(radius - dist + 1 ) / radius
+
+			var falloff_value = float(radius - dist + 1) / float(radius)
 			var final_value = strength * falloff_value
-			
+
 			if is_penalty:
-				final_value *= -1
-			
-			# max absolute value
-			var current_score = influence_grid.get(current_tile, 0.0)
-			var new_score: float
-			if abs(final_value) > abs(current_score):
-				new_score = final_value
-			else:
-				new_score = current_score
-			
-			influence_grid[current_tile] = new_score
+				final_value *= -1.0
+
+			influence_grid[current_tile] = influence_grid.get(current_tile, 0.0) + final_value
+
+func remove_road_influence(tile: Vector2i) -> void:
+	const radius: int = 2
+	const strength: float = 20.0
+
+	for x in range(-radius, radius + 1):
+		for y in range(-radius, radius + 1):
+			var current_tile = tile + Vector2i(x, y)
+			var dist = abs(x) + abs(y)
+
+			if dist > radius:
+				continue
+
+			var falloff_value = float(radius - dist + 1) / float(radius)
+			influence_grid[current_tile] = influence_grid.get(current_tile, 0.0) - (strength * falloff_value)
 #endregion
 
 #region Hull Shield Multiplier

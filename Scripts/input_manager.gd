@@ -1,6 +1,7 @@
 extends Node2D
 
 @export var road_builder: NewRoadBuilder
+
 var mouse_pos: Vector2
 var grid_pos: Vector2i
 var last_build_cell: Vector2i = Vector2i(-9999, -9999)
@@ -19,20 +20,28 @@ func _draw_grid() -> void:
 	add_child(grid_lines)
 	var grid_color := Color("4a4a4a")
 	var cell := GameData.CELL_SIZE
-	var half_count := 60
-	for x in range(-half_count, half_count + 1):
+	var bounds = GameData.current_map_size
+	var playable = Rect2i(
+		bounds.position.x,
+		bounds.position.y + 1,
+		bounds.size.x,
+		bounds.size.y - 3
+	)
+
+	for x in range(playable.position.x, playable.end.x + 1):
 		var line := Line2D.new()
 		line.width = 1
 		line.default_color = grid_color
-		line.add_point(Vector2(x * cell.x, -half_count * cell.y))
-		line.add_point(Vector2(x * cell.x,  half_count * cell.y))
+		line.add_point(Vector2(x * cell.x, playable.position.y * cell.y))
+		line.add_point(Vector2(x * cell.x, playable.end.y * cell.y))
 		grid_lines.add_child(line)
-	for y in range(-half_count, half_count + 1):
+
+	for y in range(playable.position.y, playable.end.y + 1):
 		var line := Line2D.new()
 		line.width = 1
 		line.default_color = grid_color
-		line.add_point(Vector2(-half_count * cell.x, y * cell.y))
-		line.add_point(Vector2( half_count * cell.x, y * cell.y))
+		line.add_point(Vector2(playable.position.x * cell.x, y * cell.y))
+		line.add_point(Vector2(playable.end.x * cell.x, y * cell.y))
 		grid_lines.add_child(line)
 
 func _process(_delta: float) -> void:
@@ -44,10 +53,20 @@ func _process(_delta: float) -> void:
 	if is_building_road and has_moved_after_press:
 		update_road_ghost()
 
+func _is_in_playable_bounds(tile: Vector2i) -> bool:
+	var bounds = GameData.current_map_size
+	var playable = Rect2i(
+		bounds.position.x + 1,
+		bounds.position.y + 2,
+		bounds.size.x - 2,
+		bounds.size.y - 4
+	)
+	return playable.has_point(tile)
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.is_pressed():
 		if event.button_index == MOUSE_BUTTON_LEFT:
-			# Block clicks on building bodies — only allow entrance cells
 			var space := get_world_2d().direct_space_state
 			var query := PhysicsPointQueryParameters2D.new()
 			query.position = get_global_mouse_position()
@@ -63,21 +82,22 @@ func _unhandled_input(event: InputEvent) -> void:
 				else:
 					return
 
-			# Fresh grid_pos from current mouse
 			var current_mouse := get_global_mouse_position()
 			grid_pos = Vector2i(
 				floor(current_mouse.x / GameData.CELL_SIZE.x),
 				floor(current_mouse.y / GameData.CELL_SIZE.y)
 			)
+
+			if not _is_in_playable_bounds(grid_pos):
+				return
+
 			click_cell = grid_pos
 			is_building_road = true
 			has_moved_after_press = false
 			last_build_cell = Vector2i(-9999, -9999)
-			# If we clicked on an existing road/stub, allow building out of that cell immediately
 			var clicked_tile = GameData.road_grid.get(click_cell)
 			if clicked_tile is NewRoadTile:
 				click_cell = Vector2i(-9999, -9999)
-			# Tell road_builder the virtual anchor for first drag arm
 			road_builder.set_anchor(grid_pos)
 			grid_lines.modulate.a = 0
 			grid_lines.visible = true
@@ -112,11 +132,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 		if event.button_mask & MOUSE_BUTTON_MASK_LEFT and is_building_road:
 			has_moved_after_press = true
-			# Only build when mouse has moved to a different cell from click origin
 			if grid_pos != last_build_cell and grid_pos != click_cell:
 				var target_pos = GameData.get_cell_center(grid_pos)
 				var dist = mouse_pos.distance_to(target_pos)
-				if dist < 28:
+				if dist < 28 and _is_in_playable_bounds(grid_pos):
 					road_builder.build_road(grid_pos)
 					last_build_cell = grid_pos
 
