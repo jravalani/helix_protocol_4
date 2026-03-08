@@ -56,13 +56,12 @@ func _process(_delta: float) -> void:
 func _is_in_playable_bounds(tile: Vector2i) -> bool:
 	var bounds = GameData.current_map_size
 	var playable = Rect2i(
-		bounds.position.x + 1,
-		bounds.position.y + 2,
-		bounds.size.x - 2,
-		bounds.size.y - 4
+		bounds.position.x,
+		bounds.position.y + 1,
+		bounds.size.x,
+		bounds.size.y - 3
 	)
 	return playable.has_point(tile)
-
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.is_pressed():

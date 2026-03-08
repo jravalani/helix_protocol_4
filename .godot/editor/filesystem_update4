@@ -14,3 +14,5 @@ res://UITestScenes/tech_tree.tscn
 res://Scripts/tech_tree.gd
 res://Scenes/packet.tscn
 res://Scripts/input_manager.gd
+res://Globals/signal_bus.gd
+res://Scripts/camera_2d.gd

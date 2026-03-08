@@ -67,7 +67,7 @@ var hub_rotation: Array = [0, PI/2, 3*PI/2]
 ## Outer unlocks on Rocket Segment 1.
 ## Frontier unlocks on Rocket Segment 3.
 
-var unlocked_zones: Array[GameData.Zone] = [GameData.Zone.CORE, GameData.Zone.INNER]
+var unlocked_zones: Array[GameData.Zone] = [GameData.Zone.CORE]
 
 ## =============================================================================
 ## CAMERA & VIEWPORT
@@ -89,12 +89,21 @@ var increment: float = 0.0
 var degradation_rate: float = 0.0
 func _ready() -> void:
 	await get_tree().process_frame
-	
 	screen_center = camera_2d.get_screen_center_position()
 	get_camera_bounds()
 	spawn_rocket()
 	spawn_initial_colony()
 	print("Current Map Size is ", GameData.current_map_size, " from ready function.")
+	SignalBus.rocket_segment_purchased.connect(_on_rocket_segment_purchased)
+	SignalBus.spawn_hub_requested.connect(request_hub_spawn)
+	SignalBus.spawn_vent_requested.connect(request_vent_spawn)
+
+func _on_rocket_segment_purchased(phase: int) -> void:
+	print("Director received rocket_segment_purchased: ", phase)
+	match phase:
+		1: unlock_zone(GameData.Zone.INNER)
+		2: unlock_zone(GameData.Zone.OUTER)
+		3: unlock_zone(GameData.Zone.FRONTIER)
 
 func _process(delta: float) -> void:
 	# Pressure system
@@ -195,7 +204,7 @@ func unlock_zone(zone: GameData.Zone) -> void:
 	if zone not in unlocked_zones:
 		unlocked_zones.append(zone)
 		GameData.increase_map_size()
-		print("Director: Zone unlocked — ", zone)
+		print("Map size after increase: ", GameData.current_map_size)
 		SignalBus.zone_unlocked.emit(zone)
 
 #endregion
@@ -471,7 +480,7 @@ func spawn_initial_colony() -> void:
 	"""
 	# First we spawn a hub using the new scoring system
 	var scored_tiles = []
-	var candidate_tiles = calculate_candidate_tiles(screen_center, 3, 8, hub_size, 1)
+	var candidate_tiles = calculate_candidate_tiles(screen_center, 3, 12, hub_size, 1)
 	
 	print("Initial hub candidates found: ", candidate_tiles.size())
 	

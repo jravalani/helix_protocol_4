@@ -2,6 +2,10 @@ extends Node
 
 signal map_changed
 
+signal spawn_hub_requested
+
+signal spawn_vent_requested
+
 signal car_returned_home
 
 signal building_spawned(entrance_cell: Vector2i, driveway_direction: Vector2i)

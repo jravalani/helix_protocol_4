@@ -12,6 +12,7 @@ func _ready() -> void:
 	increase_camera_bounds(GameData.current_map_size)
 
 func increase_camera_bounds(new_map_size: Rect2i) -> void:
+	print("Camera received new map size: ", new_map_size)
 	# --- FIXED LINE BELOW ---
 	# We "grab" the screen size right when we need it
 	var viewport_size = get_viewport_rect().size

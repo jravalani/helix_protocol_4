@@ -93,7 +93,7 @@ var data_reserve_for_auto_repairs: int = 0
 ## ECONOMY & PROGRESSION
 ## =============================================================================
 
-var total_data: int = 0
+var total_data: int = 25000
 var score_to_next_reward: int = 50
 
 ## =============================================================================
@@ -410,11 +410,11 @@ func get_hull_shield_multiplier() -> float:
 func get_zone_for_cell(cell: Vector2i) -> Zone:
 	var distance = Vector2(cell).distance_to(Vector2(rocket_cell))
 
-	if distance < 5:
+	if distance < 11:
 		return Zone.CORE
-	elif distance < 10:
+	elif distance < 14:
 		return Zone.INNER
-	elif distance < 15:
+	elif distance < 18:
 		return Zone.OUTER
 	else:
 		return Zone.FRONTIER
