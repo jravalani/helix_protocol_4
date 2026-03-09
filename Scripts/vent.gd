@@ -6,8 +6,8 @@ const DRIVEWAY_OFFSET := Vector2(0, 32)  # base offset, unrotated
 # Zone-based send intervals (seconds per packet)
 const INTERVAL_CORE     := 4.0
 const INTERVAL_INNER    := 4.0
-const INTERVAL_OUTER    := 3.0
-const INTERVAL_FRONTIER := 2.0
+const INTERVAL_OUTER    := 4.0
+const INTERVAL_FRONTIER := 4.0
 
 @onready var driveway_marker: Marker2D = $DrivewayMarker
 @onready var fan: Sprite2D = $Fan
@@ -60,7 +60,7 @@ func _input_event(viewport: Viewport, event: InputEvent, shape_idx: int) -> void
 	elif event is InputEventMouseMotion:
 		if event.button_mask & MOUSE_BUTTON_MASK_LEFT:
 			var current_pos = get_global_mouse_position()
-			if click_position.distance_to(current_pos) > 5.0:
+			if click_position.distance_to(current_pos) > 24.0:
 				has_dragged = true
 
 func _ready():
@@ -71,6 +71,7 @@ func _ready():
 	super()
 	SignalBus.map_changed.connect(_on_map_changed)
 	SignalBus.fracture_wave.connect(_on_fracture_wave)
+	SignalBus.vent_interval_updated.connect(_set_interval_from_zone)
 
 	await get_tree().process_frame
 
@@ -91,6 +92,7 @@ func _set_interval_from_zone() -> void:
 		GameData.Zone.OUTER:    send_interval = INTERVAL_OUTER
 		GameData.Zone.FRONTIER: send_interval = INTERVAL_FRONTIER
 		_:                      send_interval = INTERVAL_CORE
+	send_interval *= GameData.global_vent_interval_multiplier
 
 func _process(delta: float) -> void:
 	if not is_connected_to_network:

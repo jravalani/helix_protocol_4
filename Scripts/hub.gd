@@ -49,7 +49,7 @@ func _ready() -> void:
 	right_cloud.restart()
 
 	cell_type = "HUB"
-	window_timer = randf_range(0.0, RATE_WINDOW)
+	window_timer = randf_range(0.0, GameData.hub_rate_window)
 
 	action_buttons.hide()
 	action_buttons.modulate.a = 0.0
@@ -64,7 +64,7 @@ func _process(delta: float) -> void:
 	if is_fractured:
 		return
 	window_timer += delta
-	if window_timer >= RATE_WINDOW:
+	if window_timer >= GameData.hub_rate_window:
 		window_timer = 0.0
 		packets_this_window = 0
 		is_rate_limited = false

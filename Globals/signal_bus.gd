@@ -35,3 +35,5 @@ signal camera_shake(duration: float, strength: float)
 signal zone_unlocked(zone: int)
 
 signal game_over
+
+signal vent_interval_updated

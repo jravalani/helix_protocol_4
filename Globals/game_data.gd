@@ -58,6 +58,12 @@ var current_pressure_phase: int = 0
 
 var fracture_wave_active: bool = false
 
+# ── Rocket Segment Passive Effects ──────────────────────────────
+var global_vent_interval_multiplier: float = 1.0  # Segments 1 & 3 multiply by 0.8
+var rocket_fracture_reduction: float = 0.0         # Segment 2 sets to 0.2
+var hub_rate_window: float = 60.0                  # Segment 3 reduces to 40.0
+var pressure_rate_multiplier: float = 1.0          # Segment 4 sets to 0.85
+
 ## =============================================================================
 ## UPGRADE SYSTEM
 ## =============================================================================
@@ -138,26 +144,28 @@ const ROCKET_UPGRADES = {
 	1: {
 		"name": "Structural Frame",
 		"cost": 300,
-		"description": "Increases global hull integrity.",
-		"shield_boost": 1 # Increments current_hull_shield_level
+		"description": "Reinforces hull. Vents spin 20% faster.",
+		"shield_boost": 1,
+		"vent_interval_multiplier": 0.8
 	},
 	2: {
 		"name": "Conduit Amplifier",
 		"cost": 500,
-		"description": "Upgrades Pipes to Tier 2: +15% Speed.",
-		"pipe_tier": 2
+		"description": "Reduces pipe and hub fracture chance by 20%.",
+		"fracture_chance_reduction": 0.2
 	},
 	3: {
 		"name": "Oxygen Overdrive",
 		"cost": 800,
-		"description": "Hubs request oxygen faster.",
-		"demand_multiplier": 0.8 # Lower is faster
+		"description": "Vents spin 20% faster. Hubs process requests faster.",
+		"vent_interval_multiplier": 0.8,
+		"rate_window_reduction": 20.0
 	},
 	4: {
 		"name": "Pressure Regulator",
 		"cost": 1200,
-		"description": "Upgrades Pipes to Tier 3: High resistance.",
-		"pipe_tier": 3,
+		"description": "Slows planetary pressure gain by 15%. Further reinforces hull.",
+		"pressure_rate_reduction": 0.15,
 		"shield_boost": 1
 	},
 	5: {
@@ -397,16 +405,11 @@ func remove_road_influence(tile: Vector2i) -> void:
 
 #region Hull Shield Multiplier
 func get_hull_shield_multiplier() -> float:
-	# every shield upgrade will increase current integrity by 20%
 	var base_protection = current_hull_shield_level * 0.2
-	
-	# get current shield integrity and calculate the integrity factor
-	# example at 10 minute mark if integriy is at 90 so 90/100 = 0.9 and upgrade at level 1
-	# so the multiplier would be (1 - ( 0.2 * 0.9 ) ) = 0.82
-	# as integrity degrades the shield multiplier value will decrease 
 	var integrity_factor = hull_schield_integrity / 100.0
-	
-	return max(0.2, 1.0 - (base_protection * integrity_factor))
+	var shield_mult = max(0.2, 1.0 - (base_protection * integrity_factor))
+	# Segment 2 passive: subtract flat fracture chance reduction
+	return max(0.1, shield_mult - rocket_fracture_reduction)
 
 #region Zone
 func get_zone_for_cell(cell: Vector2i) -> Zone:
