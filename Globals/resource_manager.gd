@@ -161,6 +161,25 @@ func process_auto_repair() -> void:
 			break
 #endregion
 
+#region hub upgrades
+func upgrade_hub(hub: Hub) -> bool:
+	if hub.upgrade_level >= GameData.MAX_HUB_UPGRADES:
+		print("Hub already at max level.")
+		return false
+
+	var cost = GameData.HUB_UPGRADE_COSTS[hub.upgrade_level]
+
+	if GameData.total_data >= cost:
+		GameData.total_data -= cost
+		hub.upgrade_level += 1
+		resources_updated.emit(GameData.current_pipe_count, GameData.total_data, GameData.data_reserve_for_auto_repairs)
+		print("Hub upgraded to level ", hub.upgrade_level)
+		return true
+	else:
+		print("Not enough data to upgrade hub. Need %d, have %d" % [cost, GameData.total_data])
+		return false
+#endregion
+
 #region building spawns
 func spawn_hub() -> bool:
 	if GameData.current_hub_count >= GameData.MAX_HUBS:

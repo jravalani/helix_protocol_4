@@ -56,6 +56,8 @@ var MAX_PRESSURE_PHASE: int = 10
 var current_pressure: float = 0.0
 var current_pressure_phase: int = 0
 
+var fracture_wave_active: bool = false
+
 ## =============================================================================
 ## UPGRADE SYSTEM
 ## =============================================================================
@@ -93,7 +95,7 @@ var data_reserve_for_auto_repairs: int = 0
 ## ECONOMY & PROGRESSION
 ## =============================================================================
 
-var total_data: int = 25000
+var total_data: int = 0
 var score_to_next_reward: int = 50
 
 ## =============================================================================

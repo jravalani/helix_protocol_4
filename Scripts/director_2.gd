@@ -385,6 +385,7 @@ func transition_to_phase(phase_number: int) -> void:
 		trigger_fracture_wave()
 
 func trigger_fracture_wave() -> void:
+	GameData.fracture_wave_active = true
 	SignalBus.fracture_wave.emit()
 	SignalBus.camera_shake.emit(0.4, 6.0)
 	
@@ -392,6 +393,9 @@ func trigger_fracture_wave() -> void:
 	SignalBus.camera_shake.emit(0.5, 8.0)
 	
 	_execute_fracture_wave()
+	
+	await get_tree().create_timer(10.0).timeout
+	GameData.fracture_wave_active = false
 
 func _execute_fracture_wave() -> void:
 	var phase := GameData.current_pressure_phase
@@ -536,6 +540,7 @@ func spawn_initial_colony() -> void:
 		vent_1.position = Vector2(target_tile_for_vent * GameData.CELL_SIZE.x) + Vector2(GameData.CELL_SIZE.x / 2, GameData.CELL_SIZE.x / 2)
 		vent_1.register_building(vent_1)
 		GameData.apply_influence(target_tile_for_vent, "vent")
+		vent_clusters.append({ "center": target_tile_for_vent, "count": 1 })
 		print("Spawned initial vent at: ", target_tile_for_vent)
 	else:
 		print("Cannot spawn initial vent - no candidates!")
@@ -576,120 +581,99 @@ func spawn_hub_at(position: Vector2i) -> void:
 
 #region VentSpawning
 
-const VENT_CLUSTER_MAX: int = 4
-const VENT_CLUSTER_RADIUS: int = 8    # Tiles — vents within this range belong to the same cluster
-const VENT_CLUSTER_MIN_DIST: int = 8  # Minimum tile distance between cluster centers
-const VENT_SPAWN_RADIUS: int = 5      # Search radius around a cluster center for new vent
+const VENT_CLUSTER_MAX: int = 5
+const VENT_SPAWN_RADIUS: int = 5
+const VENT_SPAWN_RADIUS_MAX: int = 10
 
-## Groups all existing vents into clusters.
-## Two vents are in the same cluster if they are within VENT_CLUSTER_RADIUS tiles of each other.
-func get_vent_clusters() -> Array:
-	var vents = get_tree().get_nodes_in_group("vents")
-	var clusters: Array = []
+## Fixed cluster registry — centers are set once and never change.
+## Each entry: { "center": Vector2i, "count": int }
+var vent_clusters: Array = []
 
-	for vent in vents:
-		var vent_cell = GameData.world_to_cell(vent.global_position)
-		var added = false
+func get_dynamic_cluster_min_dist_for_stage(stage: int) -> int:
+	match stage:
+		0: return 6
+		1: return 7
+		2: return 8
+		3: return 9
+		_: return 6
 
-		for cluster in clusters:
-			for member_cell in cluster:
-				if vent_cell.distance_to(member_cell) <= VENT_CLUSTER_RADIUS:
-					cluster.append(vent_cell)
-					added = true
-					break
-			if added:
-				break
+func get_dynamic_cluster_min_dist() -> int:
+	return get_dynamic_cluster_min_dist_for_stage(GameData.current_stage)
 
-		if not added:
-			clusters.append([vent_cell])
-
-	return clusters
-
-## Returns the center tile of a cluster (average of all member positions).
-func get_cluster_center(cluster: Array) -> Vector2i:
-	var sum = Vector2i.ZERO
-	for cell in cluster:
-		sum += cell
-	return sum / cluster.size()
-
-## Finds the first cluster that still has room for more vents.
-func find_open_cluster(clusters: Array) -> Array:
-	for cluster in clusters:
-		if cluster.size() < VENT_CLUSTER_MAX:
+## Returns the first cluster that still has room, or empty dict if all full.
+func find_open_cluster() -> Dictionary:
+	for cluster in vent_clusters:
+		if cluster["count"] < VENT_CLUSTER_MAX:
 			return cluster
-	return []
+	return {}
 
-## Finds a new cluster center far enough from all existing clusters.
-func find_new_cluster_center(clusters: Array) -> Vector2i:
+## Finds a new cluster center, falling back to previous stage distances if needed.
+## Returns Vector2i(-9999, -9999) if no center found even at stage 0 distance.
+func find_new_cluster_center() -> Vector2i:
 	var camera_bounds = get_camera_bounds()
-	var existing_centers: Array = []
-	for cluster in clusters:
-		existing_centers.append(get_cluster_center(cluster))
 
-	var scored_tiles = []
+	for stage in range(GameData.current_stage, -1, -1):
+		var min_dist = get_dynamic_cluster_min_dist_for_stage(stage)
+		var scored_tiles = []
 
-	for x in range(camera_bounds.position.x, camera_bounds.end.x):
-		for y in range(camera_bounds.position.y, camera_bounds.end.y):
-			var tile = Vector2i(x, y)
+		for x in range(camera_bounds.position.x, camera_bounds.end.x):
+			for y in range(camera_bounds.position.y, camera_bounds.end.y):
+				var tile = Vector2i(x, y)
+				if not is_area_clear(tile, vent_size, camera_bounds, 0):
+					continue
+				var too_close = false
+				for cluster in vent_clusters:
+					if tile.distance_to(cluster["center"]) < min_dist:
+						too_close = true
+						break
+				if too_close:
+					continue
+				scored_tiles.append({ "tile": tile, "score": score_tile(tile) })
 
-			if not is_area_clear(tile, vent_size, camera_bounds, 0):
-				continue
+		if not scored_tiles.is_empty():
+			print("Director: Found cluster center at stage ", stage, " dist ", min_dist)
+			scored_tiles.sort_custom(func(a, b): return a.score > b.score)
+			return scored_tiles.slice(0, 3).pick_random().tile
 
-			# Must be far enough from all existing cluster centers
-			var too_close = false
-			for center in existing_centers:
-				if tile.distance_to(center) < VENT_CLUSTER_MIN_DIST:
-					too_close = true
-					break
-			if too_close:
-				continue
-
-			scored_tiles.append({
-				"tile": tile,
-				"score": score_tile(tile)
-			})
-
-	if scored_tiles.is_empty():
-		print("Director: No valid new cluster center found.")
-		return Vector2i(-1, -1)
-
-	scored_tiles.sort_custom(func(a, b): return a.score > b.score)
-	return scored_tiles.slice(0, 3).pick_random().tile
+	print("Director: Map is full. Player needs to expand.")
+	SignalBus.notify_player_expand.emit()
+	return Vector2i(-9999, -9999)
 
 func try_vent_spawn() -> void:
-	var clusters = get_vent_clusters()
+	print("try_vent_spawn called. Clusters: ", vent_clusters.size())
 	var camera_bounds = get_camera_bounds()
 	var spawn_center: Vector2i
 
-	var open_cluster = find_open_cluster(clusters)
+	var open_cluster = find_open_cluster()
 
 	if not open_cluster.is_empty():
-		# Spawn near the existing open cluster's center
-		spawn_center = get_cluster_center(open_cluster)
-		print("Director: Spawning vent near existing cluster at ", spawn_center)
+		spawn_center = open_cluster["center"]
+		print("Director: Spawning vent in cluster at ", spawn_center, " (", open_cluster["count"], "/", VENT_CLUSTER_MAX, ")")
 	else:
-		# All clusters full — find a new center far from existing ones
-		spawn_center = find_new_cluster_center(clusters)
-		if spawn_center == Vector2i(-1, -1):
-			print("Director: No room for a new vent cluster.")
+		spawn_center = find_new_cluster_center()
+		if spawn_center == Vector2i(-9999, -9999):
 			return
-		print("Director: Starting new vent cluster at ", spawn_center)
+		vent_clusters.append({ "center": spawn_center, "count": 0 })
+		print("Director: New cluster registered at ", spawn_center)
 
-	# Find candidate tiles within spawn radius of the center, clamped to current map bounds
+	# Find candidate tiles within spawn radius, expanding if needed
 	var scored_tiles = []
-	for x in range(spawn_center.x - VENT_SPAWN_RADIUS, spawn_center.x + VENT_SPAWN_RADIUS + 1):
-		for y in range(spawn_center.y - VENT_SPAWN_RADIUS, spawn_center.y + VENT_SPAWN_RADIUS + 1):
-			var tile = Vector2i(x, y)
-			if tile.distance_to(spawn_center) > VENT_SPAWN_RADIUS:
-				continue
-			if not camera_bounds.has_point(tile):
-				continue
-			if not is_area_clear(tile, vent_size, camera_bounds, 0):
-				continue
-			scored_tiles.append({
-				"tile": tile,
-				"score": score_tile(tile)
-			})
+	var search_radius = VENT_SPAWN_RADIUS
+
+	while scored_tiles.is_empty() and search_radius <= VENT_SPAWN_RADIUS_MAX:
+		for x in range(spawn_center.x - search_radius, spawn_center.x + search_radius + 1):
+			for y in range(spawn_center.y - search_radius, spawn_center.y + search_radius + 1):
+				var tile = Vector2i(x, y)
+				if tile.distance_to(spawn_center) > search_radius:
+					continue
+				if not camera_bounds.has_point(tile):
+					continue
+				if not is_area_clear(tile, vent_size, camera_bounds, 0):
+					continue
+				scored_tiles.append({ "tile": tile, "score": score_tile(tile) })
+		if scored_tiles.is_empty():
+			search_radius += 1
+			print("Director: Expanding vent search radius to ", search_radius)
 
 	if scored_tiles.is_empty():
 		print("Director: No valid vent tiles near cluster center ", spawn_center)
@@ -697,6 +681,12 @@ func try_vent_spawn() -> void:
 
 	scored_tiles.sort_custom(func(a, b): return a.score > b.score)
 	var target_tile = scored_tiles.slice(0, 3).pick_random().tile
+
+	for cluster in vent_clusters:
+		if cluster["center"] == spawn_center:
+			cluster["count"] += 1
+			break
+
 	spawn_vent_at(target_tile)
 
 func spawn_vent_at(vent_position: Vector2i) -> void:

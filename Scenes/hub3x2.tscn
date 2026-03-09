@@ -169,3 +169,26 @@ lifetime = 0.8
 one_shot = true
 explosiveness = 1.0
 process_material = SubResource("ParticleProcessMaterial_1584i")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1878807181]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = -42.0
+offset_right = 166.0
+offset_bottom = -11.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="UpgradeButton" type="Button" parent="HBoxContainer" unique_id=1716786517]
+layout_mode = 2
+text = "Upgrade"
+
+[node name="RepairButton" type="Button" parent="HBoxContainer" unique_id=32031241]
+layout_mode = 2
+text = "Repair"
+
+[connection signal="pressed" from="HBoxContainer/UpgradeButton" to="." method="_on_upgrade_button_pressed"]
+[connection signal="pressed" from="HBoxContainer/RepairButton" to="." method="_on_repair_button_pressed"]
