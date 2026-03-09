@@ -2,6 +2,8 @@ extends Node2D
 
 @export var road_builder: NewRoadBuilder
 
+@onready var camera_2d: Camera2D = $"../Camera2D"
+
 var mouse_pos: Vector2
 var grid_pos: Vector2i
 var last_build_cell: Vector2i = Vector2i(-9999, -9999)
@@ -12,6 +14,14 @@ var grid_lines: Node2D
 var t: Tween = null
 
 func _ready() -> void:
+	_draw_grid()
+	grid_lines.visible = false
+	SignalBus.increase_map_size.connect(func(_new_size: Rect2i): _redraw_grid())
+
+func _redraw_grid() -> void:
+	await get_tree().create_timer(1.5).timeout
+	for child in grid_lines.get_children():
+		child.queue_free()
 	_draw_grid()
 	grid_lines.visible = false
 
@@ -27,10 +37,11 @@ func _draw_grid() -> void:
 		bounds.size.x,
 		bounds.size.y - 3
 	)
+	var line_width = 1.5 / camera_2d.zoom.x
 
 	for x in range(playable.position.x, playable.end.x + 1):
 		var line := Line2D.new()
-		line.width = 1
+		line.width = line_width
 		line.default_color = grid_color
 		line.add_point(Vector2(x * cell.x, playable.position.y * cell.y))
 		line.add_point(Vector2(x * cell.x, playable.end.y * cell.y))
@@ -38,7 +49,7 @@ func _draw_grid() -> void:
 
 	for y in range(playable.position.y, playable.end.y + 1):
 		var line := Line2D.new()
-		line.width = 1
+		line.width = line_width
 		line.default_color = grid_color
 		line.add_point(Vector2(playable.position.x * cell.x, y * cell.y))
 		line.add_point(Vector2(playable.end.x * cell.x, y * cell.y))
