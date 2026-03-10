@@ -1,0 +1,97 @@
+[gd_scene load_steps=15 format=3 uid="uid://brrvblr7y4g8x"]
+
+[ext_resource type="Script" uid="uid://dwfnmgtxxw7kw" path="res://Scripts/rocket_launch_effect.gd" id="1_script"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_fire"]
+blend_mode = 1
+
+[sub_resource type="Gradient" id="Gradient_circle"]
+offsets = PackedFloat32Array(0, 0.4)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_circle"]
+gradient = SubResource("Gradient_circle")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+
+[sub_resource type="Gradient" id="Gradient_fire_ramp"]
+offsets = PackedFloat32Array(0, 0.3, 0.7, 1)
+colors = PackedColorArray(1, 1, 0.3, 1, 1, 0.5, 0.1, 1, 0.8, 0.2, 0.05, 0.6, 0.3, 0.1, 0.05, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_fire"]
+gradient = SubResource("Gradient_fire_ramp")
+
+[sub_resource type="Curve" id="Curve_fire_scale"]
+_data = [Vector2(0, 0.3), 0.0, 0.0, 0, 0, Vector2(0.25, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_fire"]
+curve = SubResource("Curve_fire_scale")
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_fire"]
+particle_flag_disable_z = true
+spread = 180.0
+initial_velocity_min = 150.0
+initial_velocity_max = 300.0
+gravity = Vector3(0, 0, 0)
+damping_min = 50.0
+damping_max = 100.0
+scale_min = 1.5
+scale_max = 3.0
+scale_curve = SubResource("CurveTexture_fire")
+color_ramp = SubResource("GradientTexture1D_fire")
+
+[sub_resource type="Gradient" id="Gradient_smoke_ramp"]
+offsets = PackedFloat32Array(0, 0.4, 1)
+colors = PackedColorArray(0.6, 0.55, 0.5, 0.7, 0.3, 0.28, 0.25, 0.4, 0.15, 0.13, 0.12, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_smoke"]
+gradient = SubResource("Gradient_smoke_ramp")
+
+[sub_resource type="Curve" id="Curve_smoke_scale"]
+_data = [Vector2(0, 0.4), 0.0, 0.0, 0, 0, Vector2(0.5, 1), 0.0, 0.0, 0, 0, Vector2(1, 1.3), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_smoke"]
+curve = SubResource("Curve_smoke_scale")
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_smoke"]
+particle_flag_disable_z = true
+spread = 180.0
+initial_velocity_min = 40.0
+initial_velocity_max = 100.0
+angular_velocity_min = -90.0
+angular_velocity_max = 90.0
+gravity = Vector3(0, 0, 0)
+damping_min = 10.0
+damping_max = 30.0
+scale_min = 2.0
+scale_max = 5.0
+scale_curve = SubResource("CurveTexture_smoke")
+color_ramp = SubResource("GradientTexture1D_smoke")
+turbulence_enabled = true
+
+[node name="RocketLaunchEffect" type="Node2D"]
+z_index = 195
+script = ExtResource("1_script")
+
+[node name="FireBurst" type="GPUParticles2D" parent="."]
+material = SubResource("CanvasItemMaterial_fire")
+emitting = false
+amount = 64
+texture = SubResource("GradientTexture2D_circle")
+lifetime = 0.8
+one_shot = true
+explosiveness = 1.0
+visibility_rect = Rect2(-500, -500, 1000, 1000)
+process_material = SubResource("PPM_fire")
+
+[node name="SmokeRing" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 40
+texture = SubResource("GradientTexture2D_circle")
+lifetime = 2.5
+one_shot = true
+explosiveness = 0.8
+visibility_rect = Rect2(-500, -500, 1000, 1000)
+process_material = SubResource("PPM_smoke")
