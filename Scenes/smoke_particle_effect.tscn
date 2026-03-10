@@ -1,0 +1,17 @@
+[gd_scene load_steps=4 format=3 uid="uid://bbnparvwdc88u"]
+
+[ext_resource type="Material" uid="uid://ekewvfpne6lb" path="res://ParticleEffects/rising_smoke.tres" id="1_smoke"]
+
+[sub_resource type="Gradient" id="Gradient_0rnbu"]
+offsets = PackedFloat32Array(0, 0.34972677)
+colors = PackedColorArray(0.7411765, 0.14509805, 0.7411765, 1, 0.49010885, 0.025840001, 0.4945157, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_arggx"]
+gradient = SubResource("Gradient_0rnbu")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+
+[node name="SmokeParticleEffect" type="GPUParticles2D"]
+texture = SubResource("GradientTexture2D_arggx")
+lifetime = 2.0
+process_material = ExtResource("1_smoke")
