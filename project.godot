@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 GameData="*uid://ce4x28ymrtnxu"
 ResourceManager="*uid://buxm4x4opy20i"
 SignalBus="*uid://me1qrsn08x06"
+SceneTransition="*uid://brbj08uq7eiuq"
 
 [display]
 

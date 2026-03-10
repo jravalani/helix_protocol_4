@@ -7,7 +7,12 @@ func _ready() -> void:
 	SignalBus.rocket_segment_purchased.connect(_on_rocket_segment_purchased)
 
 func _on_open_rocket_menu() -> void:
-	self.show()
+	#for testing i have added it here to redirect it to home screen, can remove afer tetsing and using it where neededd
+	#SceneTransition.transition_to("res://scenes/main.tscn", "fade")
+	SceneTransition.transition_to("res://scenes/main.tscn", "beam")
+
+	#uncomment below code once scene transiiton removed
+	#self.show()
 	
 	# Check if all segments are built
 	if GameData.current_rocket_phase >= 5:
@@ -28,6 +33,7 @@ func _on_purchase_segment_button_pressed() -> void:
 		print("Nope, can't upgrade to next phase.")
 
 func _on_close_button_pressed() -> void:
+
 	self.hide()
 
 func _on_rocket_segment_purchased(to_phase: int) -> void:

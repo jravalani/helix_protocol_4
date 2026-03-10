@@ -13,6 +13,8 @@
 [ext_resource type="PackedScene" uid="uid://oksegi45gqak" path="res://Scenes/heat_haze.tscn" id="10_fdnlq"]
 [ext_resource type="PackedScene" uid="uid://dtv18ee30jl71" path="res://UITestScenes/top_panel.tscn" id="10_hptm8"]
 [ext_resource type="PackedScene" uid="uid://bfq5ber3wwxdb" path="res://Scenes/dust_particles.tscn" id="11_d1ilt"]
+[ext_resource type="Shader" uid="uid://b6ug3kygc3w8h" path="res://Scenes/hazard_stripes.gdshader" id="12_6iyac"]
+[ext_resource type="Script" uid="uid://bywntkl1xc30y" path="res://Scenes/non_playable_overlay.gd" id="12_fdnlq"]
 
 [sub_resource type="Environment" id="Environment_d1ilt"]
 background_mode = 3
@@ -30,6 +32,16 @@ shader_parameter/outer_radius = 1.0
 shader_parameter/vignette_strength = 1.0
 shader_parameter/dither_strength = 0.03
 shader_parameter/vignette_color = Color(0, 0, 0, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fdnlq"]
+shader = ExtResource("12_6iyac")
+shader_parameter/stripe_color = Color(1, 0, 1, 1)
+shader_parameter/stripe_opacity = 0.18
+shader_parameter/stripe_spacing = 60.0
+shader_parameter/stripe_width = 4.0
+shader_parameter/angle_degrees = 45.0
+shader_parameter/speed = 50.0
+shader_parameter/ash_opacity = 0.06
 
 [node name="Main" type="Node2D" unique_id=1733956007]
 z_index = -10
@@ -82,6 +94,7 @@ mouse_filter = 2
 [node name="HeatHaze" parent="CanvasLayer2" unique_id=127510232 instance=ExtResource("10_fdnlq")]
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=113825014]
+layer = 2
 
 [node name="InLevelUI" parent="CanvasLayer" unique_id=1777359505 instance=ExtResource("4_jjvhh")]
 
@@ -89,3 +102,41 @@ mouse_filter = 2
 visible = false
 
 [node name="TopPanel" parent="CanvasLayer" unique_id=1650890439 instance=ExtResource("10_hptm8")]
+
+[node name="NonPlayableCanvas" type="CanvasLayer" parent="." unique_id=693405119]
+
+[node name="NonPlayableOverlay" type="Control" parent="NonPlayableCanvas" unique_id=898910458]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("12_fdnlq")
+
+[node name="OverlayUI" type="Control" parent="NonPlayableCanvas/NonPlayableOverlay" unique_id=107210680]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="StripeTop" type="ColorRect" parent="NonPlayableCanvas/NonPlayableOverlay/OverlayUI" unique_id=671336843]
+material = SubResource("ShaderMaterial_fdnlq")
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="StripeBottom" type="ColorRect" parent="NonPlayableCanvas/NonPlayableOverlay/OverlayUI" unique_id=749657376]
+material = SubResource("ShaderMaterial_fdnlq")
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="StripeLeft" type="ColorRect" parent="NonPlayableCanvas/NonPlayableOverlay/OverlayUI" unique_id=1702949479]
+material = SubResource("ShaderMaterial_fdnlq")
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="StripeRight" type="ColorRect" parent="NonPlayableCanvas/NonPlayableOverlay/OverlayUI" unique_id=375397207]
+material = SubResource("ShaderMaterial_fdnlq")
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
