@@ -21,6 +21,8 @@ class_name Rocket
 const SEGMENT_SCALE = Vector2(0.43, 0.43)
 const SHADOW_SCALE = Vector2(0.42, 0.42)
 
+var launch_effect_scene = preload("res://ParticleEffects/rocket_launch_effect.tscn")
+
 func _input_event(viewport: Viewport, event: InputEvent, shape_idx: int) -> void:
 	if event is InputEventMouseButton and event.is_pressed():
 		if event.button_index == MOUSE_BUTTON_RIGHT:
@@ -59,6 +61,10 @@ func _on_rocket_segment_purchased(next_phase: int) -> void:
 		# Delay launch to let the animation finish
 		await get_tree().create_timer(0.5).timeout
 		launch_rocket()
+
+#func _input(event: InputEvent) -> void:
+	#if event is InputEventKey and event.pressed and event.keycode == KEY_L:
+		#launch_rocket()
 
 func update_rocket_visuals(phase: int) -> void:
 	# Show ALL segments up to current phase
@@ -136,6 +142,12 @@ func _animate_new_segment(phase: int) -> void:
 
 func launch_rocket() -> void:
 	print("Initiating Launch Sequence!")
+
+	# Spawn one-shot launch particle effect at rocket center
+	var launch_effect = launch_effect_scene.instantiate()
+	launch_effect.global_position = global_position + Vector2(128, 128)
+	get_parent().add_child(launch_effect)
+	launch_effect.play()
 	
 	var tween = create_tween()
 	tween.set_parallel(true)
