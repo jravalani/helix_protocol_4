@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://cnmu3c4pg7icy"]
+[gd_scene load_steps=16 format=3 uid="uid://cnmu3c4pg7icy"]
 
 [ext_resource type="Texture2D" uid="uid://df0o6u8xgxvao" path="res://Assets/Background/BackgroundFinal.png" id="1_d1ilt"]
 [ext_resource type="PackedScene" uid="uid://db103wkeppd8v" path="res://Scenes/road_builder.tscn" id="2_8gbba"]
@@ -19,7 +19,6 @@ background_mode = 3
 tonemap_mode = 1
 tonemap_exposure = 1.2
 glow_enabled = true
-glow_intensity = 0.8
 glow_bloom = 0.2
 glow_blend_mode = 0
 
@@ -31,44 +30,44 @@ shader_parameter/vignette_strength = 1.0
 shader_parameter/dither_strength = 0.03
 shader_parameter/vignette_color = Color(0, 0, 0, 1)
 
-[node name="Main" type="Node2D" unique_id=1733956007]
+[node name="Main" type="Node2D"]
 z_index = -10
 
-[node name="Background" type="Sprite2D" parent="." unique_id=42502156]
+[node name="Background" type="Sprite2D" parent="."]
 scale = Vector2(1.1, 1.1)
 texture = ExtResource("1_d1ilt")
 
-[node name="RoadBuilder" parent="." unique_id=91564763 instance=ExtResource("2_8gbba")]
+[node name="RoadBuilder" parent="." instance=ExtResource("2_8gbba")]
 
-[node name="Director" type="Node2D" parent="." unique_id=1786159827]
+[node name="Director" type="Node2D" parent="."]
 script = ExtResource("4_kry3j")
 
-[node name="Line2D" type="Line2D" parent="Director" unique_id=1116432879]
+[node name="Line2D" type="Line2D" parent="Director"]
 width = 5.0
 default_color = Color(3.85046e-07, 0.593914, 0.8248381, 1)
 
-[node name="Entities" type="Node" parent="." unique_id=578986959]
+[node name="Entities" type="Node" parent="."]
 
-[node name="InputManager" parent="." unique_id=306014539 node_paths=PackedStringArray("road_builder") instance=ExtResource("3_kry3j")]
+[node name="InputManager" parent="." node_paths=PackedStringArray("road_builder") instance=ExtResource("3_kry3j")]
 road_builder = NodePath("../RoadBuilder")
 
-[node name="FractureWave" parent="." unique_id=305859447 instance=ExtResource("6_jkdf5")]
+[node name="FractureWave" parent="." instance=ExtResource("6_jkdf5")]
 
-[node name="DustParticles" parent="." unique_id=622471858 instance=ExtResource("11_d1ilt")]
+[node name="DustParticles" parent="." instance=ExtResource("11_d1ilt")]
 z_index = 200
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=552333695]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_d1ilt")
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=1153972873]
+[node name="Camera2D" type="Camera2D" parent="."]
 script = ExtResource("6_21xkr")
 
-[node name="CanvasLayer2" type="CanvasLayer" parent="." unique_id=1486273393]
+[node name="CanvasLayer2" type="CanvasLayer" parent="."]
 
-[node name="BackBufferCopy" type="BackBufferCopy" parent="CanvasLayer2" unique_id=1946144542]
+[node name="BackBufferCopy" type="BackBufferCopy" parent="CanvasLayer2"]
 copy_mode = 2
 
-[node name="Vignette_Black" type="ColorRect" parent="CanvasLayer2" unique_id=1332873070]
+[node name="Vignette_Black" type="ColorRect" parent="CanvasLayer2"]
 material = SubResource("ShaderMaterial_ynf5e")
 anchors_preset = 15
 anchor_right = 1.0
@@ -77,15 +76,15 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="Vignette_Color" parent="CanvasLayer2" unique_id=128150804 instance=ExtResource("9_6iyac")]
+[node name="Vignette_Color" parent="CanvasLayer2" instance=ExtResource("9_6iyac")]
 
-[node name="HeatHaze" parent="CanvasLayer2" unique_id=127510232 instance=ExtResource("10_fdnlq")]
+[node name="HeatHaze" parent="CanvasLayer2" instance=ExtResource("10_fdnlq")]
 
-[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=113825014]
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
 
-[node name="InLevelUI" parent="CanvasLayer" unique_id=1777359505 instance=ExtResource("4_jjvhh")]
+[node name="InLevelUI" parent="CanvasLayer" instance=ExtResource("4_jjvhh")]
 
-[node name="TechTree" parent="CanvasLayer" unique_id=487823733 instance=ExtResource("9_ynf5e")]
+[node name="TechTree" parent="CanvasLayer" instance=ExtResource("9_ynf5e")]
 visible = false
 
-[node name="TopPanel" parent="CanvasLayer" unique_id=1650890439 instance=ExtResource("10_hptm8")]
+[node name="TopPanel" parent="CanvasLayer" instance=ExtResource("10_hptm8")]
