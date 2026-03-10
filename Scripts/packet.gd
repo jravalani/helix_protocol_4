@@ -24,48 +24,33 @@ const TAIL_STEPS    := 8
 const TAIL_DISTANCE := 20.0
 const PACKET_WIDTH  := 10.0
 
-const SLOWDOWN_MULTIPLIER: float = 0.4
-const SLOWDOWN_DURATION:   float = 10.0
-var _slowdown_timer: float = 0.0
-var _is_slowed: bool = false
-
 func _ready() -> void:
 	loop = false
+	# Base speed driven by current pipe upgrade level
 	_base_speed = SPEED_PER_LEVEL[clamp(GameData.current_pipe_upgrade_level, 0, 3)]
 	speed = _base_speed
-	SignalBus.fracture_wave.connect(_on_fracture_wave)
+	SignalBus.trigger_packet_slowdown.connect(_on_fracture_wave)
 	SignalBus.pipes_upgraded.connect(_on_pipes_upgraded)
-	# If spawned during an active fracture wave, start slowed
-	if GameData.fracture_wave_active:
-		apply_slowdown(SLOWDOWN_MULTIPLIER)
 
 func _on_pipes_upgraded(level: int) -> void:
 	_base_speed = SPEED_PER_LEVEL[clamp(level, 0, 3)]
 	speed = _base_speed * _speed_multiplier
 
-func _on_fracture_wave() -> void:
-	apply_slowdown(SLOWDOWN_MULTIPLIER)
-
 func apply_slowdown(multiplier: float) -> void:
 	_speed_multiplier = multiplier
-	_is_slowed        = true
-	_slowdown_timer   = SLOWDOWN_DURATION
-	speed             = _base_speed * _speed_multiplier
-	var t := create_tween()
-	t.tween_property(packet_line, "modulate", Color(1.0, 0.4, 0.15, 1.0), 0.3)
+	speed = _base_speed * _speed_multiplier
+	# Tint the packet orange-red to signal slowdown
+	packet_line.modulate = Color(1.6, 0.2, 1.4, packet_line.modulate.a)
 
 func restore_speed() -> void:
 	_speed_multiplier = 1.0
-	_is_slowed        = false
-	speed             = _base_speed
-	var t := create_tween()
-	t.tween_property(packet_line, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.5)
+	speed = _base_speed
+	packet_line.modulate = Color(1.0, 1.0, 1.0, packet_line.modulate.a)
+
+func _on_fracture_wave() -> void:
+	apply_slowdown(0.7)
 
 func _process(delta: float) -> void:
-	if _is_slowed:
-		_slowdown_timer -= delta
-		if _slowdown_timer <= 0.0:
-			restore_speed()
 	if progress_ratio < 1.0:
 		progress += speed * delta
 		_update_visuals()

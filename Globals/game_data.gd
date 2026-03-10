@@ -50,7 +50,7 @@ var reinforcement_version: int = 0
 ## =============================================================================
 
 const MAX_PRESSURE: float = 100.0
-const BASE_RATE: float = 0.04
+const BASE_RATE: float = 0.03
 var MAX_PRESSURE_PHASE: int = 10
 
 var current_pressure: float = 0.0
@@ -76,7 +76,7 @@ const HUB_UPGRADE_COSTS = [200, 400, 600]
 const HUB_SPAWN_BASE_COST: int = 100
 const HUB_SPAWN_COST_INCREMENT: int = 20
 const VENT_SPAWN_BASE_COST: int = 10
-const VENT_SPAWN_COST_INCREMENT: int = 10
+const VENT_SPAWN_COST_INCREMENT: int = 5
 
 var current_hub_spawn_cost: int = HUB_SPAWN_BASE_COST
 var current_vent_spawn_cost: int = VENT_SPAWN_BASE_COST
@@ -101,7 +101,7 @@ var data_reserve_for_auto_repairs: int = 0
 ## ECONOMY & PROGRESSION
 ## =============================================================================
 
-var total_data: int = 0
+var total_data: int = 25000
 var score_to_next_reward: int = 50
 
 ## =============================================================================

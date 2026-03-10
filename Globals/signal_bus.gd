@@ -37,3 +37,7 @@ signal zone_unlocked(zone: int)
 signal game_over
 
 signal vent_interval_updated
+
+signal trigger_packet_slowdown
+
+signal trigger_vent_burst

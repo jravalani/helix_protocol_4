@@ -272,6 +272,9 @@ func calculate_fracture_chance(
 func fracture() -> void:
 	if is_reinforced:
 		return
+		
+	if is_permanent:
+		return
 
 	if GameData.auto_repair_enabled and GameData.data_reserve_for_auto_repairs > GameData.SINGLE_PIPE_REPAIR_COST * 1.1:
 		GameData.data_reserve_for_auto_repairs -= GameData.SINGLE_PIPE_REPAIR_COST * 1.1

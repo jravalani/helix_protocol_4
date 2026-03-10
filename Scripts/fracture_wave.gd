@@ -20,7 +20,7 @@ func spawn_wave() -> void:
 
 func _spawn_wave_group() -> void:
 	var container := Node2D.new()
-	container.global_position = Vector2.ZERO + Vector2(128, 128)
+	container.global_position = Vector2.ZERO + Vector2(GameData.CELL_SIZE)
 	add_child(container)
 
 	# ── Layer 1: outer soft haze ring ──

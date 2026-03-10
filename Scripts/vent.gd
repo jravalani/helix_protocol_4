@@ -6,8 +6,8 @@ const DRIVEWAY_OFFSET := Vector2(0, 32)  # base offset, unrotated
 # Zone-based send intervals (seconds per packet)
 const INTERVAL_CORE     := 4.0
 const INTERVAL_INNER    := 4.0
-const INTERVAL_OUTER    := 4.0
-const INTERVAL_FRONTIER := 4.0
+const INTERVAL_OUTER    := 3.0
+const INTERVAL_FRONTIER := 2.0
 
 @onready var driveway_marker: Marker2D = $DrivewayMarker
 @onready var fan: Sprite2D = $Fan
@@ -70,8 +70,7 @@ func _ready():
 	cell_type = "VENT"
 	super()
 	SignalBus.map_changed.connect(_on_map_changed)
-	SignalBus.fracture_wave.connect(_on_fracture_wave)
-	SignalBus.vent_interval_updated.connect(_set_interval_from_zone)
+	SignalBus.trigger_vent_burst.connect(_on_fracture_wave)
 
 	await get_tree().process_frame
 
@@ -92,7 +91,6 @@ func _set_interval_from_zone() -> void:
 		GameData.Zone.OUTER:    send_interval = INTERVAL_OUTER
 		GameData.Zone.FRONTIER: send_interval = INTERVAL_FRONTIER
 		_:                      send_interval = INTERVAL_CORE
-	send_interval *= GameData.global_vent_interval_multiplier
 
 func _process(delta: float) -> void:
 	if not is_connected_to_network:
@@ -118,7 +116,7 @@ func _on_fracture_wave() -> void:
 	_burst_timer = BURST_DURATION
 	# Visual — tint fan/vent orange to signal instability
 	var t := create_tween()
-	t.tween_property(self, "modulate", Color(1.4, 0.6, 0.2, 1.0), 0.1)
+	t.tween_property(self, "modulate", Color(1.6, 0.2, 1.4, 1.0), 0.1)
 
 func _end_burst() -> void:
 	_is_bursting = false
