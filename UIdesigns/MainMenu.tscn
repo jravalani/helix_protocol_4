@@ -1,0 +1,155 @@
+[gd_scene format=3 uid="uid://jyp8bke5xfmd"]
+
+[ext_resource type="Script" uid="uid://cgy25fj6x7upi" path="res://UIdesigns/main_menu.gd" id="1_kr5of"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ta30t"]
+bg_color = Color(0.050980393, 0, 0.078431375, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_npj3s"]
+bg_color = Color(0.050980393, 0, 0.078431375, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_effoq"]
+bg_color = Color(0.050980393, 0, 0.078431375, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ywvig"]
+bg_color = Color(0.050980393, 0, 0.078431375, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="Main Menu" type="Control" unique_id=1470942252]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_kr5of")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1153805887]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.019607844, 0, 0.050980393, 1)
+
+[node name="Logo" type="Label" parent="." unique_id=1514609180]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_top = 140.0
+offset_right = 48.0
+offset_bottom = 228.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_font_sizes/font_size = 64
+text = "Logo"
+horizontal_alignment = 1
+
+[node name="CPUParticles2D" type="CPUParticles2D" parent="." unique_id=959427712]
+position = Vector2(960, 540)
+amount = 80
+lifetime = 6.0
+emission_shape = 3
+emission_rect_extents = Vector2(940, 540)
+spread = 180.0
+gravity = Vector2(0, 0)
+initial_velocity_max = 8.0
+scale_amount_max = 3.0
+color = Color(0.8, 0, 1, 1)
+
+[node name="Label2" type="Label" parent="." unique_id=2042358222]
+layout_mode = 0
+offset_left = 896.0
+offset_top = 384.0
+offset_right = 1024.0
+offset_bottom = 407.0
+theme_override_colors/font_color = Color(0.6666667, 0.26666668, 0.6666667, 1)
+text = "Tag Line"
+horizontal_alignment = 1
+
+[node name="Label" type="Label" parent="." unique_id=234362534]
+layout_mode = 0
+offset_left = 768.0
+offset_top = 256.0
+offset_right = 1169.0
+offset_bottom = 344.0
+theme_override_font_sizes/font_size = 64
+text = "Game  Name"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1457298133]
+layout_mode = 0
+offset_left = 760.0
+offset_top = 460.0
+offset_right = 1160.0
+offset_bottom = 720.0
+theme_override_constants/separation = 10
+
+[node name="Button" type="Button" parent="VBoxContainer" unique_id=180199125]
+custom_minimum_size = Vector2(400, 55)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_ta30t")
+text = "Launch Mission"
+
+[node name="Button2" type="Button" parent="VBoxContainer" unique_id=1569731334]
+custom_minimum_size = Vector2(400, 55)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_npj3s")
+text = "Tech Tree"
+
+[node name="Button4" type="Button" parent="VBoxContainer" unique_id=1291622533]
+custom_minimum_size = Vector2(400, 55)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_effoq")
+text = "Settings"
+
+[node name="Button3" type="Button" parent="VBoxContainer" unique_id=146448935]
+custom_minimum_size = Vector2(400, 55)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_ywvig")
+text = "Quit"
+
+[connection signal="pressed" from="VBoxContainer/Button" to="." method="_on_launch_mission_pressed"]
+[connection signal="pressed" from="VBoxContainer/Button2" to="." method="_on_tech_tree_pressed"]
+[connection signal="pressed" from="VBoxContainer/Button3" to="." method="_on_quit_pressed"]

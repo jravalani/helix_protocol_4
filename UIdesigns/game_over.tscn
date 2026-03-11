@@ -1,0 +1,175 @@
+[gd_scene format=3 uid="uid://beymo4vvosaqc"]
+
+[ext_resource type="Script" uid="uid://x62tysj7lx86" path="res://UIdesigns/GameOver.gd" id="1_y3wgp"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1rewc"]
+bg_color = Color(0.050980393, 0, 0.078431375, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b7kx1"]
+bg_color = Color(0.050980393, 0, 0.078431375, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="GameOver" type="Control" unique_id=1249243520]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_y3wgp")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1177938840]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.019607844, 0, 0.050980393, 1)
+
+[node name="Label" type="Label" parent="." unique_id=1265839039]
+layout_mode = 0
+offset_left = 512.0
+offset_top = 65.0
+offset_right = 1412.0
+offset_bottom = 185.0
+theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_font_sizes/font_size = 86
+text = "Base Crushed"
+horizontal_alignment = 1
+
+[node name="Label2" type="Label" parent="." unique_id=733348601]
+layout_mode = 0
+offset_left = 896.0
+offset_top = 192.0
+offset_right = 960.0
+offset_bottom = 215.0
+theme_override_colors/font_color = Color(0.6666667, 0.26666668, 0.6666667, 1)
+text = "Tag Line"
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=2105707708]
+layout_mode = 0
+offset_left = 768.0
+offset_top = 320.0
+offset_right = 1088.0
+offset_bottom = 540.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_1rewc")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer" unique_id=461406454]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="PanelContainer/VBoxContainer" unique_id=2132568632]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6666667, 0.26666668, 0.6666667, 1)
+theme_override_font_sizes/font_size = 13
+text = "Mission Debrief"
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/VBoxContainer" unique_id=1460700562]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PanelContainer/VBoxContainer/HBoxContainer" unique_id=1628098182]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+size_flags_stretch_ratio = 0.23
+text = "      Survival Time"
+
+[node name="Label2" type="Label" parent="PanelContainer/VBoxContainer/HBoxContainer" unique_id=1944261237]
+layout_mode = 2
+text = "                     00:00"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/VBoxContainer" unique_id=69676416]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PanelContainer/VBoxContainer/HBoxContainer2" unique_id=402228625]
+layout_mode = 2
+text = "      Max Pressure"
+
+[node name="Label2" type="Label" parent="PanelContainer/VBoxContainer/HBoxContainer2" unique_id=1774748615]
+layout_mode = 2
+text = "                        0%"
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="PanelContainer/VBoxContainer" unique_id=1957622040]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PanelContainer/VBoxContainer/HBoxContainer3" unique_id=518695745]
+layout_mode = 2
+text = "     Pipes Repaired"
+
+[node name="Label2" type="Label" parent="PanelContainer/VBoxContainer/HBoxContainer3" unique_id=668157409]
+layout_mode = 2
+text = "                       0"
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="PanelContainer/VBoxContainer" unique_id=2020858497]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PanelContainer/VBoxContainer/HBoxContainer4" unique_id=1217576490]
+layout_mode = 2
+text = "     Rocket Parts"
+
+[node name="Label2" type="Label" parent="PanelContainer/VBoxContainer/HBoxContainer4" unique_id=822051190]
+layout_mode = 2
+text = "                          0/0"
+
+[node name="HBoxContainer5" type="HBoxContainer" parent="PanelContainer/VBoxContainer" unique_id=881313745]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PanelContainer/VBoxContainer/HBoxContainer5" unique_id=1389229074]
+layout_mode = 2
+text = "     Packets Moved"
+
+[node name="Label2" type="Label" parent="PanelContainer/VBoxContainer/HBoxContainer5" unique_id=757172161]
+layout_mode = 2
+text = "                       0"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=907527303]
+layout_mode = 0
+offset_left = 704.0
+offset_top = 576.0
+offset_right = 1164.0
+offset_bottom = 636.0
+
+[node name="Button" type="Button" parent="HBoxContainer" unique_id=1283648272]
+custom_minimum_size = Vector2(230, 55)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_b7kx1")
+text = "Retry Mission"
+
+[node name="Button2" type="Button" parent="HBoxContainer" unique_id=686028373]
+custom_minimum_size = Vector2(230, 55)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_b7kx1")
+text = "Main Menu"
+
+[node name="CPUParticles2D" type="CPUParticles2D" parent="." unique_id=1682083821]
+position = Vector2(960, 540)
+amount = 80
+lifetime = 6.0
+emission_shape = 3
+emission_rect_extents = Vector2(960, 540)
+spread = 180.0
+gravity = Vector2(0, 0)
+initial_velocity_max = 8.0
+scale_amount_max = 3.0
+color = Color(1, 0, 1, 1)
