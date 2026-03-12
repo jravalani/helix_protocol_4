@@ -1,12 +1,8 @@
 [gd_scene format=3 uid="uid://dnpwluvfdcpl1"]
 
 [ext_resource type="Script" uid="uid://dk3jqjxae20fr" path="res://UITest/in_level_ui.gd" id="1_s312j"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s312j"]
-bg_color = Color(0.6, 0.6, 0.6, 0.78431374)
-border_width_top = 3
-corner_radius_top_left = 10
-corner_radius_top_right = 10
+[ext_resource type="PackedScene" uid="uid://b7lxulyt7rojl" path="res://Scenes/button.tscn" id="2_gwosu"]
+[ext_resource type="PackedScene" uid="uid://bm3oj5mikl5hv" path="res://Scenes/reinforce_panel.tscn" id="3_yowth"]
 
 [node name="InLevelUI" type="Control" unique_id=1777359505]
 layout_mode = 3
@@ -18,18 +14,6 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_s312j")
 
-[node name="Panel" type="Panel" parent="." unique_id=918554984]
-custom_minimum_size = Vector2(0, 120)
-layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = -120.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_styles/panel = SubResource("StyleBoxFlat_s312j")
-
 [node name="MarginContainer2" type="MarginContainer" parent="." unique_id=916433756]
 layout_mode = 1
 anchors_preset = 12
@@ -39,6 +23,69 @@ anchor_bottom = 1.0
 offset_top = -196.0
 grow_horizontal = 2
 grow_vertical = 0
+theme_override_constants/margin_left = 50
+theme_override_constants/margin_top = 50
+theme_override_constants/margin_right = 50
+theme_override_constants/margin_bottom = 10
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer2" unique_id=260787917]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 25
+alignment = 1
+
+[node name="SpawnVent" parent="MarginContainer2/HBoxContainer" unique_id=1980808902 instance=ExtResource("2_gwosu")]
+unique_name_in_owner = true
+layout_mode = 2
+text = "+Vent"
+
+[node name="SpawnHub" parent="MarginContainer2/HBoxContainer" unique_id=1271177094 instance=ExtResource("2_gwosu")]
+unique_name_in_owner = true
+layout_mode = 2
+text = "+Hub"
+
+[node name="Control" type="Control" parent="MarginContainer2/HBoxContainer" unique_id=511038057]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+
+[node name="UpgradePipes" parent="MarginContainer2/HBoxContainer" unique_id=1890565855 instance=ExtResource("2_gwosu")]
+layout_mode = 2
+text = "Upgrade Pipes"
+
+[node name="TechTree" parent="MarginContainer2/HBoxContainer" unique_id=1991793187 instance=ExtResource("2_gwosu")]
+layout_mode = 2
+text = "Tech Tree"
+
+[node name="HullShield" parent="MarginContainer2/HBoxContainer" unique_id=180311876 instance=ExtResource("2_gwosu")]
+layout_mode = 2
+text = "Upgrade
+Hull Shield"
+
+[node name="Control2" type="Control" parent="MarginContainer2/HBoxContainer" unique_id=902515876]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+
+[node name="ReinforceZonePanel" parent="MarginContainer2/HBoxContainer" unique_id=473312368 instance=ExtResource("2_gwosu")]
+layout_mode = 2
+text = "Reinforce 
+Zone"
+
+[node name="PanelContainer" parent="MarginContainer2/HBoxContainer/ReinforceZonePanel" unique_id=905140091 instance=ExtResource("3_yowth")]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = -35.0
+offset_top = 136.0
+offset_right = 100.0
+offset_bottom = 423.0
+
+[node name="DataReserve" parent="MarginContainer2/HBoxContainer" unique_id=291794148 instance=ExtResource("2_gwosu")]
+layout_mode = 2
+text = "+Reserve"
+
+[node name="AutoRepair" parent="MarginContainer2/HBoxContainer" unique_id=1559227664 instance=ExtResource("2_gwosu")]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Auto Repair"
 
 [node name="FlowContainer" type="FlowContainer" parent="MarginContainer2" unique_id=1748498943]
 layout_mode = 2
@@ -47,96 +94,8 @@ theme_override_constants/h_separation = 64
 theme_override_constants/v_separation = 10
 alignment = 1
 
-[node name="SpawnVent" type="Button" parent="MarginContainer2/FlowContainer" unique_id=565887667]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme_override_font_sizes/font_size = 18
-text = "+Vent
-Cost: "
-
-[node name="SpawnHub" type="Button" parent="MarginContainer2/FlowContainer" unique_id=438337116]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme_override_font_sizes/font_size = 18
-text = "+Hub
-Cost: "
-
-[node name="TechTree3" type="Button" parent="MarginContainer2/FlowContainer" unique_id=871569821]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme_override_font_sizes/font_size = 18
-text = "TechTree"
-
-[node name="UpgradePipes" type="Button" parent="MarginContainer2/FlowContainer" unique_id=231225114]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme_override_font_sizes/font_size = 18
-text = "UpgradePipe
-"
-
-[node name="HullShield" type="Button" parent="MarginContainer2/FlowContainer" unique_id=358768480]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme_override_font_sizes/font_size = 18
-text = "Upgrade
-Hull Integrity"
-
-[node name="ReinforceZone" type="Button" parent="MarginContainer2/FlowContainer" unique_id=1488870758]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme_override_font_sizes/font_size = 18
-text = "Reinforce Zone 
-Core"
-
-[node name="ReinforceZone2" type="Button" parent="MarginContainer2/FlowContainer" unique_id=1610623586]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme_override_font_sizes/font_size = 18
-text = "Reinforce Zone 
-Inner"
-
-[node name="ReinforceZone3" type="Button" parent="MarginContainer2/FlowContainer" unique_id=62590516]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme_override_font_sizes/font_size = 18
-text = "Reinforce Zone 
-Outer"
-
-[node name="ReinforceZone4" type="Button" parent="MarginContainer2/FlowContainer" unique_id=237321039]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme_override_font_sizes/font_size = 18
-text = "Reinforce Zone 
-Frontier"
-
-[node name="DataReserve" type="Button" parent="MarginContainer2/FlowContainer" unique_id=610994130]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme_override_font_sizes/font_size = 18
-text = "Add 100
-Data to
- Auto Repairs"
-
-[node name="AutoRepair" type="Button" parent="MarginContainer2/FlowContainer" unique_id=980220459]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme_override_font_sizes/font_size = 18
-toggle_mode = true
-text = "Auto Repair
-Toggle"
-
 [node name="PanelContainer" type="PanelContainer" parent="." unique_id=1370430371]
+visible = false
 layout_mode = 1
 offset_right = 1.0
 offset_bottom = 212.0
@@ -172,15 +131,12 @@ layout_mode = 2
 [node name="OneSecTimer" type="Timer" parent="." unique_id=1038239928]
 autostart = true
 
-[connection signal="pressed" from="MarginContainer2/FlowContainer/SpawnVent" to="." method="_on_spawn_vent_pressed"]
-[connection signal="pressed" from="MarginContainer2/FlowContainer/SpawnHub" to="." method="_on_spawn_hub_pressed"]
-[connection signal="pressed" from="MarginContainer2/FlowContainer/TechTree3" to="." method="_on_tech_tree_pressed"]
-[connection signal="pressed" from="MarginContainer2/FlowContainer/UpgradePipes" to="." method="_on_upgrade_pipes_pressed"]
-[connection signal="pressed" from="MarginContainer2/FlowContainer/HullShield" to="." method="_on_hull_shield_pressed"]
-[connection signal="pressed" from="MarginContainer2/FlowContainer/ReinforceZone" to="." method="_on_repair_zone_pressed" binds= [0]]
-[connection signal="pressed" from="MarginContainer2/FlowContainer/ReinforceZone2" to="." method="_on_repair_zone_pressed" binds= [1]]
-[connection signal="pressed" from="MarginContainer2/FlowContainer/ReinforceZone3" to="." method="_on_repair_zone_pressed" binds= [2]]
-[connection signal="pressed" from="MarginContainer2/FlowContainer/ReinforceZone4" to="." method="_on_repair_zone_pressed" binds= [3]]
-[connection signal="pressed" from="MarginContainer2/FlowContainer/DataReserve" to="." method="_on_data_reserve_pressed"]
-[connection signal="toggled" from="MarginContainer2/FlowContainer/AutoRepair" to="." method="_on_auto_repair_toggled"]
+[connection signal="pressed" from="MarginContainer2/HBoxContainer/SpawnVent" to="." method="_on_spawn_vent_pressed"]
+[connection signal="pressed" from="MarginContainer2/HBoxContainer/SpawnHub" to="." method="_on_spawn_hub_pressed"]
+[connection signal="pressed" from="MarginContainer2/HBoxContainer/UpgradePipes" to="." method="_on_upgrade_pipes_pressed"]
+[connection signal="pressed" from="MarginContainer2/HBoxContainer/TechTree" to="." method="_on_tech_tree_pressed"]
+[connection signal="pressed" from="MarginContainer2/HBoxContainer/HullShield" to="." method="_on_hull_shield_pressed"]
+[connection signal="pressed" from="MarginContainer2/HBoxContainer/ReinforceZonePanel" to="." method="_on_reinforce_zone_panel_pressed"]
+[connection signal="pressed" from="MarginContainer2/HBoxContainer/DataReserve" to="." method="_on_data_reserve_pressed"]
+[connection signal="toggled" from="MarginContainer2/HBoxContainer/AutoRepair" to="." method="_on_auto_repair_toggled"]
 [connection signal="timeout" from="OneSecTimer" to="." method="_on_one_sec_timer_timeout"]

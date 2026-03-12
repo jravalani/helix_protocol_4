@@ -74,7 +74,6 @@ func mouse_to_cell() -> Vector2i:
 	)
 
 func build_road(cell: Vector2i) -> void:
-	# 1. GATEKEEPER — block building on building bodies, allow entrance cells
 	var building_at_cell = GameData.building_grid.get(cell)
 	var was_entrance := false
 
@@ -83,6 +82,9 @@ func build_road(cell: Vector2i) -> void:
 			if cell != building_at_cell.entrance_cell:
 				return
 			else:
+				# Block vent entrances — they are not in A* and use driveway stub instead
+				if building_at_cell is Vent:
+					return
 				was_entrance = true
 
 	# 2. CREATE PIPE — only if cell is empty
@@ -154,11 +156,17 @@ func remove_road(cell: Vector2i) -> void:
 
 		ResourceManager.refund_tile()
 
-		for dir in object_at_cell.manual_connections:
+		for dir in object_at_cell.manual_connections.duplicate():
 			var neighbor_cell = cell + dir
 			var neighbor = GameData.road_grid.get(neighbor_cell)
-			if neighbor is NewRoadTile and not neighbor.is_permanent:
+			if neighbor is NewRoadTile:
 				neighbor.remove_connection(-dir)
+				# If neighbor is a permanent stub, also disconnect A*
+				if neighbor.is_permanent:
+					var id_stub = GameData.get_cell_id(neighbor_cell)
+					var id_cell = GameData.get_cell_id(cell)
+					if GameData.astar.are_points_connected(id_stub, id_cell):
+						GameData.astar.disconnect_points(id_stub, id_cell, true)
 
 		var id = GameData.get_cell_id(cell)
 		if GameData.astar.has_point(id):
@@ -200,35 +208,74 @@ func _connect_to_entrance(road_cell: Vector2i, entrance_cell: Vector2i, dir: Vec
 		if not GameData.astar.are_points_connected(id_road, id_ent):
 			GameData.astar.connect_points(id_road, id_ent)
 
-func build_permanent_road(cell: Vector2i, direction: Vector2i) -> void:
-	
-	var current_road = GameData.road_grid.get(cell)
+func build_permanent_road(cell: Vector2i, direction: Vector2i, creator_id: int = -1) -> void:
+
+	# Hub case — just register entrance cell in A*, no stub needed
+	if direction == Vector2i(-99, -99):
+		if not GameData.road_grid.get(cell) is NewRoadTile:
+			var current_road = road_tile.instantiate()
+			current_road.position = GameData.get_cell_center(cell)
+			current_road.set_cell(cell)
+			current_road.is_permanent = true
+			current_road.owner_id = creator_id # Initialize owner here too
+			add_child(current_road)
+			GameData.road_grid[cell] = current_road
+			GameData.add_navigation_point(cell)
+		SignalBus.map_changed.emit.call_deferred()
+		return
+
+	# Vent case — driveway stub, entrance cell never in A*
+	var driveway_cell = cell + direction
+
+	# 1. Teardown logic: Only clear the cell IF it is a permanent stub OWNED by this building
+	var old_stub = GameData.road_grid.get(driveway_cell)
+	if old_stub is NewRoadTile:
+		if old_stub.is_permanent:
+			if old_stub.owner_id == creator_id:
+				# It is MY stub. Clear it so I can move it.
+				old_stub.manual_connections.clear()
+				for dir in old_stub.arm_lines.keys().duplicate():
+					old_stub._destroy_arm(dir)
+				var old_id = GameData.get_cell_id(driveway_cell)
+				var old_conns = GameData.astar.get_point_connections(old_id)
+				for conn_id in old_conns:
+					GameData.astar.disconnect_points(old_id, conn_id, true)
+				
+				old_stub.queue_free()
+				GameData.road_grid.erase(driveway_cell)
+			else:
+				# It belongs to another building! 
+				# Don't delete it. Just connect to it and exit early.
+				old_stub.add_connection(-direction)
+				return 
+		else:
+			# It's a player pipe!
+			ResourceManager.refund_tile()
+			old_stub.remove_connection(-direction)
+
+	# 2. Create/Update tile at driveway_cell
+	var current_road = GameData.road_grid.get(driveway_cell)
 	if not current_road is NewRoadTile:
 		current_road = road_tile.instantiate()
-		current_road.position = GameData.get_cell_center(cell)
-		current_road.set_cell(cell)
-		current_road.is_permanent = true
+		current_road.position = GameData.get_cell_center(driveway_cell)
+		current_road.set_cell(driveway_cell)
+		current_road.is_permanent = true 
+		current_road.owner_id = creator_id # SET the name tag here
 		add_child(current_road)
-		GameData.road_grid[cell] = current_road
-		GameData.add_navigation_point(cell)
-	
-	# Clear existing arms and re-add with new direction
-	current_road.manual_connections.clear()
-	for dir in current_road.arm_lines.keys().duplicate():
-		current_road._destroy_arm(dir)
-	
-	if direction != Vector2i(-99, -99):
-		current_road.add_connection(direction)
+		GameData.road_grid[driveway_cell] = current_road
+		GameData.add_navigation_point(driveway_cell)
 
-		# Reconnect A* to the neighbor in the new direction (e.g. after rotation)
-		var neighbor_cell = cell + direction
-		var neighbor = GameData.road_grid.get(neighbor_cell)
-		if neighbor is NewRoadTile:
-			neighbor.add_connection(-direction)
-			var id_stub = GameData.get_cell_id(cell)
-			var id_neighbor = GameData.get_cell_id(neighbor_cell)
-			if GameData.astar.has_point(id_stub) and GameData.astar.has_point(id_neighbor):
-				if not GameData.astar.are_points_connected(id_stub, id_neighbor):
-					GameData.astar.connect_points(id_stub, id_neighbor)
+	# Connect visual arm back to building
+	current_road.add_connection(-direction)
+
+	# Connect to any existing pipe neighbor outward
+	var neighbor_cell = driveway_cell + direction
+	var neighbor = GameData.road_grid.get(neighbor_cell)
+	if neighbor is NewRoadTile:
+		var id_stub = GameData.get_cell_id(driveway_cell)
+		var id_neighbor = GameData.get_cell_id(neighbor_cell)
+		if GameData.astar.has_point(id_stub) and GameData.astar.has_point(id_neighbor):
+			if not GameData.astar.are_points_connected(id_stub, id_neighbor):
+				GameData.astar.connect_points(id_stub, id_neighbor)
 
 	SignalBus.map_changed.emit.call_deferred()

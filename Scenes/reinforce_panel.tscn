@@ -1,0 +1,38 @@
+[gd_scene format=3 uid="uid://bm3oj5mikl5hv"]
+
+[ext_resource type="PackedScene" uid="uid://b7lxulyt7rojl" path="res://Scenes/button.tscn" id="1_tmun8"]
+[ext_resource type="Script" uid="uid://ct3yltthj3aba" path="res://Scripts/reinforce_panel.gd" id="1_x5v4j"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x5v4j"]
+bg_color = Color(0, 0, 0, 0.4)
+
+[node name="ReinforcePanelContainer" type="PanelContainer" unique_id=905140091]
+offset_right = 135.0
+offset_bottom = 287.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_x5v4j")
+script = ExtResource("1_x5v4j")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=835351986]
+layout_mode = 2
+theme_override_constants/separation = 25
+
+[node name="FrontierButton" parent="VBoxContainer" unique_id=1980808902 instance=ExtResource("1_tmun8")]
+layout_mode = 2
+text = "Frontier"
+
+[node name="OuterButton" parent="VBoxContainer" unique_id=1874478784 instance=ExtResource("1_tmun8")]
+layout_mode = 2
+text = "Outer"
+
+[node name="InnerButton" parent="VBoxContainer" unique_id=1196241639 instance=ExtResource("1_tmun8")]
+layout_mode = 2
+text = "Inner"
+
+[node name="CoreButton" parent="VBoxContainer" unique_id=1665335437 instance=ExtResource("1_tmun8")]
+layout_mode = 2
+text = "Core"
+
+[connection signal="pressed" from="VBoxContainer/FrontierButton" to="." method="_on_frontier_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/OuterButton" to="." method="_on_outer_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/InnerButton" to="." method="_on_inner_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/CoreButton" to="." method="_on_core_button_pressed"]

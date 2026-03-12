@@ -19,15 +19,22 @@ func refund_tile() -> void:
 
 func add_score() -> void:
 	GameData.total_data += 1
-	if GameData.total_data >= GameData.score_to_next_reward:
+	GameData.lifetime_data_earned += 1
+	if GameData.lifetime_data_earned >= GameData.score_to_next_reward:
 		grant_reward()
 	resources_updated.emit(GameData.current_pipe_count, GameData.total_data, GameData.data_reserve_for_auto_repairs) # Notify UI
 
 func grant_reward() -> void:
-	GameData.current_pipe_count += 5
-	GameData.score_to_next_reward += 30
-	resources_updated.emit(GameData.current_pipe_count, GameData.total_data, GameData.data_reserve_for_auto_repairs) # Notify UI
-
+	GameData.current_pipe_count += 6
+	
+	# Calculate current gap and grow it
+	var growth_factor = 1.2  # 20% increase each time
+	var current_gap = GameData.score_to_next_reward - GameData.previous_threshold
+	
+	GameData.previous_threshold = GameData.score_to_next_reward
+	GameData.score_to_next_reward += int(current_gap * growth_factor)
+	
+	resources_updated.emit(GameData.current_pipe_count, GameData.total_data, GameData.data_reserve_for_auto_repairs)
 #region pipe upgrades
 func upgrade_pipes() -> bool:
 	if GameData.current_pipe_upgrade_level >= GameData.MAX_PIPE_UPGRADES:

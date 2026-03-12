@@ -11,6 +11,8 @@ class_name NewRoadTile
 
 @onready var burst_particle_effect: GPUParticles2D = $BurstParticleEffect
 
+var owner_id: int = -1
+
 # arm_lines[Vector2i] = { "base": Line2D, "outline": Line2D, "upgrade": Line2D, "connectors": Array[Line2D] }
 var arm_lines: Dictionary = {}
 
@@ -21,6 +23,7 @@ var is_entrance: bool = false
 var my_zone: GameData.Zone
 
 var is_fractured: bool = false
+var just_repaired: bool = false
 var is_reinforced: bool = false
 
 var zone_rates = {
@@ -309,6 +312,8 @@ func repair() -> void:
 
 	var cell_hash := GameData.get_cell_id(cell)
 	is_fractured = false
+	just_repaired = true
+	get_tree().create_timer(0.1).timeout.connect(func(): just_repaired = false)
 	GameData.astar.set_point_disabled(cell_hash, false)
 
 	_play_repair_animation()

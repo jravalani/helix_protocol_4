@@ -8,7 +8,7 @@ signal spawn_vent_requested
 
 signal car_returned_home
 
-signal building_spawned(entrance_cell: Vector2i, driveway_direction: Vector2i)
+signal building_spawned(entrance_cell: Vector2i, driveway_direction: Vector2i, instance_id: int)
 
 signal pressure_updated(new_value: int, percentage: float)
 
@@ -41,3 +41,5 @@ signal vent_interval_updated
 signal trigger_packet_slowdown
 
 signal trigger_vent_burst
+
+signal ui_wake_up

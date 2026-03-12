@@ -11,6 +11,7 @@ func _ready() -> void:
 	SignalBus.fracture_wave.connect(spawn_wave)
 
 func spawn_wave() -> void:
+	SignalBus.ui_wake_up.emit()
 	# Camera shake at wave start
 	SignalBus.camera_shake.emit(0.5, 8.0)
 	

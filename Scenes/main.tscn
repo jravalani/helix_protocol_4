@@ -1,10 +1,11 @@
-[gd_scene load_steps=16 format=3 uid="uid://cnmu3c4pg7icy"]
+[gd_scene format=3 uid="uid://cnmu3c4pg7icy"]
 
 [ext_resource type="Texture2D" uid="uid://df0o6u8xgxvao" path="res://Assets/Background/BackgroundFinal.png" id="1_d1ilt"]
 [ext_resource type="PackedScene" uid="uid://db103wkeppd8v" path="res://Scenes/road_builder.tscn" id="2_8gbba"]
 [ext_resource type="PackedScene" uid="uid://3xthd7uvwo1q" path="res://Scenes/input_manager.tscn" id="3_kry3j"]
 [ext_resource type="PackedScene" uid="uid://dnpwluvfdcpl1" path="res://UITestScenes/in_level_ui.tscn" id="4_jjvhh"]
 [ext_resource type="Script" uid="uid://dtgwxb8bypuhf" path="res://Scripts/director_2.gd" id="4_kry3j"]
+[ext_resource type="Script" uid="uid://dx2dhncrk4cpe" path="res://Scripts/zen_mode.gd" id="5_wsu2k"]
 [ext_resource type="Script" uid="uid://coik2fhilbiw2" path="res://Scripts/camera_2d.gd" id="6_21xkr"]
 [ext_resource type="PackedScene" uid="uid://djl3oc0smqdgx" path="res://Scenes/fracture_wave.tscn" id="6_jkdf5"]
 [ext_resource type="Shader" uid="uid://boevdjmjawqve" path="res://shaders/vignette.gdshader" id="7_344ge"]
@@ -13,6 +14,7 @@
 [ext_resource type="PackedScene" uid="uid://oksegi45gqak" path="res://Scenes/heat_haze.tscn" id="10_fdnlq"]
 [ext_resource type="PackedScene" uid="uid://dtv18ee30jl71" path="res://UITestScenes/top_panel.tscn" id="10_hptm8"]
 [ext_resource type="PackedScene" uid="uid://bfq5ber3wwxdb" path="res://Scenes/dust_particles.tscn" id="11_d1ilt"]
+[ext_resource type="PackedScene" uid="uid://b5ev0jvtodvqa" path="res://Scenes/hub_window.tscn" id="14_jkdf5"]
 
 [sub_resource type="Environment" id="Environment_d1ilt"]
 background_mode = 3
@@ -30,44 +32,49 @@ shader_parameter/vignette_strength = 1.0
 shader_parameter/dither_strength = 0.03
 shader_parameter/vignette_color = Color(0, 0, 0, 1)
 
-[node name="Main" type="Node2D"]
+[node name="Main" type="Node2D" unique_id=1948087299]
 z_index = -10
 
-[node name="Background" type="Sprite2D" parent="."]
+[node name="Background" type="Sprite2D" parent="." unique_id=1022534469]
 scale = Vector2(1.1, 1.1)
 texture = ExtResource("1_d1ilt")
 
-[node name="RoadBuilder" parent="." instance=ExtResource("2_8gbba")]
+[node name="RoadBuilder" parent="." unique_id=1279087556 instance=ExtResource("2_8gbba")]
 
-[node name="Director" type="Node2D" parent="."]
+[node name="Director" type="Node2D" parent="." unique_id=2118849645]
 script = ExtResource("4_kry3j")
 
-[node name="Line2D" type="Line2D" parent="Director"]
+[node name="Line2D" type="Line2D" parent="Director" unique_id=658289882]
 width = 5.0
 default_color = Color(3.85046e-07, 0.593914, 0.8248381, 1)
 
-[node name="Entities" type="Node" parent="."]
+[node name="Entities" type="Node" parent="." unique_id=645976394]
 
-[node name="InputManager" parent="." node_paths=PackedStringArray("road_builder") instance=ExtResource("3_kry3j")]
+[node name="InputManager" parent="." unique_id=1768521205 node_paths=PackedStringArray("road_builder") instance=ExtResource("3_kry3j")]
 road_builder = NodePath("../RoadBuilder")
 
-[node name="FractureWave" parent="." instance=ExtResource("6_jkdf5")]
+[node name="ZenMode" type="Node2D" parent="." unique_id=1511129627]
+script = ExtResource("5_wsu2k")
 
-[node name="DustParticles" parent="." instance=ExtResource("11_d1ilt")]
+[node name="FractureWave" parent="." unique_id=1696220610 instance=ExtResource("6_jkdf5")]
+
+[node name="DustParticles" parent="." unique_id=352262248 instance=ExtResource("11_d1ilt")]
 z_index = 200
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1344820743]
 environment = SubResource("Environment_d1ilt")
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1323868594]
 script = ExtResource("6_21xkr")
 
-[node name="CanvasLayer2" type="CanvasLayer" parent="."]
+[node name="CanvasLayer2" type="CanvasLayer" parent="." unique_id=1745653022]
 
-[node name="BackBufferCopy" type="BackBufferCopy" parent="CanvasLayer2"]
+[node name="BackBufferCopy" type="BackBufferCopy" parent="CanvasLayer2" unique_id=1677360633]
 copy_mode = 2
 
-[node name="Vignette_Black" type="ColorRect" parent="CanvasLayer2"]
+[node name="HeatHaze" parent="CanvasLayer2" unique_id=1749788508 instance=ExtResource("10_fdnlq")]
+
+[node name="Vignette_Black" type="ColorRect" parent="CanvasLayer2" unique_id=1097756080]
 material = SubResource("ShaderMaterial_ynf5e")
 anchors_preset = 15
 anchor_right = 1.0
@@ -76,15 +83,16 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="Vignette_Color" parent="CanvasLayer2" instance=ExtResource("9_6iyac")]
+[node name="Vignette_Color" parent="CanvasLayer2" unique_id=629567318 instance=ExtResource("9_6iyac")]
 
-[node name="HeatHaze" parent="CanvasLayer2" instance=ExtResource("10_fdnlq")]
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=353075910]
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="HubWindow" parent="CanvasLayer" unique_id=1307097983 instance=ExtResource("14_jkdf5")]
+mouse_filter = 2
 
-[node name="InLevelUI" parent="CanvasLayer" instance=ExtResource("4_jjvhh")]
+[node name="InLevelUI" parent="CanvasLayer" unique_id=35410364 instance=ExtResource("4_jjvhh")]
 
-[node name="TechTree" parent="CanvasLayer" instance=ExtResource("9_ynf5e")]
+[node name="TechTree" parent="CanvasLayer" unique_id=651149444 instance=ExtResource("9_ynf5e")]
 visible = false
 
-[node name="TopPanel" parent="CanvasLayer" instance=ExtResource("10_hptm8")]
+[node name="TopPanel" parent="CanvasLayer" unique_id=1947777984 instance=ExtResource("10_hptm8")]

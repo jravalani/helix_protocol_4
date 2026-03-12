@@ -44,24 +44,24 @@ func get_top_left_px(step: float) -> Vector2:
 func _physics_process(delta: float) -> void:
 	fan.rotation += fan_rotation_speed * delta
 
-func _input_event(viewport: Viewport, event: InputEvent, shape_idx: int) -> void:
-	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT:
-			if event.is_pressed():
-				get_viewport().set_input_as_handled()
-				click_position = get_global_mouse_position()
-				has_dragged = false
-			else:
-				if not has_dragged:
-					print("Vent clicked (no drag) - rotating!")
-					rotate_45_degrees()
-				get_viewport().set_input_as_handled()
-
-	elif event is InputEventMouseMotion:
-		if event.button_mask & MOUSE_BUTTON_MASK_LEFT:
-			var current_pos = get_global_mouse_position()
-			if click_position.distance_to(current_pos) > 24.0:
-				has_dragged = true
+#func _input_event(viewport: Viewport, event: InputEvent, shape_idx: int) -> void:
+	#if event is InputEventMouseButton:
+		#if event.button_index == MOUSE_BUTTON_LEFT:
+			#if event.is_pressed():
+				#get_viewport().set_input_as_handled()
+				#click_position = get_global_mouse_position()
+				#has_dragged = false
+			#else:
+				#if not has_dragged:
+					#print("Vent clicked (no drag) - rotating!")
+					#rotate_45_degrees()
+				#get_viewport().set_input_as_handled()
+#
+	#elif event is InputEventMouseMotion:
+		#if event.button_mask & MOUSE_BUTTON_MASK_LEFT:
+			#var current_pos = get_global_mouse_position()
+			#if click_position.distance_to(current_pos) > 24.0:
+				#has_dragged = true
 
 func _ready():
 	left_cloud.restart()
@@ -76,7 +76,7 @@ func _ready():
 
 	var dir_vec = (driveway_marker.global_position - global_position).normalized()
 	var driveway_direction = Vector2i(round(dir_vec.x), round(dir_vec.y))
-	SignalBus.building_spawned.emit(entrance_cell, driveway_direction)
+	SignalBus.building_spawned.emit(entrance_cell, driveway_direction, get_instance_id())
 
 	_set_interval_from_zone()
 	send_timer = randf_range(0.0, send_interval)
@@ -124,11 +124,11 @@ func _end_burst() -> void:
 	t.tween_property(self, "modulate", Color.WHITE, 0.4)
 
 func _try_send_packet() -> void:
-	# Score all reachable, non-rate-limited hubs: higher backlog + shorter path = better
 	var best_hub: Hub = null
 	var best_score: float = -1.0
 
-	var my_id = GameData.get_cell_id(entrance_cell)
+	var driveway_cell = entrance_cell + get_driveway_direction()
+	var my_id = GameData.get_cell_id(driveway_cell)  # ← driveway_cell, not entrance_cell
 
 	for cell in GameData.building_grid:
 		var building = GameData.building_grid[cell]
@@ -146,14 +146,13 @@ func _try_send_packet() -> void:
 			continue
 
 		var path_length: float = path.size()
-		# backlog + 1 avoids division weirdness when backlog is 0
 		var score: float = (building.oxygen_backlog + 1.0) / path_length
 		if score > best_score:
 			best_score = score
 			best_hub = building
 
 	if best_hub == null:
-		return  # no eligible hub — discard this pulse
+		return
 
 	_spawn_packet(best_hub)
 
@@ -161,30 +160,42 @@ func get_driveway_direction() -> Vector2i:
 	var rotated := DRIVEWAY_OFFSET.rotated(deg_to_rad(driveway_marker.rotation_degrees))
 	return Vector2i(round(rotated.normalized().x), round(rotated.normalized().y))
 
-func rotate_45_degrees() -> void:
-	driveway_marker.rotation_degrees += 45
-	if driveway_marker.rotation_degrees >= 360:
-		driveway_marker.rotation_degrees = 0
+func set_driveway_direction(new_dir: Vector2i) -> void:
+	var angle = Vector2(new_dir).angle()
+	driveway_marker.rotation_degrees = rad_to_deg(angle - Vector2(DRIVEWAY_OFFSET).angle())
 
-	var stub = GameData.road_grid.get(entrance_cell)
-	if stub is NewRoadTile:
-		for old_dir in stub.manual_connections.duplicate():
-			var old_neighbor = GameData.road_grid.get(entrance_cell + old_dir)
-			if old_neighbor is NewRoadTile:
-				old_neighbor.remove_connection(-old_dir)
-
-	var driveway_direction = get_driveway_direction()
-
-	var my_id = GameData.get_cell_id(entrance_cell)
-	var connections = GameData.astar.get_point_connections(my_id)
-	for conn_id in connections:
-		GameData.astar.disconnect_points(my_id, conn_id, true)
-
-	SignalBus.building_spawned.emit(entrance_cell, driveway_direction)
-	_on_map_changed()
+#func rotate_45_degrees() -> void:
+	#var old_direction = get_driveway_direction()  # snapshot BEFORE rotating
+	#var old_driveway_cell = entrance_cell + old_direction
+#
+	## Teardown old driveway stub
+	#var old_stub = GameData.road_grid.get(old_driveway_cell)
+	#if old_stub is NewRoadTile:
+		## Remove visual arms from neighbors
+		#for old_dir in old_stub.manual_connections.duplicate():
+			#var old_neighbor = GameData.road_grid.get(old_driveway_cell + old_dir)
+			#if old_neighbor is NewRoadTile:
+				#old_neighbor.remove_connection(-old_dir)
+		## Remove A* connections
+		#var old_id = GameData.get_cell_id(old_driveway_cell)
+		#var old_conns = GameData.astar.get_point_connections(old_id)
+		#for conn_id in old_conns:
+			#GameData.astar.disconnect_points(old_id, conn_id, true)
+		## Destroy the tile entirely
+		#old_stub.queue_free()
+		#GameData.road_grid.erase(old_driveway_cell)
+#
+	#driveway_marker.rotation_degrees += 45
+	#if driveway_marker.rotation_degrees >= 360:
+		#driveway_marker.rotation_degrees = 0
+#
+	#var driveway_direction = get_driveway_direction()
+	#SignalBus.building_spawned.emit(entrance_cell, driveway_direction)
+	#_on_map_changed()
 
 func _on_map_changed():
-	var my_id = GameData.get_cell_id(entrance_cell)
+	var driveway_cell = entrance_cell + get_driveway_direction()
+	var my_id = GameData.get_cell_id(driveway_cell)
 	if not GameData.astar.has_point(my_id):
 		return
 	update_connection_status()
@@ -196,10 +207,12 @@ func update_connection_status():
 	if GameData.building_grid.is_empty():
 		return
 
+	var driveway_cell = entrance_cell + get_driveway_direction()
+	var start_id = GameData.get_cell_id(driveway_cell)
+
 	for cell in GameData.building_grid:
 		var building = GameData.building_grid[cell]
 		if building is Hub:
-			var start_id = GameData.get_cell_id(entrance_cell)
 			var end_id = GameData.get_cell_id(building.entrance_cell)
 			if GameData.astar.has_point(start_id) and GameData.astar.has_point(end_id):
 				var path = GameData.astar.get_id_path(start_id, end_id)
@@ -223,12 +236,13 @@ func notify_capacity_freed() -> void:
 
 func _spawn_packet(target_hub: Hub) -> void:
 	current_capacity += 1
+	var driveway_cell = entrance_cell + get_driveway_direction()
 	var path_container = Path2D.new()
 	get_parent().add_child.call_deferred(path_container)
 	var oxygen_packet = packet_scene.instantiate()
 	path_container.add_child(oxygen_packet)
-	oxygen_packet.global_position = global_position
-	oxygen_packet.setup_path(self, entrance_cell, target_hub.entrance_cell)
+	oxygen_packet.global_position = global_position  # still spawns visually from vent
+	oxygen_packet.setup_path(self, driveway_cell, target_hub.entrance_cell)  # ← driveway_cell
 	_on_packet_spawned()
 
 func _on_packet_spawned() -> void:
