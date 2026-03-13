@@ -1,0 +1,22 @@
+extends Button
+
+@onready var hover_style: StyleBoxFlat = get_theme_stylebox("hover")
+var hum_tween: Tween
+
+func _on_mouse_entered():
+	# Create a pulsing effect on the border color
+	hum_tween = create_tween().set_loops()
+	hum_tween.tween_property(hover_style, "border_color", Color("ff00ff"), 0.8)
+	hum_tween.tween_property(hover_style, "border_color", Color("700070"), 0.8)
+	
+	# Scale up slightly
+	var scale_tween = create_tween()
+	scale_tween.tween_property(self, "scale", Vector2(1.05, 1.05), 0.1).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+func _on_mouse_exited():
+	if hum_tween:
+		hum_tween.kill()
+	
+	# Scale back to normal
+	var scale_tween = create_tween()
+	scale_tween.tween_property(self, "scale", Vector2.ONE, 0.1).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)

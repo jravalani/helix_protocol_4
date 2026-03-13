@@ -1,0 +1,68 @@
+[gd_scene format=3 uid="uid://b5ev0jvtodvqa"]
+
+[ext_resource type="Script" uid="uid://dl8cuvsglwtp7" path="res://Scripts/hub_window.gd" id="1_kxx0x"]
+[ext_resource type="Texture2D" uid="uid://dcxchy6q5k1yg" path="res://Assets/BayWindow/WindowBlackArea.png" id="1_lfuj7"]
+[ext_resource type="Texture2D" uid="uid://c6kxb78l61qp7" path="res://Assets/BayWindow/WindowLights.png" id="2_kxx0x"]
+[ext_resource type="Texture2D" uid="uid://bijnff52eecr4" path="res://Assets/BayWindow/WindowPlates.png" id="3_go1xm"]
+[ext_resource type="Texture2D" uid="uid://8forul2snl0l" path="res://Assets/BayWindow/WindowGreyFrame.png" id="4_3u6gy"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_lfuj7"]
+
+[node name="HubWindow" type="Panel" unique_id=1307097983]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_lfuj7")
+script = ExtResource("1_kxx0x")
+
+[node name="BlackBorder" type="TextureRect" parent="." unique_id=1622787154]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 640.0
+offset_bottom = 360.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("1_lfuj7")
+
+[node name="PressureVisual" type="TextureProgressBar" parent="." unique_id=602488805]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 640.0
+offset_bottom = 360.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.75, 0.75)
+step = 0.01
+fill_mode = 3
+texture_progress = ExtResource("2_kxx0x")
+
+[node name="Plates" type="TextureRect" parent="." unique_id=205230633]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 640.0
+offset_bottom = 360.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("3_go1xm")
+
+[node name="Frame" type="TextureRect" parent="." unique_id=1684070679]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 640.0
+offset_bottom = 360.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("4_3u6gy")

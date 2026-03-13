@@ -404,40 +404,81 @@ func trigger_fracture_wave() -> void:
 	await get_tree().create_timer(10.0).timeout
 	GameData.fracture_wave_active = false
 
+## Dispatches fracture effects based on current pressure phase.
+## Pipes always fracture. Hubs join at phase 3. Slowdown/burst added from phase 5.
 func _execute_fracture_wave() -> void:
 	var phase := GameData.current_pressure_phase
-	
-	# Guaranteed fractures scale with phase
-	var guaranteed_pipe_fractures := _get_guaranteed_pipe_fractures(phase)
-	var guaranteed_hub_fractures := _get_guaranteed_hub_fractures(phase)
-	
-	# Get all fracturable pipes and shuffle them
-	var fracturable_pipes: Array = []
+
+	_apply_pipe_fractures(phase)
+
+	if phase >= 3:
+		_apply_hub_fractures(phase)
+
+	if phase >= 5 and phase < 8:
+		if randi() % 2 == 0:
+			SignalBus.trigger_packet_slowdown.emit()
+		else:
+			SignalBus.trigger_vent_burst.emit()
+
+	if phase >= 8:
+		SignalBus.trigger_packet_slowdown.emit()
+		SignalBus.trigger_vent_burst.emit()
+
+## Fractures pipes sorted by zone priority. Outer/frontier pipes break first.
+## Builds connected chains from fracturable pipes, then fractures whole chains.
+## Guarantees at least one neighbor always remains visible after fracture.
+func _apply_pipe_fractures(phase: int) -> void:
+	var fracturable_set: Dictionary = {}
 	for cell in GameData.road_grid:
 		var pipe = GameData.road_grid[cell]
 		if pipe is NewRoadTile and not pipe.is_fractured and not pipe.is_reinforced:
-			fracturable_pipes.append(pipe)
-			
-	# Guarantee minimum fractures — prioritize outer/frontier zones
-	fracturable_pipes.sort_custom(func(a, b): 
-		return _zone_priority(a.my_zone) > _zone_priority(b.my_zone)
+			fracturable_set[cell] = pipe
+
+	# Build chains via DFS within fracturable pipes only
+	var chains: Array = []
+	var visited: Dictionary = {}
+	for cell in fracturable_set:
+		if visited.has(cell):
+			continue
+		var chain: Array = []
+		var stack: Array = [cell]
+		while stack.size() > 0:
+			var c = stack.pop_back()
+			if visited.has(c):
+				continue
+			visited[c] = true
+			chain.append(fracturable_set[c])
+			var pipe = fracturable_set[c]
+			for dir in pipe.manual_connections:
+				var neighbor_cell = c + dir
+				if fracturable_set.has(neighbor_cell) and not visited.has(neighbor_cell):
+					stack.append(neighbor_cell)
+		chains.append(chain)
+
+	# Only keep chains of 2+ pipes
+	var valid_chains: Array = chains.filter(func(ch): return ch.size() >= 2)
+
+	# Sort chains by zone priority of their first pipe — frontier first
+	valid_chains.sort_custom(func(a, b):
+		return _zone_priority(a[0].my_zone) > _zone_priority(b[0].my_zone)
 	)
-	
-	for pipe in fracturable_pipes.slice(0, guaranteed_pipe_fractures):
-		pipe.fracture()
-	
-	# Remaining pipes still roll probability
-	for pipe in fracturable_pipes.slice(guaranteed_pipe_fractures):
-		pipe.on_check_fracture()
-	
-	# Hub fractures
+
+	var guaranteed = _get_guaranteed_pipe_fractures(phase)
+	var fractured_count = 0
+	for chain in valid_chains:
+		if fractured_count >= guaranteed:
+			break
+		for pipe in chain:
+			pipe.fracture()
+		fractured_count += 1
+
+## Fractures a guaranteed number of hubs based on phase.
+func _apply_hub_fractures(phase: int) -> void:
 	var fracturable_hubs: Array = []
-	var hubs = get_tree().get_nodes_in_group("hubs")
-	for hub in hubs:
+	for hub in get_tree().get_nodes_in_group("hubs"):
 		if not hub.is_fractured:
 			fracturable_hubs.append(hub)
-		
-	for hub in fracturable_hubs.slice(0, guaranteed_hub_fractures):
+	for hub in fracturable_hubs.slice(0, _get_guaranteed_hub_fractures(phase)):
 		hub.fracture()
 
 func _get_guaranteed_pipe_fractures(phase: int) -> int:

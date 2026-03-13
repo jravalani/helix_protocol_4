@@ -50,7 +50,7 @@ var reinforcement_version: int = 0
 ## =============================================================================
 
 const MAX_PRESSURE: float = 100.0
-const BASE_RATE: float = 0.03
+const BASE_RATE: float = 0.025
 var MAX_PRESSURE_PHASE: int = 10
 
 var current_pressure: float = 0.0
@@ -70,7 +70,7 @@ var pressure_rate_multiplier: float = 1.0          # Segment 4 sets to 0.85
 
 ## Hub upgrades
 const MAX_HUB_UPGRADES: int = 3
-const HUB_UPGRADE_COSTS = [200, 400, 600]
+const HUB_UPGRADE_COSTS = [50, 100, 120]
 
 ## Spawn costs (scale per purchase)
 const HUB_SPAWN_BASE_COST: int = 100
@@ -101,8 +101,10 @@ var data_reserve_for_auto_repairs: int = 0
 ## ECONOMY & PROGRESSION
 ## =============================================================================
 
-var total_data: int = 25000
-var score_to_next_reward: int = 50
+var lifetime_data_earned: int = 0
+var total_data: int = 0
+var previous_threshold: int = 0
+var score_to_next_reward: int = 30
 
 ## =============================================================================
 ## SYSTEM METRICS (updated per frame)
@@ -175,46 +177,6 @@ const ROCKET_UPGRADES = {
 		"is_final": true
 	}
 }
-
-## =============================================================================
-## BUILDING TYPES (Currently commented out)
-## =============================================================================
-
-#enum BuildingType {
-	#VENT,           # Oxygen source
-	#RESEARCH_HUB,   # +50% data, -20% oxygen
-	#DATA_CENTER,    # +100% data, +50% oxygen, fractures nearby pipes
-	#RELAY_HUB,      # Speed boost, no data
-	#ROCKET          # Final objective
-#}
-
-#const BUILDING_TYPE_DATA = {
-	#BuildingType.VENT: {
-		#"name": "Vent",
-		#"color": Color.CYAN,
-		#"packet_interval": 5.0,
-		#"packet_amount": 1
-	#},
-	#BuildingType.RESEARCH_HUB: {
-		#"name": "Research Hub",
-		#"color": Color.GREEN,
-		#"data_multiplier": 1.5,
-		#"oxygen_multiplier": 0.8
-	#},
-	#BuildingType.DATA_CENTER: {
-		#"name": "Data Center",
-		#"color": Color.MAGENTA,
-		#"data_multiplier": 2.0,
-		#"oxygen_multiplier": 1.5,
-		#"fracture_radius": 5
-	#},
-	#BuildingType.RELAY_HUB: {
-		#"name": "Relay Hub",
-		#"color": Color.YELLOW,
-		#"speed_boost": 1.5,
-		#"oxygen_multiplier": 0.5
-	#}
-#}
 
 var metric_timer := 0.0
 

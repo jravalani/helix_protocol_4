@@ -22,6 +22,7 @@ func _ready() -> void:
 
 func request_redraw() -> void:
 	update_network.call_deferred()
+	
 func update_network() -> void:
 	for line in [master_case, master_outline, master_caps, master_fracture]:
 		line.clear_points()
@@ -36,23 +37,38 @@ func update_network() -> void:
 			var road_data = GameData.road_grid.get(cell)
 			
 			if road_data and road_data.is_fractured:
-				# Add to the "Broken" line instead of the main line
 				master_fracture.add_point(pos)
-				# We add INF to the main lines so there is a "gap" where the break is
 				master_case.add_point(Vector2.INF)
 				master_outline.add_point(Vector2.INF)
 			else:
-				# Normal pipe drawing
 				master_case.add_point(pos)
 				master_outline.add_point(pos)
-				master_fracture.add_point(Vector2.INF) # Gap in the red line
-
+				master_fracture.add_point(Vector2.INF)
 			if road_data and road_data.manual_connections.size() <= 1:
 				_draw_pill_cap(pos)
 		
-		# Break all lines at the end of the segment
 		for line in [master_case, master_outline, master_fracture]:
 			line.add_point(Vector2.INF)
+	
+	# Draw isolated fractured tiles that have no connections
+	print("Checking ", road_cells.size(), " cells for isolated fractured tiles")
+	for cell in road_cells:
+		var road_data = GameData.road_grid.get(cell)
+		if not road_data or not road_data.is_fractured:
+			continue
+		print("Found fractured: ", cell, " connections: ", road_data.manual_connections)
+		var has_visible_neighbor = false
+		for dir in road_data.manual_connections:
+			var neighbor = GameData.road_grid.get(cell + dir)
+			if neighbor and not neighbor.is_fractured:
+				has_visible_neighbor = true
+				break
+		if not has_visible_neighbor:
+			print("Drawing dot at: ", cell)
+			var pos = GameData.get_cell_center(cell)
+			master_fracture.add_point(pos - Vector2(5, 0))
+			master_fracture.add_point(pos + Vector2(5, 0))
+			master_fracture.add_point(Vector2.INF)
 
 func _draw_pill_cap(pos: Vector2) -> void:
 	# Placing two points near each other with ROUND CAPS creates a circle
