@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://brrvblr7y4g8x"]
+[gd_scene format=3 uid="uid://brrvblr7y4g8x"]
 
 [ext_resource type="Script" uid="uid://dwfnmgtxxw7kw" path="res://Scripts/rocket_launch_effect.gd" id="1_script"]
 
