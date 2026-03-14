@@ -12,7 +12,7 @@ config_version=5
 
 config/name="fpp4"
 run/main_scene="uid://cnmu3c4pg7icy"
-config/features=PackedStringArray("4.6", "Mobile")
+config/features=PackedStringArray("4.5", "Mobile")
 config/icon="res://icon.svg"
 
 [autoload]
@@ -20,7 +20,7 @@ config/icon="res://icon.svg"
 GameData="*uid://ce4x28ymrtnxu"
 ResourceManager="*uid://buxm4x4opy20i"
 SignalBus="*uid://me1qrsn08x06"
-NotificationManager="*uid://dmewkokqo3rd7"
+NotificationManager="*res://Scenes/notification_manager.tscn"
 
 [display]
 

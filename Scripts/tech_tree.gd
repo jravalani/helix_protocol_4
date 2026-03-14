@@ -52,7 +52,7 @@ const NUM_NODES := 5
 # ═══════════════════════════════════════════════════════════════
 
 func _ready() -> void:
-	font = preload("res://Assets/Roboto-Medium.ttf")
+	font = preload("res://Assets/Fonts/JetBrainsMono-ExtraBold.ttf")
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
 	SignalBus.open_rocket_menu.connect(_on_open_rocket_menu)
@@ -263,13 +263,6 @@ func _draw_ui_chrome() -> void:
 	var bar_label = "ROCKET COMPLETION: %d / 5 SEGMENTS" % GameData.current_rocket_phase
 	_text_c(bar_label, Vector2(size.x / 2.0, by + bh / 2.0 + 5.0), 12, COL_TEXT)
 
-	# ── Close button ──
-	var cp = Vector2(size.x - 48, 42); var cr = 16.0
-	draw_circle(cp, cr, COL_LOCKED_FILL if not hover_close else Color(0.18, 0.18, 0.22))
-	draw_arc(cp, cr, 0, TAU, 24, COL_MAGENTA if hover_close else COL_FRAME, 1.5, true)
-	var xc = COL_TEXT if hover_close else COL_TEXT_DIM
-	draw_line(cp + Vector2(-6, -6), cp + Vector2(6, 6), xc, 2.0)
-	draw_line(cp + Vector2(6, -6), cp + Vector2(-6, 6), xc, 2.0)
 
 # ── Tooltip for hovered skill node ────────────────────────────
 func _draw_tooltip() -> void:
