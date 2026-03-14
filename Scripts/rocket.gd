@@ -32,7 +32,6 @@ func _input_event(viewport: Viewport, event: InputEvent, shape_idx: int) -> void
 
 func _ready() -> void:
 	SignalBus.rocket_segment_purchased.connect(_on_rocket_segment_purchased)
-	SignalBus.launch_rocket_requested.connect(_on_launch_requested)
 	
 	# Set shadow opacity to 60%
 	shadow_1.modulate = Color(1, 1, 1, 0.6)
@@ -57,7 +56,11 @@ func _on_rocket_segment_purchased(next_phase: int) -> void:
 	if next_phase >= 1 and next_phase <= 5:
 		_animate_new_segment(next_phase)
 	
-	# Phase 5 just completes the rocket — launch is triggered by the skill tree LAUNCH button
+	# Trigger launch when phase 5 is complete
+	if next_phase == 5:
+		# Delay launch to let the animation finish
+		await get_tree().create_timer(0.5).timeout
+		launch_rocket()
 
 #func _input(event: InputEvent) -> void:
 	#if event is InputEventKey and event.pressed and event.keycode == KEY_L:
@@ -195,12 +198,6 @@ func launch_rocket() -> void:
 	
 	# When launch complete
 	tween.finished.connect(_on_launch_complete, CONNECT_ONE_SHOT)
-
-func _on_launch_requested() -> void:
-	if GameData.current_rocket_phase >= 5:
-		# 1-second delay so the player sees the rocket before liftoff
-		await get_tree().create_timer(1.0).timeout
-		launch_rocket()
 
 func _on_launch_complete() -> void:
 	print("Rocket has left the atmosphere!")
