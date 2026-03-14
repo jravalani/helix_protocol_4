@@ -39,7 +39,7 @@ func grant_reward() -> void:
 func upgrade_pipes() -> bool:
 	if GameData.current_pipe_upgrade_level >= GameData.MAX_PIPE_UPGRADES:
 		# have a 'maxed out' logo on the button; lock the button
-		print("Pipes at max Upgrade level!")
+		NotificationManager.notify("Pipe network is fully upgraded.", NotificationManager.Type.WARNING, "PIPES MAXED")
 		return false
 	
 	var cost = GameData.PIPE_UPGRADE_COSTS[GameData.current_pipe_upgrade_level]
@@ -52,7 +52,7 @@ func upgrade_pipes() -> bool:
 		SignalBus.pipes_upgraded.emit(GameData.current_pipe_upgrade_level)
 		return true
 	else:
-		print("Not enough data to upgrade pipes")
+		NotificationManager.notify("Insufficient data to upgrade pipes. Need " + str(cost) + ".", NotificationManager.Type.WARNING, "INSUFFICIENT DATA")
 	return false
 #endregion
 
@@ -60,7 +60,7 @@ func upgrade_pipes() -> bool:
 func upgrade_hull_shield() -> bool:
 	if GameData.current_hull_shield_level >= GameData.MAX_HULL_SHIELD_UPGRADES:
 		# maxed out
-		print("Shield at max capacity!")
+		NotificationManager.notify("Hull shield is at maximum capacity.", NotificationManager.Type.WARNING, "SHIELD MAXED")
 		return false
 	
 	var cost = GameData.HULL_SHIELD_UPGRADE_COSTS[GameData.current_hull_shield_level]
@@ -72,7 +72,7 @@ func upgrade_hull_shield() -> bool:
 		# if in future there need be a signal or anythin implement here.
 		return true
 	else:
-		print("Not enough data to upgrade shield")
+		NotificationManager.notify("Insufficient data to upgrade shield. Need " + str(cost) + ".", NotificationManager.Type.WARNING, "INSUFFICIENT DATA")
 	return false
 #endregion
 
@@ -83,7 +83,7 @@ func reinforce_zone(zone_id: int) -> void:
 	
 	if GameData.current_reinforced_zone != -1 and GameData.current_reinforced_zone != zone_id:
 		final_cost = cost * 1.5
-		print("Taxed on switching reinforcement zone midway.")
+		NotificationManager.notify("Zone switch penalty applied. Cost increased by 50%.", NotificationManager.Type.WARNING, "ZONE TAX")
 	
 	if GameData.total_data >= final_cost:
 		GameData.total_data -= final_cost
@@ -92,7 +92,7 @@ func reinforce_zone(zone_id: int) -> void:
 		await get_tree().process_frame
 		reinforce_pipes(zone_id)
 	else:
-		print("Insufficient Data to Reinforce: ", GameData.Zone.keys()[zone_id])
+		NotificationManager.notify("Insufficient data to reinforce " + GameData.Zone.keys()[zone_id] + " zone.", NotificationManager.Type.WARNING, "INSUFFICIENT DATA")
 
 func reinforce_pipes(zone_id: int) -> void:
 	GameData.reinforcement_version += 1
@@ -103,7 +103,7 @@ func reinforce_pipes(zone_id: int) -> void:
 		if pipe.my_zone == zone_id:
 			pipe.reinforce()
 	
-	print("Zone: ", GameData.Zone.keys()[zone_id], "Reinforced!")
+	NotificationManager.notify(GameData.Zone.keys()[zone_id] + " zone reinforced for 180 seconds.", NotificationManager.Type.INFO, "ZONE REINFORCED")
 
 	GameData.active_reinforcement_timer = get_tree().create_timer(180.0)
 	
@@ -114,7 +114,7 @@ func _on_reinforcement_timer_timeout(zone_id: int, version: int) -> void:
 		clear_zone_reinforcement(zone_id)
 		GameData.current_reinforced_zone = -1
 		GameData.active_reinforcement_timer = null
-		print("Zone: ", GameData.Zone.keys()[zone_id], "Reinforcement Expired!")
+		NotificationManager.notify(GameData.Zone.keys()[zone_id] + " zone reinforcement has expired.", NotificationManager.Type.WARNING, "REINFORCEMENT EXPIRED")
 
 func clear_zone_reinforcement(zone_id) -> void:
 	for cell in GameData.road_grid:
@@ -146,7 +146,7 @@ func reserve_data_for_auto_repairs() -> void:
 		GameData.total_data -= 100
 		resources_updated.emit(GameData.current_pipe_count, GameData.total_data, GameData.data_reserve_for_auto_repairs) # Notify UI
 	else:
-		print("Insufficient Data!")
+		NotificationManager.notify("Insufficient data to reserve for auto-repairs. Need 100.", NotificationManager.Type.WARNING, "INSUFFICIENT DATA")
 
 func process_auto_repair() -> void:
 	if not GameData.auto_repair_enabled or GameData.fractured_pipes.is_empty():
@@ -164,14 +164,14 @@ func process_auto_repair() -> void:
 			
 			resources_updated.emit(GameData.current_pipe_count, GameData.total_data, GameData.data_reserve_for_auto_repairs)
 		else:
-			print("Auto Repair Reserve Empty!")
+			NotificationManager.notify("Auto-repair reserve depleted. Refill to continue repairs.", NotificationManager.Type.WARNING, "REPAIR RESERVE EMPTY")
 			break
 #endregion
 
 #region hub upgrades
 func upgrade_hub(hub: Hub) -> bool:
 	if hub.upgrade_level >= GameData.MAX_HUB_UPGRADES:
-		print("Hub already at max level.")
+		NotificationManager.notify("This hub is fully upgraded.", NotificationManager.Type.WARNING, "HUB MAXED")
 		return false
 
 	var cost = GameData.HUB_UPGRADE_COSTS[hub.upgrade_level]
@@ -180,21 +180,27 @@ func upgrade_hub(hub: Hub) -> bool:
 		GameData.total_data -= cost
 		hub.upgrade_level += 1
 		resources_updated.emit(GameData.current_pipe_count, GameData.total_data, GameData.data_reserve_for_auto_repairs)
-		print("Hub upgraded to level ", hub.upgrade_level)
+		NotificationManager.notify("Hub upgraded to level " + str(hub.upgrade_level) + ".", NotificationManager.Type.INFO, "HUB UPGRADED")
 		return true
 	else:
-		print("Not enough data to upgrade hub. Need %d, have %d" % [cost, GameData.total_data])
+		NotificationManager.notify("Insufficient data to upgrade hub. Need " + str(cost) + ".", NotificationManager.Type.WARNING, "INSUFFICIENT DATA")
 		return false
 #endregion
+
+func refund_hub() -> void:
+	GameData.total_data += GameData.current_hub_spawn_cost - GameData.HUB_SPAWN_COST_INCREMENT
+	GameData.current_hub_spawn_cost -= GameData.HUB_SPAWN_COST_INCREMENT
+	GameData.current_hub_count -= 1
+	resources_updated.emit(GameData.current_pipe_count, GameData.total_data, GameData.data_reserve_for_auto_repairs)
 
 #region building spawns
 func spawn_hub() -> bool:
 	if GameData.current_hub_count >= GameData.MAX_HUBS:
-		print("Hub cap reached.")
+		NotificationManager.notify("Maximum hub capacity reached.", NotificationManager.Type.WARNING, "HUB CAP")
 		return false
 	
 	if GameData.total_data < GameData.current_hub_spawn_cost:
-		print("Insufficient data to spawn hub. Need %d, have %d" % [GameData.current_hub_spawn_cost, GameData.total_data])
+		NotificationManager.notify("Insufficient data to deploy hub. Need " + str(GameData.current_hub_spawn_cost) + ".", NotificationManager.Type.WARNING, "INSUFFICIENT DATA")
 		return false
 	
 	GameData.total_data -= GameData.current_hub_spawn_cost
@@ -207,11 +213,11 @@ func spawn_hub() -> bool:
 
 func spawn_vent() -> bool:
 	if GameData.current_vent_count >= GameData.MAX_VENTS:
-		print("Vent cap reached.")
+		NotificationManager.notify("Maximum vent capacity reached.", NotificationManager.Type.WARNING, "VENT CAP")
 		return false
 	
 	if GameData.total_data < GameData.current_vent_spawn_cost:
-		print("Insufficient data to spawn vent. Need %d, have %d" % [GameData.current_vent_spawn_cost, GameData.total_data])
+		NotificationManager.notify("Insufficient data to deploy vent. Need " + str(GameData.current_vent_spawn_cost) + ".", NotificationManager.Type.WARNING, "INSUFFICIENT DATA")
 		return false
 	
 	GameData.total_data -= GameData.current_vent_spawn_cost
@@ -227,7 +233,7 @@ func upgrade_rocket_phase() -> bool:
 	var next_phase = GameData.current_rocket_phase + 1
 	
 	if not GameData.ROCKET_UPGRADES.has(next_phase):
-		print("Rocket at max phase.")
+		NotificationManager.notify("Rocket is fully upgraded. Prepare for launch.", NotificationManager.Type.INFO, "ROCKET MAXED")
 		return false
 	
 	var data = GameData.ROCKET_UPGRADES[next_phase]
@@ -241,9 +247,9 @@ func upgrade_rocket_phase() -> bool:
 		
 		SignalBus.rocket_segment_purchased.emit(GameData.current_rocket_phase)
 		
-		print("Rocket upgraded to: ", data["name"])
+		NotificationManager.notify("Rocket upgraded: " + data["name"] + ".", NotificationManager.Type.INFO, "ROCKET UPGRADED")
 		return true
 	else:
-		print("Insufficient Data!")
+		NotificationManager.notify("Insufficient data to upgrade rocket. Need " + str(cost) + ".", NotificationManager.Type.WARNING, "INSUFFICIENT DATA")
 		return false
 #endregion

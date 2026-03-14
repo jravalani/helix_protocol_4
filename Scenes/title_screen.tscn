@@ -1,80 +1,134 @@
 [gd_scene format=3 uid="uid://47v5264qeile"]
 
-[ext_resource type="FontFile" uid="uid://bydys01ppahq3" path="res://Assets/Roboto-Medium.ttf" id="1_klylv"]
-[ext_resource type="Script" uid="uid://vqw5jomv713o" path="res://Scripts/title_screen.gd" id="1_p3fck"]
+[ext_resource type="PackedScene" uid="uid://b5ev0jvtodvqa" path="res://Scenes/hub_window.tscn" id="1_4gxqj"]
+[ext_resource type="Script" uid="uid://vqw5jomv713o" path="res://Scripts/title_screen.gd" id="1_n82rj"]
+[ext_resource type="LabelSettings" uid="uid://bdfm212mbwahn" path="res://Resources/title_label.tres" id="1_p3fck"]
+[ext_resource type="PackedScene" uid="uid://b7lxulyt7rojl" path="res://Scenes/button.tscn" id="2_4gxqj"]
+[ext_resource type="Texture2D" uid="uid://bxlsh8s4vttgf" path="res://Assets/Rocket/Segment1Shadow.png" id="2_12m1t"]
+[ext_resource type="Texture2D" uid="uid://bvr1gss1nfryq" path="res://Assets/Rocket/RocketSegment1.png" id="2_55kwv"]
+[ext_resource type="Texture2D" uid="uid://df0o6u8xgxvao" path="res://Assets/Background/BackgroundFinal.png" id="2_n82rj"]
+[ext_resource type="PackedScene" uid="uid://bfq5ber3wwxdb" path="res://Scenes/dust_particles.tscn" id="4_6vd4x"]
+[ext_resource type="PackedScene" uid="uid://crjalt6n7n0in" path="res://Scenes/vignette.tscn" id="6_0061g"]
+[ext_resource type="FontFile" uid="uid://ccmc2ygy5pytk" path="res://Assets/Fonts/JetBrainsMonoNL-SemiBold.ttf" id="10_8mikk"]
 
-[sub_resource type="LabelSettings" id="LabelSettings_p3fck"]
-font = ExtResource("1_klylv")
-font_size = 100
+[sub_resource type="LabelSettings" id="LabelSettings_sqelc"]
+font = ExtResource("10_8mikk")
+font_size = 36
 
-[node name="TitleScreen" type="Control" unique_id=1660773861]
+[node name="TitleScreen" type="Control" unique_id=280095613]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_p3fck")
+script = ExtResource("1_n82rj")
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=749912]
+[node name="Background" type="Sprite2D" parent="." unique_id=876978424]
+position = Vector2(975.99994, 492.00006)
+scale = Vector2(0.7, 0.6055556)
+texture = ExtResource("2_n82rj")
+
+[node name="LaunchpadShadow" type="Sprite2D" parent="." unique_id=439230751]
+position = Vector2(670, 420.99997)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("2_12m1t")
+
+[node name="Launchpad" type="Sprite2D" parent="." unique_id=149592614]
+position = Vector2(298, 282)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("2_55kwv")
+
+[node name="GPUParticles2D" parent="." unique_id=680187056 instance=ExtResource("4_6vd4x")]
+position = Vector2(1385, 492)
+amount = 500
+
+[node name="Vignette" parent="." unique_id=128150804 instance=ExtResource("6_0061g")]
+layout_mode = 0
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+grow_horizontal = 1
+grow_vertical = 1
+
+[node name="HubWindow" parent="." unique_id=1307097983 instance=ExtResource("1_4gxqj")]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-color = Color(0, 0, 0, 1)
 
-[node name="MarginContainer" type="MarginContainer" parent="." unique_id=335974052]
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=361833834]
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
 anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
+anchor_bottom = 0.5
+offset_left = -1072.0
+offset_top = -452.0
+offset_bottom = 59.0
+grow_horizontal = 0
 grow_vertical = 2
-theme_override_constants/margin_top = 100
+theme_override_constants/margin_left = 50
+theme_override_constants/margin_right = 100
 
-[node name="Label" type="Label" parent="MarginContainer" unique_id=1179727842]
+[node name="Title" type="Label" parent="MarginContainer" unique_id=2063279241]
 layout_mode = 2
-size_flags_vertical = 0
-text = "UNTITLED"
-label_settings = SubResource("LabelSettings_p3fck")
+text = "HELIX 
+PROTOCOL"
+label_settings = ExtResource("1_p3fck")
 horizontal_alignment = 1
 vertical_alignment = 1
+uppercase = true
 
-[node name="MarginContainer2" type="MarginContainer" parent="." unique_id=926807488]
+[node name="MarginContainer2" type="MarginContainer" parent="." unique_id=1410572247]
 layout_mode = 1
-anchors_preset = 8
+anchors_preset = 7
 anchor_left = 0.5
-anchor_top = 0.5
+anchor_top = 1.0
 anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -166.5
-offset_top = -128.0
-offset_right = 166.5
-offset_bottom = 128.0
+anchor_bottom = 1.0
+offset_left = -832.0
+offset_top = -103.0
+offset_right = 832.0
 grow_horizontal = 2
-grow_vertical = 2
+grow_vertical = 0
+theme_override_constants/margin_left = 60
+theme_override_constants/margin_right = 60
+theme_override_constants/margin_bottom = 50
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer2" unique_id=1358314420]
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer2" unique_id=1097853236]
 layout_mode = 2
-theme_override_constants/separation = 20
+theme_override_constants/separation = 250
+alignment = 1
 
-[node name="PlayButton" type="Button" parent="MarginContainer2/VBoxContainer" unique_id=1305626722]
-custom_minimum_size = Vector2(80, 80)
+[node name="Options" parent="MarginContainer2/HBoxContainer" unique_id=180467060 instance=ExtResource("2_4gxqj")]
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
-theme_override_fonts/font = ExtResource("1_klylv")
-theme_override_font_sizes/font_size = 100
-text = "PLAY"
+theme_override_font_sizes/font_size = 32
+text = "Options"
 
-[node name="AboutButton" type="Button" parent="MarginContainer2/VBoxContainer" unique_id=1134476102]
-visible = false
-custom_minimum_size = Vector2(80, 80)
+[node name="Launch" parent="MarginContainer2/HBoxContainer" unique_id=1980808902 instance=ExtResource("2_4gxqj")]
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
-theme_override_fonts/font = ExtResource("1_klylv")
-theme_override_font_sizes/font_size = 100
-text = "ABOUT"
+theme_override_font_sizes/font_size = 32
+text = "Launch"
 
-[connection signal="pressed" from="MarginContainer2/VBoxContainer/PlayButton" to="." method="_on_play_button_pressed"]
-[connection signal="pressed" from="MarginContainer2/VBoxContainer/AboutButton" to="." method="_on_about_button_pressed"]
+[node name="Abort" parent="MarginContainer2/HBoxContainer" unique_id=1388734859 instance=ExtResource("2_4gxqj")]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Abort"
+
+[node name="OnlineStatus" type="Label" parent="." unique_id=239489183]
+layout_mode = 0
+offset_left = 143.0
+offset_top = 11.0
+offset_right = 547.0
+offset_bottom = 75.0
+text = "Status: Online [ ]"
+label_settings = SubResource("LabelSettings_sqelc")
+
+[node name="OnlineStatusColorRect" type="ColorRect" parent="." unique_id=168094198]
+layout_mode = 0
+offset_left = 490.0
+offset_top = 25.0
+offset_right = 510.0
+offset_bottom = 45.0

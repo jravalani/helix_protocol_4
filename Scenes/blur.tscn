@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://cjditv8ao037e"]
+
+[ext_resource type="Shader" uid="uid://ckxti0vblxip6" path="res://shaders/blur.gdshader" id="1_kl7qe"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_p6kjw"]
+shader = ExtResource("1_kl7qe")
+shader_parameter/blur_amount = 1.0
+
+[node name="Blur" type="ColorRect" unique_id=1511841004]
+material = SubResource("ShaderMaterial_p6kjw")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2

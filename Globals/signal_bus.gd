@@ -43,3 +43,5 @@ signal trigger_packet_slowdown
 signal trigger_vent_burst
 
 signal ui_wake_up
+
+signal notify_player(message: String, type: int)

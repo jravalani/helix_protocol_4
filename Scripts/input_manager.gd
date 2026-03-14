@@ -10,53 +10,37 @@ var last_build_cell: Vector2i = Vector2i(-9999, -9999)
 var click_cell: Vector2i = Vector2i(-9999, -9999)
 var is_building_road: bool = false
 var has_moved_after_press: bool = false
-var grid_lines: Node2D
 var t: Tween = null
 
 var _dragging_vent: Vent = null
 var _last_vent_drag_dir: Vector2i = Vector2i(-9999, -9999)
 
+var _grid_color := Color("4a4a4a")
+var _grid_line_width := 1.5
+
 func _ready() -> void:
-	_draw_grid()
-	grid_lines.visible = false
+	visible = false
 	SignalBus.increase_map_size.connect(func(_new_size: Rect2i): _redraw_grid())
 
 func _redraw_grid() -> void:
 	await get_tree().create_timer(1.5).timeout
-	for child in grid_lines.get_children():
-		child.queue_free()
-	_draw_grid()
-	grid_lines.visible = false
+	queue_redraw()
 
-func _draw_grid() -> void:
-	grid_lines = Node2D.new()
-	add_child(grid_lines)
-	var grid_color := Color("4a4a4a")
+func _draw() -> void:
 	var cell := GameData.CELL_SIZE
-	var bounds = GameData.current_map_size
-	var playable = Rect2i(
-		bounds.position.x,
-		bounds.position.y + 1,
-		bounds.size.x,
-		bounds.size.y - 3
-	)
-	var line_width = 1.5 / camera_2d.zoom.x
-
+	var playable = GameData.get_playable_rect()
 	for x in range(playable.position.x, playable.end.x + 1):
-		var line := Line2D.new()
-		line.width = line_width
-		line.default_color = grid_color
-		line.add_point(Vector2(x * cell.x, playable.position.y * cell.y))
-		line.add_point(Vector2(x * cell.x, playable.end.y * cell.y))
-		grid_lines.add_child(line)
-
+		draw_line(
+			Vector2(x * cell.x, playable.position.y * cell.y),
+			Vector2(x * cell.x, playable.end.y * cell.y),
+			_grid_color, _grid_line_width
+		)
 	for y in range(playable.position.y, playable.end.y + 1):
-		var line := Line2D.new()
-		line.width = line_width
-		line.default_color = grid_color
-		line.add_point(Vector2(playable.position.x * cell.x, y * cell.y))
-		line.add_point(Vector2(playable.end.x * cell.x, y * cell.y))
-		grid_lines.add_child(line)
+		draw_line(
+			Vector2(playable.position.x * cell.x, y * cell.y),
+			Vector2(playable.end.x * cell.x, y * cell.y),
+			_grid_color, _grid_line_width
+		)
 
 func _process(_delta: float) -> void:
 	mouse_pos = get_global_mouse_position()
@@ -68,20 +52,12 @@ func _process(_delta: float) -> void:
 		update_road_ghost()
 
 func _is_in_playable_bounds(tile: Vector2i) -> bool:
-	var bounds = GameData.current_map_size
-	var playable = Rect2i(
-		bounds.position.x,
-		bounds.position.y + 1,
-		bounds.size.x,
-		bounds.size.y - 3
-	)
-	return playable.has_point(tile)
+	return GameData.get_playable_rect().has_point(tile)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.is_pressed():
 		if event.button_index == MOUSE_BUTTON_LEFT:
 
-			# Check if clicking on a vent cell directly via grid lookup
 			var building = GameData.building_grid.get(grid_pos)
 			if building is Vent:
 				_dragging_vent = building
@@ -89,7 +65,6 @@ func _unhandled_input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 				return
 
-			# Normal building check
 			var space := get_world_2d().direct_space_state
 			var query := PhysicsPointQueryParameters2D.new()
 			query.position = get_global_mouse_position()
@@ -122,16 +97,16 @@ func _unhandled_input(event: InputEvent) -> void:
 			if clicked_tile is NewRoadTile:
 				click_cell = Vector2i(-9999, -9999)
 			road_builder.set_anchor(grid_pos)
-			grid_lines.modulate.a = 0
-			grid_lines.visible = true
+			modulate.a = 0
+			visible = true
 			t = create_tween()
-			t.tween_property(grid_lines, "modulate:a", 1.0, 0.08)
+			t.tween_property(self, "modulate:a", 1.0, 0.08)
 
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
-			grid_lines.modulate.a = 0
-			grid_lines.visible = true
+			modulate.a = 0
+			visible = true
 			t = create_tween()
-			t.tween_property(grid_lines, "modulate:a", 1.0, 0.08)
+			t.tween_property(self, "modulate:a", 1.0, 0.08)
 
 	elif event is InputEventMouseButton and not event.is_pressed():
 		if event.button_index == MOUSE_BUTTON_LEFT:
@@ -142,14 +117,14 @@ func _unhandled_input(event: InputEvent) -> void:
 			last_build_cell = Vector2i(-9999, -9999)
 			click_cell = Vector2i(-9999, -9999)
 			road_builder.reset()
-			grid_lines.visible = false
+			visible = false
 			if road_builder.ghost_road:
 				road_builder.ghost_road.hide()
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
 			road_builder.last_remove_cell = Vector2i(-9999, -9999)
 			t = create_tween()
-			t.tween_property(grid_lines, "modulate:a", 0.0, 0.08)
-			t.tween_callback(func(): grid_lines.visible = false).set_delay(0.08)
+			t.tween_property(self, "modulate:a", 0.0, 0.08)
+			t.tween_callback(func(): visible = false).set_delay(0.08)
 
 	elif event is InputEventMouseMotion:
 		if event.button_mask == 0:
@@ -157,7 +132,6 @@ func _unhandled_input(event: InputEvent) -> void:
 
 		if event.button_mask & MOUSE_BUTTON_MASK_LEFT:
 
-			# Vent drag rotation
 			if _dragging_vent != null:
 				var drag_vec = mouse_pos - _dragging_vent.global_position
 				if drag_vec.length() > 16.0:
@@ -171,7 +145,6 @@ func _unhandled_input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 				return
 
-			# Normal road building
 			if is_building_road:
 				has_moved_after_press = true
 				if grid_pos != last_build_cell and grid_pos != click_cell:
@@ -192,32 +165,26 @@ func _unhandled_input(event: InputEvent) -> void:
 						road_builder.last_remove_cell = grid_pos
 
 func _rebuild_vent_stub(vent: Vent, new_dir: Vector2i) -> void:
-	# Identify the old stub cell
 	var old_driveway_cell = vent.entrance_cell + vent.get_driveway_direction()
+	var new_driveway_cell = vent.entrance_cell + new_dir
 	var old_stub = GameData.road_grid.get(old_driveway_cell)
-	
-	if old_stub is NewRoadTile:
-		# FIX: Only destroy if it's a building-spawned stub
-		if old_stub.is_permanent:
-			# Clean neighbor visuals
+
+	if old_driveway_cell != new_driveway_cell and old_stub is NewRoadTile:
+		if old_stub.is_permanent and old_stub.owner_id == vent.get_instance_id():
 			for old_dir in old_stub.manual_connections.duplicate():
 				var old_neighbor = GameData.road_grid.get(old_driveway_cell + old_dir)
 				if old_neighbor is NewRoadTile:
 					old_neighbor.remove_connection(-old_dir)
-			
-			# Remove A* point
 			var old_id = GameData.get_cell_id(old_driveway_cell)
 			if GameData.astar.has_point(old_id):
 				GameData.astar.remove_point(old_id)
-			
-			# Destroy only the stub
 			old_stub.queue_free()
 			GameData.road_grid.erase(old_driveway_cell)
+		elif old_stub.is_permanent:
+			old_stub.remove_connection(-vent.get_driveway_direction())
 		else:
-			# If it's a player pipe, just remove the visual connection arm
 			old_stub.remove_connection(-vent.get_driveway_direction())
 
-	# Update marker and rebuild in new direction
 	vent.set_driveway_direction(new_dir)
 	SignalBus.building_spawned.emit(vent.entrance_cell, new_dir, vent.get_instance_id())
 	vent._on_map_changed()

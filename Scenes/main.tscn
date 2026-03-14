@@ -60,6 +60,7 @@ script = ExtResource("5_wsu2k")
 
 [node name="DustParticles" parent="." unique_id=352262248 instance=ExtResource("11_d1ilt")]
 z_index = 200
+position = Vector2(371, 0)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1344820743]
 environment = SubResource("Environment_d1ilt")

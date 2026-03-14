@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cyk7rpblt5coq" path="res://Scripts/tech_tree.gd" id="1_jfnlj"]
 [ext_resource type="LabelSettings" uid="uid://cfd35apj0sieb" path="res://Resources/TestUIFont.tres" id="2_ced14"]
-[ext_resource type="FontFile" uid="uid://bydys01ppahq3" path="res://Assets/Roboto-Medium.ttf" id="3_60mg4"]
+[ext_resource type="PackedScene" uid="uid://b7lxulyt7rojl" path="res://Scenes/button.tscn" id="3_jfnlj"]
 
 [node name="TechTree" type="Control" unique_id=487823733]
 layout_mode = 3
@@ -51,17 +51,12 @@ text = "ROCKET/TECH TREE"
 label_settings = ExtResource("2_ced14")
 horizontal_alignment = 1
 
-[node name="PurchaseSegmentButton" type="Button" parent="Panel/VBoxContainer" unique_id=1270821725]
+[node name="PurchaseSegmentButton" parent="Panel/VBoxContainer" unique_id=1980808902 instance=ExtResource("3_jfnlj")]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("3_60mg4")
-theme_override_font_sizes/font_size = 100
-text = "Build Segment"
 
-[node name="CloseButton" type="Button" parent="Panel/VBoxContainer" unique_id=941291004]
+[node name="CloseButton" parent="Panel/VBoxContainer" unique_id=1714382726 instance=ExtResource("3_jfnlj")]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("3_60mg4")
-theme_override_font_sizes/font_size = 50
-text = "Close"
+text = "Dismiss"
 
 [connection signal="pressed" from="Panel/VBoxContainer/PurchaseSegmentButton" to="." method="_on_purchase_segment_button_pressed"]
 [connection signal="pressed" from="Panel/VBoxContainer/CloseButton" to="." method="_on_close_button_pressed"]

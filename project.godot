@@ -20,11 +20,13 @@ config/icon="res://icon.svg"
 GameData="*uid://ce4x28ymrtnxu"
 ResourceManager="*uid://buxm4x4opy20i"
 SignalBus="*uid://me1qrsn08x06"
+NotificationManager="*uid://dmewkokqo3rd7"
 
 [display]
 
 window/size/viewport_width=1920
 window/size/viewport_height=1080
+window/size/mode=3
 window/stretch/mode="canvas_items"
 
 [global_group]
