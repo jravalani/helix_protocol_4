@@ -11,6 +11,7 @@ var panel_corner_color = Color(0.5, 0.55, 0.6, 0.5)  # Corner rivets/bolts
 var panel_fill_color = Color(0.32, 0.32, 0.32, 0.05)  # Subtle panel fill
 
 func _ready():
+	await SceneTransition.launch_reveal()
 	z_index = 1
 	get_viewport().size_changed.connect(queue_redraw)
 

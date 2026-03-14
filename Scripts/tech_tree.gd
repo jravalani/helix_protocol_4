@@ -211,8 +211,11 @@ func _close() -> void:
 	)
 
 func _on_open_rocket_menu() -> void:
-	_refresh_ui()
-	self.modulate = Color(1, 1, 1, 0)
+	#for testing i have added it here to redirect it to home screen, can remove afer tetsing and using it where neededd
+	#SceneTransition.transition_to("res://scenes/main.tscn", "fade")
+	SceneTransition.transition_to("res://scenes/main.tscn", "beam")
+	#_refresh_ui()
+	#self.modulate = Color(1, 1, 1, 0)
 	self.show()
 	var tw := create_tween()
 	tw.tween_property(self, "modulate", Color(1, 1, 1, 1), 0.2)
