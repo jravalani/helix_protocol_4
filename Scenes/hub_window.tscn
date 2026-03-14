@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://b5ev0jvtodvqa"]
+[gd_scene load_steps=0 format=3 uid="uid://b5ev0jvtodvqa"]
 
 [ext_resource type="Script" uid="uid://dl8cuvsglwtp7" path="res://Scripts/hub_window.gd" id="1_kxx0x"]
 [ext_resource type="Texture2D" uid="uid://dcxchy6q5k1yg" path="res://Assets/BayWindow/WindowBlackArea.png" id="1_lfuj7"]
