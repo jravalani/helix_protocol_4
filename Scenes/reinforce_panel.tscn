@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://bm3oj5mikl5hv"]
+[gd_scene load_steps=0 format=3 uid="uid://bm3oj5mikl5hv"]
 
 [ext_resource type="PackedScene" uid="uid://b7lxulyt7rojl" path="res://Scenes/button.tscn" id="1_tmun8"]
 [ext_resource type="Script" uid="uid://ct3yltthj3aba" path="res://Scripts/reinforce_panel.gd" id="1_x5v4j"]
