@@ -71,11 +71,11 @@ scale_curve = SubResource("CurveTexture_smoke")
 color_ramp = SubResource("GradientTexture1D_smoke")
 turbulence_enabled = true
 
-[node name="RocketLaunchEffect" type="Node2D"]
+[node name="RocketLaunchEffect" type="Node2D" unique_id=2080902031]
 z_index = 195
 script = ExtResource("1_script")
 
-[node name="FireBurst" type="GPUParticles2D" parent="."]
+[node name="FireBurst" type="GPUParticles2D" parent="." unique_id=1946769524]
 material = SubResource("CanvasItemMaterial_fire")
 emitting = false
 amount = 64
@@ -86,7 +86,7 @@ explosiveness = 1.0
 visibility_rect = Rect2(-500, -500, 1000, 1000)
 process_material = SubResource("PPM_fire")
 
-[node name="SmokeRing" type="GPUParticles2D" parent="."]
+[node name="SmokeRing" type="GPUParticles2D" parent="." unique_id=828652220]
 emitting = false
 amount = 40
 texture = SubResource("GradientTexture2D_circle")

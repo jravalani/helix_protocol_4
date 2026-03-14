@@ -6,8 +6,8 @@ const DRIVEWAY_OFFSET := Vector2(0, 32)  # base offset, unrotated
 # Zone-based send intervals (seconds per packet)
 const INTERVAL_CORE     := 4.0
 const INTERVAL_INNER    := 4.0
-const INTERVAL_OUTER    := 3.0
-const INTERVAL_FRONTIER := 2.0
+const INTERVAL_OUTER    := 4.0
+const INTERVAL_FRONTIER := 4.0
 
 @onready var driveway_marker: Marker2D = $DrivewayMarker
 @onready var fan: Sprite2D = $Fan
@@ -36,6 +36,10 @@ var _fan_tween: Tween = null
 
 var click_position: Vector2
 var has_dragged: bool = false
+
+# Per-hub send cooldowns — forces packets to rotate between hubs
+const HUB_COOLDOWN := 6.0
+var _hub_cooldowns: Dictionary = {}
 
 
 func get_top_left_px(step: float) -> Vector2:
@@ -97,6 +101,11 @@ func _process(delta: float) -> void:
 		return
 	if _notify_cooldown > 0.0:
 		_notify_cooldown -= delta
+	# Tick per-hub cooldowns
+	for hub_id in _hub_cooldowns.keys():
+		_hub_cooldowns[hub_id] -= delta
+		if _hub_cooldowns[hub_id] <= 0.0:
+			_hub_cooldowns.erase(hub_id)
 	# Burst countdown
 	if _is_bursting:
 		_burst_timer -= delta
@@ -128,32 +137,52 @@ func _try_send_packet() -> void:
 	var best_score: float = -1.0
 
 	var driveway_cell = entrance_cell + get_driveway_direction()
-	var my_id = GameData.get_cell_id(driveway_cell)  # ← driveway_cell, not entrance_cell
+	var my_id = GameData.get_cell_id(driveway_cell)
 
+	# First pass — respect cooldowns
 	for cell in GameData.building_grid:
 		var building = GameData.building_grid[cell]
 		if not building is Hub:
 			continue
 		if building.is_fractured or building.is_rate_limited:
 			continue
-
+		if _hub_cooldowns.has(building.get_instance_id()):
+			continue
 		var hub_id = GameData.get_cell_id(building.entrance_cell)
 		if not GameData.astar.has_point(my_id) or not GameData.astar.has_point(hub_id):
 			continue
-
 		var path = GameData.astar.get_id_path(my_id, hub_id)
 		if path.size() < 2:
 			continue
-
-		var path_length: float = path.size()
-		var score: float = (building.oxygen_backlog + 1.0) / path_length
+		var score: float = (building.oxygen_backlog + 1.0) / path.size() * randf_range(0.8, 1.2)
 		if score > best_score:
 			best_score = score
 			best_hub = building
 
+	# Second pass — ignore cooldowns if no hub found
+	if best_hub == null:
+		best_score = -1.0
+		for cell in GameData.building_grid:
+			var building = GameData.building_grid[cell]
+			if not building is Hub:
+				continue
+			if building.is_fractured or building.is_rate_limited:
+				continue
+			var hub_id = GameData.get_cell_id(building.entrance_cell)
+			if not GameData.astar.has_point(my_id) or not GameData.astar.has_point(hub_id):
+				continue
+			var path = GameData.astar.get_id_path(my_id, hub_id)
+			if path.size() < 2:
+				continue
+			var score: float = (building.oxygen_backlog + 1.0) / path.size() * randf_range(0.8, 1.2)
+			if score > best_score:
+				best_score = score
+				best_hub = building
+
 	if best_hub == null:
 		return
 
+	_hub_cooldowns[best_hub.get_instance_id()] = HUB_COOLDOWN
 	_spawn_packet(best_hub)
 
 func get_driveway_direction() -> Vector2i:

@@ -1,8 +1,5 @@
 extends Control
 
-@onready var auto_repair_button: Button = %AutoRepair
-
-# Add these @onready references for your new debug labels
 @onready var pressure_phase_label: Label = $PanelContainer/VBoxContainer/PressurePhase
 @onready var backlog_debug: Label = $PanelContainer/VBoxContainer/BacklogDebug
 @onready var avg_vent_util: Label = $PanelContainer/VBoxContainer/AverageVentUtilization
@@ -13,8 +10,13 @@ extends Control
 @onready var current_vent_count: Label = $PanelContainer/VBoxContainer/CurrentVentCount
 @onready var reinforce_panel_container: PanelContainer = %PanelContainer
 
+#buttons
+@onready var pipe_button: Button = %UpgradePipes
+@onready var data_reserve_button: Button = %DataReserve
+@onready var hull_shield_button: Button = %HullShield
 @onready var vent_button: Button = %SpawnVent
 @onready var hub_button: Button = %SpawnHub
+@onready var auto_repair_button: Button = %AutoRepair
 
 var is_fast_speed: bool = false
 var panel_open := false
@@ -77,9 +79,17 @@ func _process(delta: float) -> void:
 func update_button_states() -> void:
 	var hub_cost = GameData.HUB_SPAWN_BASE_COST + (GameData.current_hub_count * GameData.HUB_SPAWN_COST_INCREMENT)
 	var vent_cost = GameData.VENT_SPAWN_BASE_COST + (GameData.current_vent_count * GameData.VENT_SPAWN_COST_INCREMENT)
-	
-	vent_button.disabled = GameData.total_data < vent_cost
-	hub_button.disabled = GameData.total_data < hub_cost
+
+	# Cap checks
+	var hub_maxed = GameData.current_hub_count >= GameData.MAX_HUBS
+	var vent_maxed = GameData.current_vent_count >= GameData.MAX_VENTS
+	var pipes_maxed = GameData.current_pipe_upgrade_level >= GameData.MAX_PIPE_UPGRADES
+	var shield_maxed = GameData.current_hull_shield_level >= GameData.MAX_HULL_SHIELD_UPGRADES
+
+	vent_button.disabled = vent_maxed or GameData.total_data < vent_cost
+	hub_button.disabled = hub_maxed or GameData.total_data < hub_cost
+	pipe_button.disabled = pipes_maxed or GameData.total_data < GameData.PIPE_UPGRADE_COSTS[min(GameData.current_pipe_upgrade_level, GameData.MAX_PIPE_UPGRADES - 1)]
+	hull_shield_button.disabled = shield_maxed or GameData.total_data < GameData.HULL_SHIELD_UPGRADE_COSTS[min(GameData.current_hull_shield_level, GameData.MAX_HULL_SHIELD_UPGRADES - 1)]
 
 func update_hub_debug_info():
 	var hub_info_text = "--- ACTIVE HUBS (%d) ---\n" % get_tree().get_nodes_in_group("hubs").size()

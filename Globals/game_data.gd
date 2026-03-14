@@ -305,6 +305,32 @@ func increase_map_size() -> void:
 	else:
 		print("Max Capacity Reached")
 
+func get_playable_rect() -> Rect2i:
+	var bounds = current_map_size
+	var pad_left   := 0
+	var pad_right  := 0
+	var pad_top    := 0
+	var pad_bottom := 0
+	match current_stage:
+		1:
+			pad_left  = 1
+			pad_right = 1
+		2:
+			pad_left   = 1
+			pad_right  = 1
+			pad_bottom = 1
+		3:
+			pad_left   = 1
+			pad_right  = 1
+			pad_top    = 1
+			pad_bottom = 1
+	return Rect2i(
+		bounds.position.x + pad_left,
+		bounds.position.y + 1 + pad_top,
+		bounds.size.x - pad_left - pad_right,
+		bounds.size.y - 3 - pad_top - pad_bottom
+	)
+
 func is_blocked_by_building(building: Variant, cell: Vector2i) -> bool:
 	if not building is Building:
 		return false
@@ -377,11 +403,11 @@ func get_hull_shield_multiplier() -> float:
 func get_zone_for_cell(cell: Vector2i) -> Zone:
 	var distance = Vector2(cell).distance_to(Vector2(rocket_cell))
 
-	if distance < 11:
+	if distance < 6:
 		return Zone.CORE
-	elif distance < 14:
+	elif distance < 11:
 		return Zone.INNER
-	elif distance < 18:
+	elif distance < 14:
 		return Zone.OUTER
 	else:
 		return Zone.FRONTIER

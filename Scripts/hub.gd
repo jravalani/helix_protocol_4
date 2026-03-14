@@ -10,17 +10,14 @@ const CAP_LEVEL_3 := 70
 const RATE_WINDOW  := 60.0
 
 # ── Node References ─────────────────────────────────────────────
-@onready var info_label:    Label         = $MarginContainer/VBoxContainer/InfoLabel
-@onready var backlog_label: Label         = $MarginContainer/VBoxContainer/BacklogLabel
-
 @onready var smoke_particle_effect1: GPUParticles2D = $SmokeParticleEffect
 @onready var smoke_particle_effect2: GPUParticles2D = $SmokeParticleEffect2
 @onready var left_cloud:             GPUParticles2D = $LeftCloud
 @onready var right_cloud:            GPUParticles2D = $RightCloud
 
-@onready var action_buttons: HBoxContainer = $HBoxContainer
-@onready var repair_button:  Button        = $HBoxContainer/RepairButton
-@onready var upgrade_button: Button        = $HBoxContainer/UpgradeButton
+@onready var action_buttons: HBoxContainer = $CanvasLayer/HBoxContainer
+@onready var repair_button:  Button        = $CanvasLayer/HBoxContainer/RepairButton
+@onready var upgrade_button: Button        = $CanvasLayer/HBoxContainer/UpgradeButton
 
 # ── State ────────────────────────────────────────────────────────
 var upgrade_level:     int   = 0
@@ -35,7 +32,7 @@ var is_fractured:      bool  = false
 var _dead_pulse_tween: Tween = null
 
 # ── Popup ────────────────────────────────────────────────────────
-const POPUP_OFFSET_Y: float = -40.0
+const POPUP_OFFSET_Y: float = -60.0
 var _popup_open:  bool  = false
 var _popup_tween: Tween = null
 
@@ -54,11 +51,13 @@ func _ready() -> void:
 	action_buttons.hide()
 	action_buttons.modulate.a = 0.0
 
+	# Connect button signals
+	repair_button.pressed.connect(_on_repair_button_pressed)
+	upgrade_button.pressed.connect(_on_upgrade_button_pressed)
+
 	SignalBus.camera_shake.emit(0.50, 6.0)
 	SignalBus.building_spawned.emit(entrance_cell, Vector2i(-99, -99))
 	SignalBus.check_fractures.connect(on_check_fracture)
-
-	update_ui()
 
 func _process(delta: float) -> void:
 	if is_fractured:
@@ -68,6 +67,11 @@ func _process(delta: float) -> void:
 		window_timer = 0.0
 		packets_this_window = 0
 		is_rate_limited = false
+	
+	# Update popup position if open
+	if _popup_open:
+		var hub_screen_pos = get_global_transform_with_canvas().origin
+		action_buttons.global_position = hub_screen_pos + Vector2(-20, -60)
 
 #endregion
 
@@ -81,10 +85,6 @@ func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> vo
 		if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 			_toggle_popup()
 			get_viewport().set_input_as_handled()
-
-func _unhandled_input(event: InputEvent) -> void:
-	if _popup_open and event is InputEventMouseButton and event.pressed:
-		_close_popup()
 
 #endregion
 
@@ -102,21 +102,23 @@ func _toggle_popup() -> void:
 func _open_popup() -> void:
 	_popup_open = true
 	_update_buttons()
+	
+	# Position buttons above the hub
+	var hub_screen_pos = get_global_transform_with_canvas().origin
+	action_buttons.global_position = hub_screen_pos + Vector2(-40, POPUP_OFFSET_Y)
+	
 	action_buttons.show()
-	action_buttons.position.y = 0.0
-	action_buttons.modulate.a = 0.0
+	
 	if _popup_tween:
 		_popup_tween.kill()
-	_popup_tween = create_tween().set_parallel(true)
-	_popup_tween.tween_property(action_buttons, "position:y", POPUP_OFFSET_Y, 0.25).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_popup_tween = create_tween()
 	_popup_tween.tween_property(action_buttons, "modulate:a", 1.0, 0.2)
 
 func _close_popup() -> void:
 	_popup_open = false
 	if _popup_tween:
 		_popup_tween.kill()
-	_popup_tween = create_tween().set_parallel(true)
-	_popup_tween.tween_property(action_buttons, "position:y", 0.0, 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	_popup_tween = create_tween()
 	_popup_tween.tween_property(action_buttons, "modulate:a", 0.0, 0.15)
 	await _popup_tween.finished
 	action_buttons.hide()
@@ -130,7 +132,7 @@ func _update_buttons() -> void:
 		upgrade_button.disabled = true
 	else:
 		var cost = GameData.HUB_UPGRADE_COSTS[upgrade_level]
-		upgrade_button.text     = "Upgrade Hub (Lv%d→%d) (%d Data)" % [upgrade_level, upgrade_level + 1, cost]
+		upgrade_button.text     = "Upgrade (%d)" % cost
 		upgrade_button.disabled = GameData.total_data < cost
 
 #endregion
@@ -141,6 +143,8 @@ func _update_buttons() -> void:
 # ════════════════════════════════════════════════════════════════
 
 func _on_repair_button_pressed() -> void:
+	print("DEBUG: Repair button pressed callback triggered!")
+	print("Repair pressed — is_fractured=", is_fractured, " data=", GameData.total_data)
 	if not is_fractured:
 		return
 	if GameData.total_data >= 100:
@@ -156,6 +160,7 @@ func _on_repair_button_pressed() -> void:
 		_spawn_floating_label("Insufficient Data!", Color("d946ef"))
 
 func _on_upgrade_button_pressed() -> void:
+	print("DEBUG: Upgrade button pressed callback triggered!")
 	if ResourceManager.upgrade_hub(self):
 		_spawn_floating_label("Hub Upgraded!", Color("a855f7"))
 		_update_buttons()
@@ -183,7 +188,7 @@ func receive_oxygen_packet() -> void:
 	oxygen_backlog = max(0, oxygen_backlog - 1)
 	packets_this_window += 1
 	ResourceManager.add_score()
-	update_ui()
+
 	if packets_this_window >= _get_cap():
 		is_rate_limited = true
 
@@ -193,9 +198,6 @@ func receive_oxygen_packet() -> void:
 # ════════════════════════════════════════════════════════════════
 #region UI
 # ════════════════════════════════════════════════════════════════
-
-func update_ui() -> void:
-	backlog_label.text = "Backlog: %d" % oxygen_backlog
 
 func _spawn_floating_label(text: String, color: Color) -> void:
 	var label := Label.new()

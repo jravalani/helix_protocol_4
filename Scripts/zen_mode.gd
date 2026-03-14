@@ -6,7 +6,7 @@ extends Node2D
 # Settings
 var idle_timer: float = 0.0
 var is_faded: bool = false
-const IDLE_THRESHOLD: float = 15.0  # Seconds before fading
+const IDLE_THRESHOLD: float = 30.0  # Seconds before fading
 const FADE_DURATION: float = 0.5   # How long the fade animation takes
 
 func _input(event: InputEvent) -> void:
