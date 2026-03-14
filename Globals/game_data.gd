@@ -102,7 +102,7 @@ var data_reserve_for_auto_repairs: int = 0
 ## =============================================================================
 
 var lifetime_data_earned: int = 0
-var total_data: int = 25000
+var total_data: int = 0
 var previous_threshold: int = 0
 var score_to_next_reward: int = 30
 
