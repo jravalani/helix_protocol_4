@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://b7lxulyt7rojl"]
+[gd_scene load_steps=0 format=3 uid="uid://b7lxulyt7rojl"]
 
 [ext_resource type="StyleBox" uid="uid://n5vmh275nldq" path="res://Resources/ingameui_button_normal.tres" id="1_1cmwl"]
 [ext_resource type="FontFile" uid="uid://ccmc2ygy5pytk" path="res://Assets/Fonts/JetBrainsMonoNL-SemiBold.ttf" id="1_smycg"]

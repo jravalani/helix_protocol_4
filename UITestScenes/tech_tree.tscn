@@ -1,8 +1,6 @@
 [gd_scene format=3 uid="uid://chapr2oeoqwub"]
 
 [ext_resource type="Script" uid="uid://cyk7rpblt5coq" path="res://Scripts/tech_tree.gd" id="1_jfnlj"]
-[ext_resource type="LabelSettings" uid="uid://cfd35apj0sieb" path="res://Resources/TestUIFont.tres" id="2_ced14"]
-[ext_resource type="PackedScene" uid="uid://b7lxulyt7rojl" path="res://Scenes/button.tscn" id="3_jfnlj"]
 
 [node name="TechTree" type="Control" unique_id=487823733]
 layout_mode = 3
@@ -12,51 +10,3 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_jfnlj")
-
-[node name="ColorRect" type="ColorRect" parent="." unique_id=506281807]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0, 0, 0, 0.5)
-
-[node name="Panel" type="Panel" parent="." unique_id=1191606043]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel" unique_id=2050388756]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -329.5
-offset_top = -241.0
-offset_right = 329.5
-offset_bottom = 241.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 120
-
-[node name="Label" type="Label" parent="Panel/VBoxContainer" unique_id=1085006247]
-layout_mode = 2
-text = "ROCKET/TECH TREE"
-label_settings = ExtResource("2_ced14")
-horizontal_alignment = 1
-
-[node name="PurchaseSegmentButton" parent="Panel/VBoxContainer" unique_id=1980808902 instance=ExtResource("3_jfnlj")]
-layout_mode = 2
-
-[node name="CloseButton" parent="Panel/VBoxContainer" unique_id=1714382726 instance=ExtResource("3_jfnlj")]
-layout_mode = 2
-text = "Dismiss"
-
-[connection signal="pressed" from="Panel/VBoxContainer/PurchaseSegmentButton" to="." method="_on_purchase_segment_button_pressed"]
-[connection signal="pressed" from="Panel/VBoxContainer/CloseButton" to="." method="_on_close_button_pressed"]
