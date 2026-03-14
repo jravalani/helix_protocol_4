@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://tooltip_manager_scene"]
+
+[ext_resource type="Script" uid="uid://tooltip_manager_script" path="res://Globals/tooltip_manager.gd" id="1_script"]
+
+[node name="TooltipManager" type="CanvasLayer"]
+layer = 12
+script = ExtResource("1_script")

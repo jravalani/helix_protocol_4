@@ -1,12 +1,282 @@
 [gd_scene format=3 uid="uid://chapr2oeoqwub"]
 
-[ext_resource type="Script" uid="uid://cyk7rpblt5coq" path="res://Scripts/tech_tree.gd" id="1_jfnlj"]
+[ext_resource type="PackedScene" uid="uid://b7lxulyt7rojl" path="res://Scenes/button.tscn" id="1_button"]
+[ext_resource type="Texture2D" uid="uid://cwjw6c0dyipfs" path="res://Assets/TechTree/techtreering.png" id="2_60mg4"]
+[ext_resource type="Script" uid="uid://cyk7rpblt5coq" path="res://Scripts/tech_tree.gd" id="2_techtree"]
+[ext_resource type="FontFile" uid="uid://f2rhtea60h0j" path="res://Assets/Fonts/JetBrainsMono-ExtraBold.ttf" id="4_60mg4"]
+[ext_resource type="FontFile" uid="uid://ccmc2ygy5pytk" path="res://Assets/Fonts/JetBrainsMonoNL-SemiBold.ttf" id="4_font"]
 
-[node name="TechTree" type="Control" unique_id=487823733]
+[sub_resource type="LabelSettings" id="LabelSettings_h5uc7"]
+line_spacing = 50.0
+font = ExtResource("4_60mg4")
+font_size = 120
+font_color = Color(1, 0, 1, 1)
+outline_color = Color(0.4392157, 0, 0.4392157, 1)
+shadow_size = 10
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(10, 10)
+
+[sub_resource type="StyleBoxFlat" id="SB_progress_bg"]
+bg_color = Color(0.101960786, 0.101960786, 0.105882354, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="SB_progress_fill"]
+bg_color = Color(0.6, 0.02, 0.4, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_60mg4"]
+
+[node name="TechTree" type="Control" unique_id=922474563]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_jfnlj")
+script = ExtResource("2_techtree")
+
+[node name="BackgroundRect" type="ColorRect" parent="." unique_id=1266320656]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.09985284, 0.09985284, 0.106126174, 0.8)
+
+[node name="DrawingLayer" type="Control" parent="." unique_id=2047464954]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="OuterRing" type="Sprite2D" parent="DrawingLayer" unique_id=1800939881]
+modulate = Color(0.4392157, 0, 0.4392157, 1)
+position = Vector2(960, 544)
+texture = ExtResource("2_60mg4")
+
+[node name="InnerRing" type="Sprite2D" parent="DrawingLayer" unique_id=222370411]
+modulate = Color(1, 0, 1, 1)
+position = Vector2(960, 544)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("2_60mg4")
+
+[node name="UILayer" type="Control" parent="." unique_id=1381269832]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TitleLabel" type="Label" parent="UILayer" unique_id=1292099544]
+layout_mode = 1
+offset_left = 32.0
+offset_top = 45.0
+offset_right = 680.0
+offset_bottom = 204.0
+theme_override_colors/font_color = Color(1, 0.08, 0.58, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 30
+text = "TECH TREE"
+label_settings = SubResource("LabelSettings_h5uc7")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CloseButton" parent="UILayer" unique_id=1049784159 instance=ExtResource("1_button")]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -90.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 60.0
+grow_horizontal = 0
+text = "[ X ]"
+
+[node name="SkillNodes" type="Control" parent="UILayer" unique_id=37925092]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="SkillNode1" parent="UILayer/SkillNodes" unique_id=1252173505 instance=ExtResource("1_button")]
+layout_mode = 0
+offset_left = 904.0
+offset_top = 184.0
+offset_right = 1006.0
+offset_bottom = 256.0
+theme_override_font_sizes/font_size = 20
+text = "I"
+
+[node name="SkillNode2" parent="UILayer/SkillNodes" unique_id=364610003 instance=ExtResource("1_button")]
+layout_mode = 0
+offset_left = 1232.0
+offset_top = 448.0
+offset_right = 1344.0
+offset_bottom = 528.0
+theme_override_font_sizes/font_size = 20
+text = "II"
+
+[node name="SkillNode3" parent="UILayer/SkillNodes" unique_id=1122861876 instance=ExtResource("1_button")]
+layout_mode = 0
+offset_left = 1160.0
+offset_top = 728.0
+offset_right = 1264.0
+offset_bottom = 808.0
+theme_override_font_sizes/font_size = 20
+text = "III"
+
+[node name="SkillNode4" parent="UILayer/SkillNodes" unique_id=1602023926 instance=ExtResource("1_button")]
+layout_mode = 0
+offset_left = 664.0
+offset_top = 728.0
+offset_right = 768.0
+offset_bottom = 808.0
+theme_override_font_sizes/font_size = 20
+text = "IV"
+
+[node name="SkillNode5" parent="UILayer/SkillNodes" unique_id=325238021 instance=ExtResource("1_button")]
+layout_mode = 0
+offset_left = 576.0
+offset_top = 448.0
+offset_right = 680.0
+offset_bottom = 528.0
+theme_override_font_sizes/font_size = 20
+text = "V"
+
+[node name="SkillNameLabels" type="Control" parent="UILayer" unique_id=2086913052]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="SkillName1" type="Label" parent="UILayer/SkillNameLabels" unique_id=1569075506]
+layout_mode = 0
+offset_left = 872.0
+offset_top = 256.0
+offset_right = 1032.0
+offset_bottom = 278.0
+theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+
+[node name="SkillName2" type="Label" parent="UILayer/SkillNameLabels" unique_id=1827987451]
+layout_mode = 0
+offset_left = 1208.0
+offset_top = 528.0
+offset_right = 1368.0
+offset_bottom = 550.0
+theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+
+[node name="SkillName3" type="Label" parent="UILayer/SkillNameLabels" unique_id=1693939999]
+layout_mode = 0
+offset_left = 1136.0
+offset_top = 808.0
+offset_right = 1296.0
+offset_bottom = 830.0
+theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+
+[node name="SkillName4" type="Label" parent="UILayer/SkillNameLabels" unique_id=1511346056]
+layout_mode = 0
+offset_left = 632.0
+offset_top = 808.0
+offset_right = 792.0
+offset_bottom = 830.0
+theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+
+[node name="SkillName5" type="Label" parent="UILayer/SkillNameLabels" unique_id=669583458]
+layout_mode = 0
+offset_left = 544.0
+offset_top = 528.0
+offset_right = 704.0
+offset_bottom = 550.0
+theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+
+[node name="CenterHub" parent="UILayer" unique_id=1702912677 instance=ExtResource("1_button")]
+custom_minimum_size = Vector2(200, 150)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -62.0
+offset_top = -50.0
+offset_right = 62.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("4_60mg4")
+theme_override_font_sizes/font_size = 20
+text = "▲
+LAUNCH"
+
+[node name="ProgressBarContainer" type="Control" parent="UILayer" unique_id=657280161]
+custom_minimum_size = Vector2(460, 28)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -256.0
+offset_top = -120.0
+offset_right = 230.0
+offset_bottom = -56.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="RocketProgressBar" type="ProgressBar" parent="UILayer/ProgressBarContainer" unique_id=1107164377]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/background = SubResource("SB_progress_bg")
+theme_override_styles/fill = SubResource("SB_progress_fill")
+max_value = 5.0
+show_percentage = false
+
+[node name="ProgressLabel" type="Label" parent="UILayer/ProgressBarContainer" unique_id=42407736]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.92, 0.9, 0.95, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 12
+text = "ROCKET COMPLETION: 0 / 5 SEGMENTS"
+label_settings = SubResource("LabelSettings_60mg4")
+horizontal_alignment = 1
+vertical_alignment = 1

@@ -16,6 +16,7 @@ layout_mode = 3
 anchors_preset = 10
 anchor_right = 1.0
 grow_horizontal = 2
+mouse_filter = 2
 script = ExtResource("1_l2cge")
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=1021873343]
@@ -24,9 +25,11 @@ anchors_preset = 10
 anchor_right = 1.0
 offset_bottom = 64.0
 grow_horizontal = 2
+mouse_filter = 2
 
 [node name="ParentHbox" type="HBoxContainer" parent="MarginContainer" unique_id=1481571624]
 layout_mode = 2
+mouse_filter = 2
 theme_override_constants/separation = 100
 alignment = 1
 

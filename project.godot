@@ -8,11 +8,15 @@
 
 config_version=5
 
+[animation]
+
+compatibility/default_parent_skeleton_in_mesh_instance_3d=true
+
 [application]
 
 config/name="fpp4"
 run/main_scene="uid://cnmu3c4pg7icy"
-config/features=PackedStringArray("4.5", "Mobile")
+config/features=PackedStringArray("4.6", "Mobile")
 config/icon="res://icon.svg"
 
 [autoload]
@@ -21,6 +25,7 @@ GameData="*uid://ce4x28ymrtnxu"
 ResourceManager="*uid://buxm4x4opy20i"
 SignalBus="*uid://me1qrsn08x06"
 NotificationManager="*res://Scenes/notification_manager.tscn"
+TooltipManager="*res://Scenes/tooltip_manager.tscn"
 
 [display]
 

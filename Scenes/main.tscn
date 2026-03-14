@@ -94,6 +94,5 @@ mouse_filter = 2
 [node name="InLevelUI" parent="CanvasLayer" unique_id=35410364 instance=ExtResource("4_jjvhh")]
 
 [node name="TechTree" parent="CanvasLayer" unique_id=651149444 instance=ExtResource("9_ynf5e")]
-visible = false
 
 [node name="TopPanel" parent="CanvasLayer" unique_id=1947777984 instance=ExtResource("10_hptm8")]
