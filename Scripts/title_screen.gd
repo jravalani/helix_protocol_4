@@ -254,4 +254,4 @@ func glitch_color_shift():
 
 
 func _on_launch_pressed() -> void:
-	SceneTransition.transition_to("res://Scenes/main.tscn", SceneTransition.Type.BEAM)
+	SceneTransition.transition_to("res://Scenes/main.tscn", SceneTransition.Type.ARMOUR)

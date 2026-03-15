@@ -19,6 +19,10 @@ run/main_scene="uid://47v5264qeile"
 config/features=PackedStringArray("4.6", "Mobile")
 config/icon="res://icon.svg"
 
+[audio]
+
+buses/default_bus_layout="uid://dowpj61cdkpx7"
+
 [autoload]
 
 GameData="*uid://ce4x28ymrtnxu"
@@ -26,7 +30,7 @@ ResourceManager="*uid://buxm4x4opy20i"
 SignalBus="*uid://me1qrsn08x06"
 NotificationManager="*res://Scenes/notification_manager.tscn"
 TooltipManager="*res://Scenes/tooltip_manager.tscn"
-SceneTransition="*uid://dl62wknvaavhn"
+SceneTransition="*uid://bkriwlrpvhsqb"
 
 [display]
 
