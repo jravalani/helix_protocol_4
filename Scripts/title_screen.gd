@@ -251,3 +251,7 @@ func glitch_color_shift():
 	var tween = create_tween()
 	tween.tween_property(title_label, "modulate", shifted_color, 0.05)
 	tween.chain().tween_property(title_label, "modulate", original_color, 0.05)
+
+
+func _on_launch_pressed() -> void:
+	SceneTransition.transition_to("res://Scenes/main.tscn", SceneTransition.Type.BEAM)
