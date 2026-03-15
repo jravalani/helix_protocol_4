@@ -2,9 +2,6 @@ extends CanvasLayer
 
 signal transition_finished
 
-# ── Transition type enum — use either style: ──────────────────────────────────
-#    SceneTransition.transition_to("res://X.tscn", "beam")
-#    SceneTransition.transition_to("res://X.tscn", SceneTransition.Type.BEAM)
 enum Type { BEAM, FADE, ARMOUR }
 
 # ── Beam transition timing ────────────────────────────────────────────────────
