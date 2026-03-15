@@ -1,22 +1,3 @@
-## ═══════════════════════════════════════════════════════════════════
-##  SceneTransition.gd  —  FINAL
-##  Autoload as "SceneTransition" in Project > Project Settings > Autoload
-##
-##  ── HOW TO USE ───────────────────────────────────────────────────
-##
-##  1) On game .exe launch (call in your first scene's _ready()):
-##       await SceneTransition.launch_reveal()
-##
-##  2) Beam — original V2 dark panels + purple beam flash (default):
-##       SceneTransition.transition_to("res://scenes/X.tscn", "beam")
-##
-##  3) Fade — smooth black fade in/out:
-##       SceneTransition.transition_to("res://scenes/X.tscn", "fade")
-##
-##  4) Armour — gunmetal blast shield panels + same purple beam flash:
-##       SceneTransition.transition_to("res://scenes/X.tscn", "armour")
-##
-## ═══════════════════════════════════════════════════════════════════
 extends CanvasLayer
 
 signal transition_finished
