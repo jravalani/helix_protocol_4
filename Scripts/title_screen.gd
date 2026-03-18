@@ -10,14 +10,16 @@ extends Control
 @onready var online_status: Label = $OnlineStatus
 @onready var online_status_rect: ColorRect = $OnlineStatusColorRect
 
+@onready var ambience_hum: AudioStreamPlayer2D = $Ambience
+@onready var drone_hum: AudioStreamPlayer2D = $Drone
+@onready var thump_sound: AudioStreamPlayer2D = $Thump
+@onready var electric_hum: AudioStreamPlayer2D = $ElectricHum
+@onready var flicker: AudioStreamPlayer2D = $Flicker
+@onready var beep: AudioStreamPlayer2D = $Beep
+@onready var thump_timer: Timer = $ThumpTimer
+
 # Boot overlay
 var boot_overlay: ColorRect
-
-# Scan line variables
-var scan_line: ColorRect
-var scan_line_position: float = 0.0
-var scan_speed: float = 600.0  # pixels per second
-var is_scanning: bool = false
 
 # Glitch variables
 var glitch_timer: float = 0.0
@@ -25,18 +27,17 @@ var glitch_interval: float = 0.3  # time between potential glitches
 var glitch_chance: float = 0.4  # 40% chance per interval
 var original_title_position: Vector2
 var original_launchpad_position: Vector2
-
-# Reveal tracking
-var launchpad_revealed: bool = false
-var title_revealed: bool = false
+var original_launchpad_shadow_position: Vector2
 
 var beep_timer: float = 0.0
 var ui_ready: bool = false
 
 func _ready():
+	flicker.play()
 	# Store original positions for glitch effect
 	original_title_position = title_label.position
 	original_launchpad_position = launchpad.position
+	original_launchpad_shadow_position = launchpad_shadow.position
 	
 	# Hide elements initially
 	launchpad.modulate.a = 0.0
@@ -54,10 +55,6 @@ func _ready():
 	
 	# Create boot overlay (full screen black)
 	create_boot_overlay()
-	
-	# Create scan line (but keep it hidden initially)
-	create_scan_line()
-	scan_line.visible = false
 	
 	# Start the boot sequence
 	boot_sequence()
@@ -94,59 +91,12 @@ func boot_sequence():
 	# Remove boot overlay
 	boot_overlay.queue_free()
 	
-	# Start the scan
-	scan_line.visible = true
-	start_diagnostic_sweep()
-
-func create_scan_line():
-	scan_line = ColorRect.new()
-	scan_line.color = Color(1.0, 0.0, 1.0, 0.6)  # Magenta with transparency
-	scan_line.size = Vector2(get_viewport_rect().size.x, 3)
-	scan_line.position = Vector2(0, 0)
-	add_child(scan_line)
-	# Move scan line to top of draw order
-	move_child(scan_line, get_child_count() - 1)
-
-func start_diagnostic_sweep():
-	scan_line_position = 0.0
-	is_scanning = true
-
-func _process(delta):
-	if is_scanning:
-		# Move scan line down
-		scan_line_position += scan_speed * delta
-		scan_line.position.y = scan_line_position
-		
-		# Check if scan line has passed the launchpad (reveal it)
-		if not launchpad_revealed and scan_line_position > launchpad.position.y - 100:
-			reveal_launchpad()
-			launchpad_revealed = true
-		
-		# Check if scan line has passed the title (reveal it)
-		if not title_revealed and scan_line_position > title_label.position.y:
-			reveal_title()
-			title_revealed = true
-		
-		# Check if scan is complete
-		if scan_line_position > get_viewport_rect().size.y:
-			complete_scan()
-	
-	# Glitch effect (runs continuously after scan)
-	if not is_scanning:
-		glitch_timer += delta
-		if glitch_timer >= glitch_interval:
-			glitch_timer = 0.0
-			if randf() < glitch_chance:
-				apply_glitch()
-	
-	if not is_scanning and ui_ready:
-		beep_timer += delta
-		# Calculate interval: 2 seconds at 0 pressure, 0.4 seconds at 100 pressure
-		var interval = remap(GameData.current_pressure, 0, 100, 2.0, 0.4)
-		
-		if beep_timer >= interval:
-			beep_timer = 0.0
-			play_visual_beep()
+	# Reveal elements immediately
+	reveal_launchpad()
+	await get_tree().create_timer(0.2).timeout
+	reveal_title()
+	await get_tree().create_timer(0.3).timeout
+	reveal_ui()
 
 func reveal_launchpad():
 	# Flicker effect for launchpad
@@ -174,9 +124,29 @@ func reveal_title():
 	tween.chain().tween_property(title_label, "modulate:a", 0.6, 0.03)
 	tween.chain().tween_property(title_label, "modulate:a", 1.0, 0.03)
 
-func complete_scan():
-	is_scanning = false
-	scan_line.queue_free()
+func _process(delta):
+	# Glitch effect (runs continuously)
+	glitch_timer += delta
+	if glitch_timer >= glitch_interval:
+		glitch_timer = 0.0
+		if randf() < glitch_chance:
+			apply_glitch()
+	
+	if ui_ready:
+		beep_timer += delta
+		# Calculate interval: 2 seconds at 0 pressure, 0.4 seconds at 100 pressure
+		var interval = remap(GameData.current_pressure, 0, 100, 2.0, 0.4)
+		
+		if beep_timer >= interval:
+			beep_timer = 0.0
+			play_visual_beep()
+
+func reveal_ui():
+	# Start ambient audio loops
+	ambience_hum.play()
+	drone_hum.play()
+	electric_hum.play()
+	start_random_timer()
 	
 	var tween = create_tween()
 	tween.set_parallel(true)
@@ -187,6 +157,7 @@ func complete_scan():
 	tween.tween_property(online_status_rect, "modulate:a", 1.0, 0.5)
 	
 	await tween.finished   # <-- wait for fade-in to complete
+	beep.play()
 	ui_ready = true
 
 func update_status_color():
@@ -228,14 +199,25 @@ func apply_glitch():
 			glitch_color_shift()
 
 func glitch_position_shift():
-	# Randomly shift title or launchpad
-	var target = [title_label, launchpad][randi() % 2]
+	# Randomly shift title or launchpad (with shadow)
+	var is_title = randi() % 2 == 0
 	var shift = Vector2(randf_range(-5, 5), randf_range(-3, 3))
-	var original_pos = original_title_position if target == title_label else original_launchpad_position
 	
 	var tween = create_tween()
-	tween.tween_property(target, "position", original_pos + shift, 0.05)
-	tween.chain().tween_property(target, "position", original_pos, 0.05)
+	
+	if is_title:
+		# Glitch the title
+		tween.tween_property(title_label, "position", original_title_position + shift, 0.05)
+		tween.chain().tween_property(title_label, "position", original_title_position, 0.05)
+	else:
+		# Glitch the launchpad and shadow together
+		tween.set_parallel(true)
+		tween.tween_property(launchpad, "position", original_launchpad_position + shift, 0.05)
+		tween.tween_property(launchpad_shadow, "position", original_launchpad_shadow_position + shift, 0.05)
+		
+		tween.chain().set_parallel(true)
+		tween.chain().tween_property(launchpad, "position", original_launchpad_position, 0.05)
+		tween.chain().tween_property(launchpad_shadow, "position", original_launchpad_shadow_position, 0.05)
 
 func glitch_opacity_flicker():
 	# Quick opacity flicker on title
@@ -254,4 +236,20 @@ func glitch_color_shift():
 
 
 func _on_launch_pressed() -> void:
+	AudioManager.play_ui("button_heavy")
 	SceneTransition.transition_to("res://Scenes/main.tscn", SceneTransition.Type.BEAM)
+
+
+func _on_options_pressed() -> void:
+	AudioManager.play_ui("button_click")
+
+
+# Audio ambience functions
+func start_random_timer():
+	thump_timer.wait_time = randf_range(12.0, 20.0)
+	thump_timer.start()
+
+
+func _on_thump_timer_timeout():
+	thump_sound.play()
+	start_random_timer()

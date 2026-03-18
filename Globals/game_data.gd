@@ -57,6 +57,7 @@ var current_pressure: float = 0.0
 var current_pressure_phase: int = 0
 
 var fracture_wave_active: bool = false
+var wave_warning_enabled: bool = false
 
 # ── Rocket Segment Passive Effects ──────────────────────────────
 var global_vent_interval_multiplier: float = 1.0  # Segments 1 & 3 multiply by 0.8
@@ -102,7 +103,7 @@ var data_reserve_for_auto_repairs: int = 0
 ## =============================================================================
 
 var lifetime_data_earned: int = 0
-var total_data: int = 0
+var total_data: int = 500
 var previous_threshold: int = 0
 var score_to_next_reward: int = 30
 
@@ -114,6 +115,14 @@ var total_hub_backlog: int = 0
 var total_backlog: int = 0
 var average_vent_utilization: float = 0.0
 var active_packet_count: int = 0
+
+# Max hubs allowed per map stage
+const HUB_CAP_PER_STAGE := {
+	0: 1,    # Starting area — 2 hubs max
+	1: 4,    # First expansion — 5 hubs max
+	2: 8,    # Second expansion — 9 hubs max
+	3: 11,   # Full map — 12 hubs max
+}
 
 ## =============================================================================
 ## MAP STATE
@@ -153,8 +162,9 @@ const ROCKET_UPGRADES = {
 	2: {
 		"name": "Conduit Amplifier",
 		"cost": 500,
-		"description": "Reduces pipe and hub fracture chance by 20%.",
-		"fracture_chance_reduction": 0.2
+		"description": "Reduces pipe and hub fracture chance by 20%. Enables fracture wave early warning system.",
+		"fracture_chance_reduction": 0.2,
+		"enables_wave_warning": true
 	},
 	3: {
 		"name": "Oxygen Overdrive",

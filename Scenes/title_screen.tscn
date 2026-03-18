@@ -10,10 +10,17 @@
 [ext_resource type="PackedScene" uid="uid://bfq5ber3wwxdb" path="res://Scenes/dust_particles.tscn" id="4_6vd4x"]
 [ext_resource type="PackedScene" uid="uid://crjalt6n7n0in" path="res://Scenes/vignette.tscn" id="6_0061g"]
 [ext_resource type="FontFile" uid="uid://ccmc2ygy5pytk" path="res://Assets/Fonts/JetBrainsMonoNL-SemiBold.ttf" id="10_8mikk"]
+[ext_resource type="AudioStream" uid="uid://ckktjtyow7lju" path="res://Audio/title/drone.ogg" id="11_o1e67"]
+[ext_resource type="AudioStream" uid="uid://brr220avjspue" path="res://Audio/title/ambient2.wav" id="12_o1e67"]
+[ext_resource type="AudioStream" uid="uid://ciujev3qd6j32" path="res://Audio/title/thump.ogg" id="13_bsy20"]
+[ext_resource type="AudioStream" uid="uid://cqkujp2u47ktk" path="res://Audio/title/electric_hum.ogg" id="14_ycay6"]
+[ext_resource type="AudioStream" uid="uid://655x8pg5g606" path="res://Audio/title/flicker.wav" id="15_bsy20"]
+[ext_resource type="AudioStream" uid="uid://drqv47p2i1hdm" path="res://Audio/title/scan_short.wav" id="16_07cxn"]
+[ext_resource type="AudioStream" uid="uid://v4ve40cjqqit" path="res://Audio/title/beep.ogg" id="17_x2pfe"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_sqelc"]
 font = ExtResource("10_8mikk")
-font_size = 36
+font_size = 24
 
 [node name="TitleScreen" type="Control" unique_id=280095613]
 layout_mode = 3
@@ -35,6 +42,7 @@ scale = Vector2(0.7, 0.7)
 texture = ExtResource("2_12m1t")
 
 [node name="Launchpad" type="Sprite2D" parent="." unique_id=149592614]
+modulate = Color(1, 1, 1, 0.8)
 position = Vector2(298, 282)
 scale = Vector2(0.7, 0.7)
 texture = ExtResource("2_55kwv")
@@ -119,18 +127,48 @@ text = "Abort"
 
 [node name="OnlineStatus" type="Label" parent="." unique_id=239489183]
 layout_mode = 0
-offset_left = 143.0
-offset_top = 11.0
-offset_right = 547.0
-offset_bottom = 75.0
+offset_left = 192.0
+offset_top = 24.0
+offset_right = 596.0
+offset_bottom = 88.0
 text = "Status: Online [ ]"
 label_settings = SubResource("LabelSettings_sqelc")
 
 [node name="OnlineStatusColorRect" type="ColorRect" parent="." unique_id=168094198]
 layout_mode = 0
-offset_left = 490.0
-offset_top = 25.0
-offset_right = 510.0
-offset_bottom = 45.0
+offset_left = 422.0
+offset_top = 32.0
+offset_right = 437.0
+offset_bottom = 47.0
 
+[node name="Drone" type="AudioStreamPlayer2D" parent="." unique_id=1428447150]
+stream = ExtResource("11_o1e67")
+volume_db = 10.0
+
+[node name="Ambience" type="AudioStreamPlayer2D" parent="." unique_id=602813330]
+stream = ExtResource("12_o1e67")
+volume_db = 5.0
+
+[node name="Thump" type="AudioStreamPlayer2D" parent="." unique_id=327131488]
+stream = ExtResource("13_bsy20")
+volume_db = 5.0
+
+[node name="ThumpTimer" type="Timer" parent="." unique_id=1492067741]
+
+[node name="ElectricHum" type="AudioStreamPlayer2D" parent="." unique_id=29414204]
+stream = ExtResource("14_ycay6")
+volume_db = -20.0
+
+[node name="Flicker" type="AudioStreamPlayer2D" parent="." unique_id=2079737644]
+stream = ExtResource("15_bsy20")
+
+[node name="Scan" type="AudioStreamPlayer2D" parent="." unique_id=121106312]
+stream = ExtResource("16_07cxn")
+
+[node name="Beep" type="AudioStreamPlayer2D" parent="." unique_id=1870984361]
+stream = ExtResource("17_x2pfe")
+volume_db = -5.0
+
+[connection signal="pressed" from="MarginContainer2/HBoxContainer/Options" to="." method="_on_options_pressed"]
 [connection signal="pressed" from="MarginContainer2/HBoxContainer/Launch" to="." method="_on_launch_pressed"]
+[connection signal="timeout" from="ThumpTimer" to="." method="_on_thump_timer_timeout"]

@@ -111,6 +111,10 @@ func apply_segment_effects(phase: int) -> void:
 	if data.has("pressure_rate_reduction"):
 		GameData.pressure_rate_multiplier *= (1.0 - data["pressure_rate_reduction"])
 		NotificationManager.notify("Planetary pressure rate reduced.", NotificationManager.Type.INFO, "PRESSURE REGULATOR")
+	
+	if data.has("enables_wave_warning"):
+		GameData.wave_warning_enabled = true
+		NotificationManager.notify("Fracture wave early warning system online.", NotificationManager.Type.INFO, "WARNING SYSTEM")
 
 func _process(delta: float) -> void:
 	# Pressure system
@@ -266,23 +270,32 @@ func transition_to_phase(phase_number: int) -> void:
 	if GameData.current_pressure_phase <= GameData.MAX_PRESSURE_PHASE:
 		GameData.current_pressure_phase = phase_number
 		SignalBus.pressure_phase_changed.emit(phase_number)
-	NotificationManager.notify("Pressure phase " + str(phase_number) + " reached. Brace for impact.", NotificationManager.Type.WARNING, "PHASE SHIFT")
+	# NotificationManager.notify("Pressure phase " + str(phase_number) + " reached. Brace for impact.", NotificationManager.Type.WARNING, "PHASE SHIFT")
 	
 	if phase_number >= 1:
 		trigger_fracture_wave()
 
 func trigger_fracture_wave() -> void:
 	GameData.fracture_wave_active = true
+
+	if GameData.wave_warning_enabled:
+		MusicManager.stop_music(1.0)        # fade out music as warning starts
+		AudioManager.play_sfx("fracture_warning")
+		await get_tree().create_timer(11.0).timeout
+	else:
+		# No warning — music cuts at exact moment wave appears
+		MusicManager.stop_music(0.5)
+
 	SignalBus.fracture_wave.emit()
 	SignalBus.camera_shake.emit(0.4, 6.0)
-	
 	await get_tree().create_timer(5.0).timeout
 	SignalBus.camera_shake.emit(0.5, 8.0)
-	
 	_execute_fracture_wave()
-	
 	await get_tree().create_timer(10.0).timeout
 	GameData.fracture_wave_active = false
+	
+	# Resume music evaluation after wave ends
+	MusicManager.play_game_music()
 
 ## Dispatches fracture effects based on current pressure phase.
 ## Pipes always fracture. Hubs join at phase 3. Slowdown/burst added from phase 5.
@@ -487,7 +500,7 @@ func try_hub_spawn() -> void:
 	var scored_tiles = []
 	var camera_bounds = get_camera_bounds()
 
-	# Scan every tile in the current map bounds
+	# First try with buffer 1 — preferred spacing
 	for x in range(camera_bounds.position.x, camera_bounds.end.x):
 		for y in range(camera_bounds.position.y, camera_bounds.end.y):
 			var tile = Vector2i(x, y)
@@ -496,6 +509,18 @@ func try_hub_spawn() -> void:
 					"tile": tile,
 					"score": score_tile(tile)
 				})
+
+	# Fallback — no space with buffer 1, try buffer 0
+	if scored_tiles.is_empty():
+		NotificationManager.notify("Limited space — placing hub in tight quarters.", NotificationManager.Type.INFO, "HUB SPAWN")
+		for x in range(camera_bounds.position.x, camera_bounds.end.x):
+			for y in range(camera_bounds.position.y, camera_bounds.end.y):
+				var tile = Vector2i(x, y)
+				if is_area_clear(tile, hub_size, camera_bounds, 0):
+					scored_tiles.append({
+						"tile": tile,
+						"score": score_tile(tile)
+					})
 
 	if scored_tiles.is_empty():
 		ResourceManager.refund_hub()

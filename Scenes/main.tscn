@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://cnmu3c4pg7icy"]
 
 [ext_resource type="Texture2D" uid="uid://df0o6u8xgxvao" path="res://Assets/Background/BackgroundFinal.png" id="1_d1ilt"]
+[ext_resource type="Script" uid="uid://c6vr31u06woa1" path="res://Scripts/main2.gd" id="1_fevyy"]
 [ext_resource type="PackedScene" uid="uid://db103wkeppd8v" path="res://Scenes/road_builder.tscn" id="2_8gbba"]
 [ext_resource type="PackedScene" uid="uid://3xthd7uvwo1q" path="res://Scenes/input_manager.tscn" id="3_kry3j"]
 [ext_resource type="PackedScene" uid="uid://dnpwluvfdcpl1" path="res://UITestScenes/in_level_ui.tscn" id="4_jjvhh"]
@@ -15,6 +16,9 @@
 [ext_resource type="PackedScene" uid="uid://dtv18ee30jl71" path="res://UITestScenes/top_panel.tscn" id="10_hptm8"]
 [ext_resource type="PackedScene" uid="uid://bfq5ber3wwxdb" path="res://Scenes/dust_particles.tscn" id="11_d1ilt"]
 [ext_resource type="PackedScene" uid="uid://b5ev0jvtodvqa" path="res://Scenes/hub_window.tscn" id="14_jkdf5"]
+[ext_resource type="AudioStream" uid="uid://ckktjtyow7lju" path="res://Audio/title/drone.ogg" id="16_h1bgf"]
+[ext_resource type="AudioStream" uid="uid://brr220avjspue" path="res://Audio/title/ambient2.wav" id="17_b3802"]
+[ext_resource type="AudioStream" uid="uid://cqkujp2u47ktk" path="res://Audio/title/electric_hum.ogg" id="18_b3802"]
 
 [sub_resource type="Environment" id="Environment_d1ilt"]
 background_mode = 3
@@ -34,6 +38,7 @@ shader_parameter/vignette_color = Color(0, 0, 0, 1)
 
 [node name="Main" type="Node2D" unique_id=1948087299]
 z_index = -10
+script = ExtResource("1_fevyy")
 
 [node name="Background" type="Sprite2D" parent="." unique_id=1022534469]
 scale = Vector2(1.1, 1.1)
@@ -96,3 +101,15 @@ mouse_filter = 2
 [node name="TechTree" parent="CanvasLayer" unique_id=651149444 instance=ExtResource("9_ynf5e")]
 
 [node name="TopPanel" parent="CanvasLayer" unique_id=1947777984 instance=ExtResource("10_hptm8")]
+
+[node name="Drone" type="AudioStreamPlayer2D" parent="." unique_id=1691619721]
+stream = ExtResource("16_h1bgf")
+volume_db = -20.0
+
+[node name="Ambience" type="AudioStreamPlayer2D" parent="." unique_id=59054188]
+stream = ExtResource("17_b3802")
+volume_db = -20.0
+
+[node name="ElectricHum" type="AudioStreamPlayer2D" parent="." unique_id=2053087499]
+stream = ExtResource("18_b3802")
+volume_db = -20.0

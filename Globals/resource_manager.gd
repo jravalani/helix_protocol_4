@@ -195,8 +195,17 @@ func refund_hub() -> void:
 
 #region building spawns
 func spawn_hub() -> bool:
-	if GameData.current_hub_count >= GameData.MAX_HUBS:
-		NotificationManager.notify("Maximum hub capacity reached.", NotificationManager.Type.WARNING, "HUB CAP")
+	var stage_cap: int = GameData.HUB_CAP_PER_STAGE.get(GameData.current_stage, GameData.MAX_HUBS)
+	
+	if GameData.current_hub_count >= stage_cap:
+		if GameData.current_stage < 3:
+			NotificationManager.notify(
+				"Hub limit reached. Upgrade rocket to expand territory. Next limit: " + 
+				str(GameData.HUB_CAP_PER_STAGE.get(GameData.current_stage + 1, GameData.MAX_HUBS)),
+				NotificationManager.Type.WARNING, "HUB CAP"
+			)
+		else:
+			NotificationManager.notify("Maximum hub capacity reached.", NotificationManager.Type.WARNING, "HUB CAP")
 		return false
 	
 	if GameData.total_data < GameData.current_hub_spawn_cost:

@@ -3,10 +3,10 @@ extends Building
 class_name Hub
 
 # ── Rate limit caps per 60s window ──────────────────────────────
-const CAP_LEVEL_0 := 40
-const CAP_LEVEL_1 := 50
-const CAP_LEVEL_2 := 60
-const CAP_LEVEL_3 := 70
+const CAP_LEVEL_0 := 50
+const CAP_LEVEL_1 := 60
+const CAP_LEVEL_2 := 70
+const CAP_LEVEL_3 := 80
 const RATE_WINDOW  := 60.0
 
 # ── Node References ─────────────────────────────────────────────

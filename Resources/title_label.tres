@@ -3,11 +3,9 @@
 [ext_resource type="FontFile" uid="uid://f2rhtea60h0j" path="res://Assets/Fonts/JetBrainsMono-ExtraBold.ttf" id="1_fb02u"]
 
 [resource]
-line_spacing = 50.0
 font = ExtResource("1_fb02u")
 font_size = 192
 font_color = Color(1, 0, 1, 1)
 outline_color = Color(0.4392157, 0, 0.4392157, 1)
-shadow_size = 10
-shadow_color = Color(0, 0, 0, 1)
-shadow_offset = Vector2(10, 10)
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_offset = Vector2(15, 10)
