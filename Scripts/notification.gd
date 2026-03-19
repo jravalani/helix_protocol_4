@@ -68,7 +68,7 @@ func _apply_style(p_type: Type) -> void:
 		add_theme_stylebox_override("panel", style)
 
 func _animate_in() -> void:
-	AudioManager.play_ui("menu_open", 0.1)
+	AudioManager.play_ui("menu_open", 0.5)
 	var t := create_tween()
 	# Slide in from the right and fade in
 	position.x += 40
@@ -80,7 +80,7 @@ func _animate_in() -> void:
 	t.tween_callback(_dismiss)
 
 func _dismiss() -> void:
-	AudioManager.play_ui("menu_close", 0.1)
+	AudioManager.play_ui("menu_close", 0.5)
 	var t := create_tween()
 	t.set_parallel(true)
 	t.tween_property(self, "modulate:a", 0.0, 0.2)

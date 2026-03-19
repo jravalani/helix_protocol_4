@@ -146,7 +146,7 @@ func reveal_ui():
 	ambience_hum.play()
 	drone_hum.play()
 	electric_hum.play()
-	start_random_timer()
+	#start_random_timer()
 	
 	var tween = create_tween()
 	tween.set_parallel(true)
@@ -236,4 +236,9 @@ func glitch_color_shift():
 
 
 func _on_launch_pressed() -> void:
+	AudioManager.play_ui("button_heavy")
 	SceneTransition.transition_to("res://Scenes/main.tscn", SceneTransition.Type.ARMOUR)
+
+
+func _on_options_pressed() -> void:
+	AudioManager.play_sfx("upgrade", 1.0, -5.0)

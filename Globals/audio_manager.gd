@@ -191,7 +191,7 @@ func _register_sounds() -> void:
 		"menu_close"   : load("res://Audio/ui/notification_close.ogg"),
 		"pause"        : null,
 		"error"        : load("res://Audio/ui/error.ogg"),
-		"button_heavy" : load("res://Audio/ui/heavy_thump.ogg"),
+		"button_heavy" : load("res://Audio/ui/launch_button.wav"),
 	}
 
 	_atlas_sounds = {
