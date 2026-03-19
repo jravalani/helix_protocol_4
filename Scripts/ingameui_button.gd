@@ -4,6 +4,7 @@ extends Button
 var hum_tween: Tween
 
 func _on_mouse_entered():
+	AudioManager.play_ui("button_hover", 0.2)
 	# Create a pulsing effect on the border color
 	hum_tween = create_tween().set_loops()
 	hum_tween.tween_property(hover_style, "border_color", Color("ff00ff"), 0.8)

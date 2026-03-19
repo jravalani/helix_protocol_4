@@ -18,7 +18,7 @@ gradient = SubResource("Gradient_gq3dw")
 fill = 1
 fill_from = Vector2(0.47863248, 0.53846157)
 
-[node name="Packet" type="PathFollow2D" unique_id=1813453801]
+[node name="Packet" type="PathFollow2D" unique_id=1813453801 groups=["packets"]]
 z_index = 2
 script = ExtResource("1_gq3dw")
 

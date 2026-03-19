@@ -48,26 +48,8 @@ func get_top_left_px(step: float) -> Vector2:
 func _physics_process(delta: float) -> void:
 	fan.rotation += fan_rotation_speed * delta
 
-#func _input_event(viewport: Viewport, event: InputEvent, shape_idx: int) -> void:
-	#if event is InputEventMouseButton:
-		#if event.button_index == MOUSE_BUTTON_LEFT:
-			#if event.is_pressed():
-				#get_viewport().set_input_as_handled()
-				#click_position = get_global_mouse_position()
-				#has_dragged = false
-			#else:
-				#if not has_dragged:
-					#print("Vent clicked (no drag) - rotating!")
-					#rotate_45_degrees()
-				#get_viewport().set_input_as_handled()
-#
-	#elif event is InputEventMouseMotion:
-		#if event.button_mask & MOUSE_BUTTON_MASK_LEFT:
-			#var current_pos = get_global_mouse_position()
-			#if click_position.distance_to(current_pos) > 24.0:
-				#has_dragged = true
-
 func _ready():
+	AudioManager.play_sfx("build_vent", 0.7, 5.0)
 	left_cloud.restart()
 	right_cloud.restart()
 	SignalBus.camera_shake.emit(0.25, 4.0)

@@ -1,146 +1,120 @@
 extends Node
 
-## =============================================================================
-## GRID & SPATIAL CONSTANTS
-## =============================================================================
+#region Grid & Spatial
 
-const CELL_SIZE: Vector2 = Vector2(64, 64)
-const MAX_WIDTH = 52
-const MAX_HEIGHT = 38
+const CELL_SIZE  : Vector2 = Vector2(64, 64)
+const MAX_WIDTH            = 52
+const MAX_HEIGHT           = 38
 
-## Map expansion stages (progressive unlock areas)
 var map_stages = [
-	Rect2i(-10, -6, 20, 12),  # Stage 0: Starting area
-	Rect2i(-13, -7, 26, 14),  # Stage 1: First expansion
-	Rect2i(-16, -9, 32, 18),  # Stage 2: Second expansion
-	Rect2i(-20, -11, 40, 22)  # Stage 3: Full map
+	Rect2i(-10, -6, 20, 12),
+	Rect2i(-13, -7, 26, 14),
+	Rect2i(-16, -9, 32, 18),
+	Rect2i(-20, -11, 40, 22)
 ]
 
-## =============================================================================
-## BUILDING LIMITS & COUNTS
-## =============================================================================
+#endregion
 
-const MAX_VENTS = 50
-const MAX_HUBS = 12
+#region Building Limits
+
+const MAX_VENTS  = 50
+const MAX_HUBS   = 12
 const START_SIZE = 20
 
-var current_hub_count: int = 0
-var current_vent_count: int = 0
-var current_pipe_count: int = 50
-
-## =============================================================================
-## ZONE SYSTEM
-## =============================================================================
-
-enum Zone {
-	CORE,
-	INNER,
-	OUTER,
-	FRONTIER
+const HUB_CAP_PER_STAGE = {
+	0: 1,
+	1: 4,
+	2: 8,
+	3: 11,
 }
+
+var current_hub_count  : int = 0
+var current_vent_count : int = 0
+var current_pipe_count : int = 50
+
+#endregion
+
+#region Zone System
+
+enum Zone { CORE, INNER, OUTER, FRONTIER }
 
 const ZONE_REINFORCE_COSTS = [150, 200, 250, 300]
 
-var active_reinforcement_timer: SceneTreeTimer = null
-var current_reinforced_zone: int = -1
-var reinforcement_version: int = 0
+var active_reinforcement_timer : SceneTreeTimer = null
+var current_reinforced_zone    : int            = -1
+var reinforcement_version      : int            = 0
 
-## =============================================================================
-## PRESSURE SYSTEM
-## =============================================================================
+#endregion
 
-const MAX_PRESSURE: float = 100.0
-const BASE_RATE: float = 0.025
-var MAX_PRESSURE_PHASE: int = 10
+#region Pressure System
 
-var current_pressure: float = 0.0
-var current_pressure_phase: int = 0
+const MAX_PRESSURE : float = 100.0
+const BASE_RATE    : float = 0.025
+var MAX_PRESSURE_PHASE : int = 10
 
-var fracture_wave_active: bool = false
+var current_pressure       : float = 0.0
+var current_pressure_phase : int   = 0
 
-# ── Rocket Segment Passive Effects ──────────────────────────────
-var global_vent_interval_multiplier: float = 1.0  # Segments 1 & 3 multiply by 0.8
-var rocket_fracture_reduction: float = 0.0         # Segment 2 sets to 0.2
-var hub_rate_window: float = 60.0                  # Segment 3 reduces to 40.0
-var pressure_rate_multiplier: float = 1.0          # Segment 4 sets to 0.85
+var fracture_wave_active : bool = false
+var wave_warning_enabled : bool = false
 
-## =============================================================================
-## UPGRADE SYSTEM
-## =============================================================================
+var global_vent_interval_multiplier : float = 1.0
+var rocket_fracture_reduction       : float = 0.0
+var hub_rate_window                 : float = 60.0
+var pressure_rate_multiplier        : float = 1.0
 
-## Hub upgrades
-const MAX_HUB_UPGRADES: int = 3
-const HUB_UPGRADE_COSTS = [50, 100, 120]
+#endregion
 
-## Spawn costs (scale per purchase)
-const HUB_SPAWN_BASE_COST: int = 100
-const HUB_SPAWN_COST_INCREMENT: int = 20
-const VENT_SPAWN_BASE_COST: int = 10
-const VENT_SPAWN_COST_INCREMENT: int = 5
+#region Upgrade System
 
-var current_hub_spawn_cost: int = HUB_SPAWN_BASE_COST
-var current_vent_spawn_cost: int = VENT_SPAWN_BASE_COST
+const MAX_HUB_UPGRADES         : int = 3
+const HUB_UPGRADE_COSTS              = [50, 100, 120]
 
-## Pipe upgrades (increase capacity/flow)
-const MAX_PIPE_UPGRADES: int = 3
-const PIPE_UPGRADE_COSTS = [150, 300, 450]
-var current_pipe_upgrade_level: int = 0
+const HUB_SPAWN_BASE_COST      : int = 100
+const HUB_SPAWN_COST_INCREMENT : int = 20
+const VENT_SPAWN_BASE_COST     : int = 10
+const VENT_SPAWN_COST_INCREMENT : int = 5
 
-## Hull/Shield upgrades (protect against damage)
-const MAX_HULL_SHIELD_UPGRADES: int = 4
-const HULL_SHIELD_UPGRADE_COSTS = [300, 500, 800, 1200]
-var current_hull_shield_level: int = 1
-var hull_schield_integrity: float = 100.0
+var current_hub_spawn_cost  : int = HUB_SPAWN_BASE_COST
+var current_vent_spawn_cost : int = VENT_SPAWN_BASE_COST
 
-## Pipe repair costs
-const SINGLE_PIPE_REPAIR_COST: int = 5
-var auto_repair_enabled: bool = false
-var data_reserve_for_auto_repairs: int = 0
+const MAX_PIPE_UPGRADES     : int = 3
+const PIPE_UPGRADE_COSTS          = [150, 300, 450]
+var current_pipe_upgrade_level    : int = 0
 
-## =============================================================================
-## ECONOMY & PROGRESSION
-## =============================================================================
+const MAX_HULL_SHIELD_UPGRADES : int = 4
+const HULL_SHIELD_UPGRADE_COSTS    = [300, 500, 800, 1200]
+var current_hull_shield_level      : int   = 1
+var hull_schield_integrity         : float = 100.0
 
-var lifetime_data_earned: int = 0
-var total_data: int = 0
-var previous_threshold: int = 0
-var score_to_next_reward: int = 30
+const SINGLE_PIPE_REPAIR_COST    : int = 5
+var auto_repair_enabled          : bool = false
+var data_reserve_for_auto_repairs : int = 0
 
-## =============================================================================
-## SYSTEM METRICS (updated per frame)
-## =============================================================================
+#endregion
 
-var total_hub_backlog: int = 0
-var total_backlog: int = 0
-var average_vent_utilization: float = 0.0
-var active_packet_count: int = 0
+#region Economy & Progression
 
-## =============================================================================
-## MAP STATE
-## =============================================================================
+var lifetime_data_earned : int = 0
+var total_data           : int = 25000
+var previous_threshold   : int = 0
+var score_to_next_reward : int = 30
 
-var current_stage: int = 0
-var current_map_size: Rect2i = Rect2i(-10, -6, 20, 12)
-var rocket_cell: Vector2i = Vector2i(0, 0)
+#endregion
 
-## =============================================================================
-## GRID DATA STRUCTURES
-## =============================================================================
-## All use Vector2i as keys for cell coordinates
+#region System Metrics
 
-var road_grid: Dictionary = {}           # Tracks built roads
-var fractured_pipes: Dictionary = {}     # Tracks damaged pipes
-var building_grid: Dictionary = {}       # Tracks placed buildings
-var road_connections: Dictionary = {}    # Tracks road network connectivity
-var influence_grid: Dictionary = {}      # Tracks zone influence
+var total_hub_backlog        : int   = 0
+var total_backlog            : int   = 0
+var average_vent_utilization : float = 0.0
+var active_packet_count      : int   = 0
+var metric_timer             : float = 0.0
 
-var astar: AStar2D = AStar2D.new()       # Pathfinding graph
+#endregion
 
-## =============================================================================
-## ROCKET 
-## =============================================================================
+#region Rocket
 
-var current_rocket_phase: int = 0
+var current_rocket_phase : int = 0
 
 const ROCKET_UPGRADES = {
 	1: {
@@ -153,8 +127,9 @@ const ROCKET_UPGRADES = {
 	2: {
 		"name": "Conduit Amplifier",
 		"cost": 500,
-		"description": "Reduces pipe and hub fracture chance by 20%.",
-		"fracture_chance_reduction": 0.2
+		"description": "Reduces pipe and hub fracture chance by 20%. Enables fracture wave early warning system.",
+		"fracture_chance_reduction": 0.2,
+		"enables_wave_warning": true
 	},
 	3: {
 		"name": "Oxygen Overdrive",
@@ -178,12 +153,38 @@ const ROCKET_UPGRADES = {
 	}
 }
 
-var metric_timer := 0.0
+#endregion
 
-var input_consumed: bool = false
+#region Map State
+
+var current_stage    : int      = 0
+var current_map_size : Rect2i   = Rect2i(-10, -6, 20, 12)
+var rocket_cell      : Vector2i = Vector2i(0, 0)
+
+#endregion
+
+#region Grid Data Structures
+
+var road_grid        : Dictionary = {}
+var fractured_pipes  : Dictionary = {}
+var building_grid    : Dictionary = {}
+var road_connections : Dictionary = {}
+var influence_grid   : Dictionary = {}
+var astar            : AStar2D    = AStar2D.new()
+
+#endregion
+
+#region Misc
+
+var input_consumed : bool = false
+
+#endregion
+
+#region Lifecycle
 
 func _ready() -> void:
 	randomize()
+
 
 func _process(delta: float) -> void:
 	metric_timer += delta
@@ -191,16 +192,17 @@ func _process(delta: float) -> void:
 		update_system_metrics()
 		metric_timer = 0.0
 
+#endregion
+
+#region System Metrics
+
 func update_system_metrics() -> void:
-	"""Calculate global system metrics once per second."""
-	# Calculate total hub backlog
 	total_hub_backlog = 0
 	var hubs = get_tree().get_nodes_in_group("hubs")
 	for hub in hubs:
 		if "oxygen_backlog" in hub:
 			total_hub_backlog += hub.oxygen_backlog
 
-	# Calculate average vent utilization
 	var vents = get_tree().get_nodes_in_group("vents")
 	if vents.size() > 0:
 		var total_util = 0.0
@@ -213,18 +215,26 @@ func update_system_metrics() -> void:
 	else:
 		average_vent_utilization = 0.0
 
-	# Count active packets
 	active_packet_count = get_tree().get_nodes_in_group("packets").size()
 
+#endregion
+
+#region Road Grid
+
 func is_road_cell_empty(cell: Vector2i) -> bool:
-	# if the dictionary has that cell, then "no its not empty"
 	return not road_grid.has(cell)
+
 
 func set_road_cell(cell: Vector2i, type: String) -> void:
 	road_grid[cell] = type
 
+
 func remove_road_cell(cell: Vector2i) -> void:
 	road_grid.erase(cell)
+
+#endregion
+
+#region Coordinate Helpers
 
 func world_to_cell(pos: Vector2) -> Vector2i:
 	return Vector2i(
@@ -232,71 +242,77 @@ func world_to_cell(pos: Vector2) -> Vector2i:
 		floori(pos.y / GameData.CELL_SIZE.y)
 	)
 
+
 func get_cell_center(cell: Vector2i) -> Vector2:
 	return (Vector2(cell) * CELL_SIZE) + (CELL_SIZE / 2.0)
+
+#endregion
+
+#region Road Connections
 
 func add_road_connection(cell_a: Vector2i, cell_b: Vector2i) -> void:
 	var dir_a_to_b = cell_b - cell_a
 	var dir_b_to_a = cell_a - cell_b
-	
 	if not road_connections.has(cell_a): road_connections[cell_a] = []
 	if not road_connections.has(cell_b): road_connections[cell_b] = []
-	
 	if not dir_a_to_b in road_connections[cell_a]:
 		road_connections[cell_a].append(dir_a_to_b)
 	if not dir_b_to_a in road_connections[cell_b]:
 		road_connections[cell_b].append(dir_b_to_a)
 
+
 func remove_road_connections(cell: Vector2i) -> void:
 	if road_connections.has(cell):
-		# Tell neighbors this cell is gone
 		for dir in road_connections[cell]:
 			var neighbor = cell + dir
 			if road_connections.has(neighbor):
-				var opposite_dir = -dir
-				road_connections[neighbor].erase(opposite_dir)
+				road_connections[neighbor].erase(-dir)
 		road_connections.erase(cell)
 
-# A* Logic
+#endregion
 
-# Add this version to handle markers/off-grid points
+#region Pathfinding
+
 func get_position_id(pos: Vector2) -> int:
 	return str(pos).hash()
+
 
 func add_marker_point(pos: Vector2) -> void:
 	var id = get_position_id(pos)
 	if not astar.has_point(id):
 		astar.add_point(id, pos)
 
+
 func get_cell_id(cell: Vector2i) -> int:
 	return str(cell).hash()
+
 
 func add_navigation_point(cell: Vector2i) -> void:
 	var id = get_cell_id(cell)
 	if not astar.has_point(id):
 		astar.add_point(id, get_cell_center(cell))
 
+
 func connect_navigation_points(cell_a: Vector2i, cell_b: Vector2i) -> void:
 	var b_a = building_grid.get(cell_a)
 	var b_b = building_grid.get(cell_b)
-
-	# NEW RULE: You cannot connect two buildings directly.
-	# At least one of the cells MUST be a road.
 	if b_a is Building and b_b is Building:
-		return 
-	# Standard connection logic follows...
-
+		return
 	var id_a = get_cell_id(cell_a)
 	var id_b = get_cell_id(cell_b)
 	if astar.has_point(id_a) and astar.has_point(id_b):
 		astar.connect_points(id_a, id_b)
+
 
 func remove_navigation_point(cell: Vector2i) -> void:
 	var id = get_cell_id(cell)
 	if astar.has_point(id):
 		astar.remove_point(id)
 
-# Map growth function
+#endregion
+
+#region Map Growth
+
 func increase_map_size() -> void:
 	if current_stage < map_stages.size() - 1:
 		current_stage += 1
@@ -305,12 +321,13 @@ func increase_map_size() -> void:
 	else:
 		print("Max Capacity Reached")
 
+
 func get_playable_rect() -> Rect2i:
-	var bounds = current_map_size
-	var pad_left   := 0
-	var pad_right  := 0
-	var pad_top    := 0
-	var pad_bottom := 0
+	var bounds     = current_map_size
+	var pad_left   = 0
+	var pad_right  = 0
+	var pad_top    = 0
+	var pad_bottom = 0
 	match current_stage:
 		1:
 			pad_left  = 1
@@ -331,78 +348,72 @@ func get_playable_rect() -> Rect2i:
 		bounds.size.y - 3 - pad_top - pad_bottom
 	)
 
-func is_blocked_by_building(building: Variant, cell: Vector2i) -> bool:
-	if not building is Building:
-		return false
-	return cell != building.entrance_cell
+#endregion
 
 #region Tile Influence
+
 func apply_influence(tile: Vector2i, type: String) -> void:
-	var radius: int = 0
-	var strength: float = 0.0
-	var is_penalty: bool = false
+	var radius     : int   = 0
+	var strength   : float = 0.0
+	var is_penalty : bool  = false
 
 	match type:
 		"rocket":
-			radius = 3
-			strength = 100000.0
+			radius     = 3
+			strength   = 100000.0
 			is_penalty = true
 		"hub":
-			radius = 6
-			strength = 120.0
+			radius     = 6
+			strength   = 120.0
 			is_penalty = true
 		"road":
-			radius = 2
-			strength = 20.0
+			radius     = 2
+			strength   = 20.0
 			is_penalty = false
 		_:
-			return  # Unknown type, do nothing
+			return
 
-	# Additive stacking — each new building adds to existing influence
 	for x in range(-radius, radius + 1):
 		for y in range(-radius, radius + 1):
 			var current_tile = tile + Vector2i(x, y)
-			var dist = abs(x) + abs(y)
-
+			var dist         = abs(x) + abs(y)
 			if dist > radius:
 				continue
-
 			var falloff_value = float(radius - dist + 1) / float(radius)
-			var final_value = strength * falloff_value
-
+			var final_value   = strength * falloff_value
 			if is_penalty:
 				final_value *= -1.0
-
 			influence_grid[current_tile] = influence_grid.get(current_tile, 0.0) + final_value
 
-func remove_road_influence(tile: Vector2i) -> void:
-	const radius: int = 2
-	const strength: float = 20.0
 
+func remove_road_influence(tile: Vector2i) -> void:
+	const radius   : int   = 2
+	const strength : float = 20.0
 	for x in range(-radius, radius + 1):
 		for y in range(-radius, radius + 1):
 			var current_tile = tile + Vector2i(x, y)
-			var dist = abs(x) + abs(y)
-
+			var dist         = abs(x) + abs(y)
 			if dist > radius:
 				continue
-
 			var falloff_value = float(radius - dist + 1) / float(radius)
 			influence_grid[current_tile] = influence_grid.get(current_tile, 0.0) - (strength * falloff_value)
+
 #endregion
 
-#region Hull Shield Multiplier
+#region Hull Shield
+
 func get_hull_shield_multiplier() -> float:
-	var base_protection = current_hull_shield_level * 0.2
+	var base_protection  = current_hull_shield_level * 0.2
 	var integrity_factor = hull_schield_integrity / 100.0
-	var shield_mult = max(0.2, 1.0 - (base_protection * integrity_factor))
-	# Segment 2 passive: subtract flat fracture chance reduction
+	var shield_mult      = max(0.2, 1.0 - (base_protection * integrity_factor))
 	return max(0.1, shield_mult - rocket_fracture_reduction)
 
+#endregion
+
 #region Zone
+
 func get_zone_for_cell(cell: Vector2i) -> Zone:
 	var distance = Vector2(cell).distance_to(Vector2(rocket_cell))
-
 	if distance < 6:
 		return Zone.CORE
 	elif distance < 11:
@@ -411,4 +422,11 @@ func get_zone_for_cell(cell: Vector2i) -> Zone:
 		return Zone.OUTER
 	else:
 		return Zone.FRONTIER
+
+
+func is_blocked_by_building(building: Variant, cell: Vector2i) -> bool:
+	if not building is Building:
+		return false
+	return cell != building.entrance_cell
+
 #endregion

@@ -315,7 +315,8 @@ func repair() -> void:
 	just_repaired = true
 	get_tree().create_timer(0.1).timeout.connect(func(): just_repaired = false)
 	GameData.astar.set_point_disabled(cell_hash, false)
-
+	
+	AudioManager.play_sfx("repair", 1.0, -5.0)
 	_play_repair_animation()
 
 func _play_repair_animation() -> void:

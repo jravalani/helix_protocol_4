@@ -14,6 +14,7 @@ func spawn_wave() -> void:
 	SignalBus.ui_wake_up.emit()
 	# Camera shake at wave start
 	SignalBus.camera_shake.emit(0.5, 8.0)
+	AudioManager.play_sfx("fracture_wave", 1.0, 1.0)
 	
 	for i in range(RING_COUNT):
 		await get_tree().create_timer(i * RING_DELAY).timeout
@@ -51,6 +52,7 @@ func _spawn_wave_group() -> void:
 	t.tween_callback(func(): 
 		SignalBus.camera_shake.emit(0.4, 6.0)
 		SignalBus.fracture_wave_impact.emit()  # triggers heat haze
+		AudioManager.play_sfx("fracture_wave_impact", 1.0, -5.0)
 	).set_delay(DURATION)
 
 	t.tween_callback(container.queue_free).set_delay(DURATION + 0.1)

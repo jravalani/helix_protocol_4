@@ -105,6 +105,7 @@ func build_road(cell: Vector2i) -> void:
 		current_road.position = GameData.get_cell_center(cell)
 		current_road.set_cell(cell)
 		add_child(current_road)
+		AudioManager.play_sfx("build_pipe", randf_range(0.9, 1.1), -15.0)
 
 		if was_entrance:
 			current_road.is_entrance = true
@@ -180,6 +181,7 @@ func remove_road(cell: Vector2i) -> void:
 		GameData.astar.remove_point(id)
 
 	# Erase from grid BEFORE queue_free so rapid removals can't double-process
+	AudioManager.play_sfx("remove_pipe", randf_range(0.9, 1.1), -15.0)
 	GameData.road_grid.erase(cell)
 	GameData.remove_road_influence(cell)
 	object_at_cell.queue_free()
