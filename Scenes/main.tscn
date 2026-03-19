@@ -103,10 +103,12 @@ mouse_filter = 2
 [node name="TopPanel" parent="CanvasLayer" unique_id=1947777984 instance=ExtResource("10_hptm8")]
 
 [node name="Drone" type="AudioStreamPlayer2D" parent="." unique_id=1691619721]
+visible = false
 stream = ExtResource("16_h1bgf")
 volume_db = -20.0
 
 [node name="Ambience" type="AudioStreamPlayer2D" parent="." unique_id=59054188]
+visible = false
 stream = ExtResource("17_b3802")
 volume_db = -20.0
 

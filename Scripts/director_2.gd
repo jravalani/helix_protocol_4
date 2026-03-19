@@ -63,6 +63,10 @@ var increment: float = 0.0
 
 ## Hull shield degradation
 var degradation_rate: float = 0.0
+
+
+const RING_RADII: Array = [6, 6, 8, 8, 11, 11, 14, 14]
+
 func _ready() -> void:
 	await get_tree().process_frame
 	screen_center = camera_2d.get_screen_center_position()
@@ -199,6 +203,15 @@ func is_area_clear(target_coord: Vector2i, area_size: Vector2i, camera_bounds: R
 				return false
 			if GameData.building_grid.has(current_tile) or GameData.road_grid.has(current_tile):
 				return false
+
+	# Always enforce 1 tile gap at bottom for entrance access
+	for x in range(0, area_size.x):
+		var bottom_tile = target_coord + Vector2i(x, area_size.y)
+		if not camera_bounds.has_point(bottom_tile):
+			return false
+		if GameData.building_grid.has(bottom_tile) or GameData.road_grid.has(bottom_tile):
+			return false
+
 	return true
 
 func calculate_candidate_tiles(center: Vector2, min_dist: int, max_dist: int, size: Vector2i, buffer: int) -> Array:
@@ -247,7 +260,7 @@ func calculate_candidate_tiles(center: Vector2, min_dist: int, max_dist: int, si
 ## Ideal ring radius per cluster pair. Each pair of values covers 2 clusters per stage.
 ## Stage 0: radius 4, Stage 1: radius 7, Stage 2: radius 11, Stage 3: radius 14.
 ## Easy to tweak for playtesting — just change the values in this array.
-const RING_RADII: Array = [4, 4, 7, 7, 11, 11, 14, 14]
+
 
 func get_ideal_ring_radius() -> float:
 	var index = min(vent_clusters.size(), RING_RADII.size() - 1)
@@ -280,7 +293,7 @@ func trigger_fracture_wave() -> void:
 
 	if GameData.wave_warning_enabled:
 		MusicManager.stop_music(1.0)        # fade out music as warning starts
-		AudioManager.play_sfx("fracture_warning")
+		AudioManager.play_sfx("fracture_wave_warning")
 		await get_tree().create_timer(11.0).timeout
 	else:
 		# No warning — music cuts at exact moment wave appears

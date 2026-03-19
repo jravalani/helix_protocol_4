@@ -42,6 +42,7 @@ var _popup_tween: Tween = null
 # ════════════════════════════════════════════════════════════════
 
 func _ready() -> void:
+	AudioManager.play_sfx("build_hub", 0.3, 5.0)
 	left_cloud.restart()
 	right_cloud.restart()
 
@@ -67,7 +68,7 @@ func _process(delta: float) -> void:
 		window_timer = 0.0
 		packets_this_window = 0
 		is_rate_limited = false
-	
+
 	# Update popup position if open
 	if _popup_open:
 		var hub_screen_pos = get_global_transform_with_canvas().origin
@@ -259,6 +260,8 @@ func repair() -> void:
 	if _dead_pulse_tween:
 		_dead_pulse_tween.kill()
 		_dead_pulse_tween = null
+	
+	AudioManager.play_sfx("hub_repair", 1.0, -5.0)
 
 	var reboot := create_tween()
 	reboot.tween_property(self, "modulate", Color("4a0e1f"), 0.12)
