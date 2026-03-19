@@ -34,7 +34,7 @@ class TransitionConfig:
 # Use SceneTransition.Type.BEAM / .FADE instead of raw strings "beam"/"fade".
 # Catches typos at parse-time and gives autocomplete at every call site.
 # ═════════════════════════════════════════════════════════════════════════════
-enum Type { BEAM, FADE }
+enum Type { BEAM, FADE, ARMOUR }
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -63,21 +63,29 @@ class BaseTransition:
 # BEAM TRANSITION
 # ─────────────────────────────────────────────────────────────────────────────
 class BeamTransition extends BaseTransition:
-	var _top          : ColorRect
-	var _bot          : ColorRect
-	var _beam_glow    : ColorRect
-	var _beam_core    : ColorRect
-	var _screen_flash : ColorRect
-	var _beam_glow_mat : ShaderMaterial
-	var _beam_core_mat : ShaderMaterial
-	var _tween        : Tween
+	var _top            : ColorRect
+	var _bot            : ColorRect
+	var _beam_glow      : ColorRect
+	var _beam_core      : ColorRect
+	var _screen_flash   : ColorRect
+	var _beam_glow_mat  : ShaderMaterial
+	var _beam_core_mat  : ShaderMaterial
+	var _top_beam_mat   : ShaderMaterial
+	var _bot_beam_mat   : ShaderMaterial
+	var _top_armour_mat : ShaderMaterial
+	var _bot_armour_mat : ShaderMaterial
+	var _tween          : Tween
 
 	func _init(owner: CanvasLayer, cfg: TransitionConfig, w: float, h: float) -> void:
 		super(owner, cfg, w, h)
 		_build_nodes()
 
 	# ── Public ────────────────────────────────────────────────────────────────
-	func play(scene_path: String) -> void:
+
+	## use_armour: false = original dark slate panels, true = gunmetal blast shield
+	func play(scene_path: String, use_armour: bool = false) -> void:
+		_top.material = _top_armour_mat if use_armour else _top_beam_mat
+		_bot.material = _bot_armour_mat if use_armour else _bot_beam_mat
 		show_nodes()
 		await _slide_in()
 		await _flash()
@@ -148,24 +156,28 @@ class BeamTransition extends BaseTransition:
 		_screen_flash.color = _cfg.flash_color
 		_owner.add_child(_screen_flash)
 
+		# Build both panel material variants upfront — swapped at play() time
+		_top_beam_mat        = ShaderMaterial.new()
+		_top_beam_mat.shader = _shader_panel_beam(false)
+		_bot_beam_mat        = ShaderMaterial.new()
+		_bot_beam_mat.shader = _shader_panel_beam(true)
+		_top_armour_mat        = ShaderMaterial.new()
+		_top_armour_mat.shader = _shader_panel_armour(false)
+		_bot_armour_mat        = ShaderMaterial.new()
+		_bot_armour_mat.shader = _shader_panel_armour(true)
+
 		_top          = ColorRect.new()
 		_top.name     = "BeamPanelTop"
 		_top.size     = Vector2(_W, _H * 0.5 + 8)
 		_top.position = Vector2(0, -_H * 0.5 - 8)
-		_top.color    = _cfg.panel_color
-		var top_mat   = ShaderMaterial.new()
-		top_mat.shader = _shader_panel(false)
-		_top.material  = top_mat
+		_top.material = _top_beam_mat
 		_owner.add_child(_top)
 
 		_bot          = ColorRect.new()
 		_bot.name     = "BeamPanelBot"
 		_bot.size     = Vector2(_W, _H * 0.5 + 8)
 		_bot.position = Vector2(0, _H)
-		_bot.color    = _cfg.panel_color
-		var bot_mat   = ShaderMaterial.new()
-		bot_mat.shader = _shader_panel(true)
-		_bot.material  = bot_mat
+		_bot.material = _bot_beam_mat
 		_owner.add_child(_bot)
 
 		var glow_h          := 120.0
@@ -193,7 +205,9 @@ class BeamTransition extends BaseTransition:
 		_owner.add_child(_beam_core)
 
 	# ── Shaders ───────────────────────────────────────────────────────────────
-	static func _shader_panel(flip: bool) -> Shader:
+
+	## Original dark slate panels with purple seam glow
+	static func _shader_panel_beam(flip: bool) -> Shader:
 		var s := Shader.new()
 		s.code = """
 shader_type canvas_item;
@@ -206,6 +220,60 @@ void fragment() {
 	col += vec3(0.42, 0.02, 0.68) * pow(seam_uv, 3.5);
 	col -= step(0.997, mod(UV.x * 4.0, 1.0)) * 0.035 + scan;
 	float cx = smoothstep(0.0, 0.025, UV.x) * smoothstep(1.0, 0.975, UV.x);
+	COLOR = vec4(col * cx, 1.0);
+}
+""" % ("UV.y" if flip else "1.0 - UV.y")
+		return s
+
+	## Gunmetal blast shield panels with rivets, spine ridge, and corner brackets
+	static func _shader_panel_armour(flip: bool) -> Shader:
+		var s := Shader.new()
+		s.code = """
+shader_type canvas_item;
+void fragment() {
+	float seam_uv = %s;
+	vec2  uv      = UV;
+
+	// Hard left/right edge vignette
+	float cx = smoothstep(0.0, 0.008, uv.x) * smoothstep(1.0, 0.992, uv.x);
+
+	// Chamfered corners on inner (seam) edge
+	float corner = smoothstep(0.06, 0.0, uv.x) + smoothstep(0.94, 1.0, uv.x);
+	if (seam_uv > 1.0 - corner * 0.04) discard;
+
+	// Base gunmetal colour
+	vec3 col = vec3(0.110, 0.110, 0.115);
+
+	// Gradient: darker at outer edge, lighter toward seam
+	col += vec3(0.018) * seam_uv;
+	col -= vec3(0.025) * (1.0 - seam_uv);
+
+	// Horizontal blast shield bands
+	col -= step(0.96, mod(uv.y * 5.0, 1.0)) * 0.022;
+	col -= mod(floor(uv.y * 5.0), 2.0) * 0.007;
+
+	// Rivet dots — two vertical columns
+	float bolt_y = mod(uv.y * 10.0, 1.0);
+	float bolt   = (step(abs(uv.x - 0.15), 0.006) + step(abs(uv.x - 0.85), 0.006))
+				 * step(0.44, bolt_y) * step(bolt_y, 0.56);
+	col += bolt * 0.12;
+
+	// Centre spine ridge
+	col += exp(-pow((uv.x - 0.5) / 0.06,  2.0)) * 0.030;
+	col += exp(-pow((uv.x - 0.5) / 0.008, 2.0)) * 0.055;
+
+	// Corner bracket hardware
+	float br_x = min(uv.x, 1.0 - uv.x);
+	float br_y = 1.0 - seam_uv;
+	col += step(br_x, 0.04) * step(br_y, 0.06)  * 0.055;
+	col += step(br_x, 0.04) * step(br_y, 0.004) * 0.040;
+
+	// Diagonal scanlines (very faint)
+	col -= step(0.82, mod((uv.x - uv.y) * 38.0, 1.0)) * 0.008;
+
+	// Purple seam glow — tight at inner edge only
+	col += vec3(0.30, 0.0, 0.50) * pow(seam_uv, 6.0) * 0.70;
+
 	COLOR = vec4(col * cx, 1.0);
 }
 """ % ("UV.y" if flip else "1.0 - UV.y")
@@ -390,8 +458,9 @@ func _ready() -> void:
 	#   2. Create a new XxxTransition inner class.
 	#   3. Instantiate it here and add it to _registry.
 	_registry = {
-		Type.BEAM : _beam,
-		Type.FADE : _fade,
+		Type.BEAM   : _beam,
+		Type.FADE   : _fade,
+		Type.ARMOUR : _beam,   # reuses BeamTransition — material swap happens inside play()
 	}
 
 	_hide_all()
@@ -405,8 +474,12 @@ func transition_to(scene_path: String, type: Type = Type.BEAM) -> void:
 	if _transitioning:
 		return
 	_transitioning = true
-	var effect : BaseTransition = _registry.get(type, _beam)
-	await effect.play(scene_path)
+	match type:
+		Type.ARMOUR:
+			await _beam.play(scene_path, true)
+		_:
+			var effect : BaseTransition = _registry.get(type, _beam)
+			await effect.play(scene_path)
 	_transitioning = false
 	emit_signal("transition_finished")
 

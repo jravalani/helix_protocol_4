@@ -236,20 +236,4 @@ func glitch_color_shift():
 
 
 func _on_launch_pressed() -> void:
-	AudioManager.play_ui("button_heavy")
-	SceneTransition.transition_to("res://Scenes/main.tscn", SceneTransition.Type.BEAM)
-
-
-func _on_options_pressed() -> void:
-	AudioManager.play_ui("button_click")
-
-
-# Audio ambience functions
-func start_random_timer():
-	thump_timer.wait_time = randf_range(12.0, 20.0)
-	thump_timer.start()
-
-
-func _on_thump_timer_timeout():
-	thump_sound.play()
-	start_random_timer()
+	SceneTransition.transition_to("res://Scenes/main.tscn", SceneTransition.Type.ARMOUR)
