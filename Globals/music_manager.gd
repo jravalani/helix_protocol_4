@@ -70,17 +70,18 @@ func play_game_music() -> void:
 
 
 func play_win_music() -> void:
+	_play_once(MusicStage.OPTIMISTIC)
 	_is_in_game = false
 	AudioManager.stop_ambient(AudioManager.AMBIENT_PRESSURE)
 	AudioManager.stop_ambient(AudioManager.AMBIENT_FRACTURE)
 	AudioManager.stop_ambient(AudioManager.AMBIENT_PACKETS_A)
 	AudioManager.stop_ambient(AudioManager.AMBIENT_PACKETS_B)
-	AudioManager.stop_ambient(AudioManager.AMBIENT_PACKETS_C)
+	#AudioManager.stop_ambient(AudioManager.AMBIENT_PACKETS_C)
 	AudioManager.stop_ambient(AudioManager.AMBIENT_VENT_A)
 	AudioManager.stop_ambient(AudioManager.AMBIENT_VENT_B)
 	AudioManager.stop_ambient(AudioManager.AMBIENT_HUB_A)
 	AudioManager.stop_ambient(AudioManager.AMBIENT_HUB_B)
-	_play_once(MusicStage.OPTIMISTIC)
+
 
 
 func stop_music(fade_time: float = 2.0) -> void:
@@ -152,9 +153,9 @@ func _update_pressure_ambient() -> void:
 	AudioManager.set_ambient_volume(AudioManager.AMBIENT_PRESSURE, vol)
 
 	var count = GameData.active_packet_count
-	AudioManager.set_ambient_volume(AudioManager.AMBIENT_PACKETS_A, clampf(count / 5.0,           0.001, 1.0))
-	AudioManager.set_ambient_volume(AudioManager.AMBIENT_PACKETS_B, clampf((count - 5.0) / 10.0,  0.001, 1.0))
-	AudioManager.set_ambient_volume(AudioManager.AMBIENT_PACKETS_C, clampf((count - 15.0) / 15.0, 0.001, 1.0))
+	AudioManager.set_ambient_volume(AudioManager.AMBIENT_PACKETS_A, clampf(count / 5.0,            0.001, 0.6))
+	AudioManager.set_ambient_volume(AudioManager.AMBIENT_PACKETS_B, clampf((count - 5.0) / 10.0,  0.001, 0.5))
+	AudioManager.set_ambient_volume(AudioManager.AMBIENT_PACKETS_C, clampf((count - 15.0) / 15.0, 0.001, 0.4))
 
 	var vents = float(GameData.current_vent_count)
 	AudioManager.set_ambient_volume(AudioManager.AMBIENT_VENT_A, clampf(vents / 5.0,          0.001, 1.0))

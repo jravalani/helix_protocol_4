@@ -49,7 +49,7 @@ func _physics_process(delta: float) -> void:
 	fan.rotation += fan_rotation_speed * delta
 
 func _ready():
-	AudioManager.play_sfx("build_vent", 0.7, 5.0)
+	AudioManager.play_sfx("build_vent", 0.4, 5.0)
 	left_cloud.restart()
 	right_cloud.restart()
 	SignalBus.camera_shake.emit(0.25, 4.0)

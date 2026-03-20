@@ -49,7 +49,7 @@ func _ready() -> void:
 
 #region Public API
 
-func play_sfx(key: String, pitch: float = 1.0, volume_db: float = 0.0) -> void:
+func play_sfx(key: String, pitch: float = 1.0, volume_db: float = 0.0, bus: String = BUS_SFX) -> void:
 	var stream = _sfx_sounds.get(key)
 	if stream == null:
 		return
@@ -59,7 +59,7 @@ func play_sfx(key: String, pitch: float = 1.0, volume_db: float = 0.0) -> void:
 	player.stream      = stream
 	player.pitch_scale = pitch
 	player.volume_db   = volume_db
-	player.bus         = BUS_SFX
+	player.bus         = bus
 	player.play()
 
 
@@ -158,6 +158,7 @@ func _on_notify_player(_message: String, type: int) -> void:
 
 func _register_sounds() -> void:
 	_sfx_sounds = {
+		"click_a"               : load("res://Audio/sfx/bass_thum_short.ogg"),
 		"build_hub"             : load("res://Audio/sfx/build.wav"),
 		"build_vent"            : load("res://Audio/sfx/build.wav"),
 		"build_pipe"            : load("res://Audio/sfx/socket_connect.ogg"),
@@ -204,9 +205,9 @@ func _register_sounds() -> void:
 		AMBIENT_PRESSURE  : null,
 		AMBIENT_FACILITY  : null,
 		AMBIENT_FRACTURE  : null,
-		AMBIENT_PACKETS_A : load("res://Audio/sfx/packetwhoosh.ogg"),
-		AMBIENT_PACKETS_B : load("res://Audio/sfx/packetwhoosh.ogg"),
-		AMBIENT_PACKETS_C : load("res://Audio/sfx/packetwhoosh.ogg"),
+		AMBIENT_PACKETS_A : load("res://Audio/sfx/harmonic_hum.ogg"),
+		AMBIENT_PACKETS_B : load("res://Audio/sfx/harmonic_hum.ogg"),
+		AMBIENT_PACKETS_C : load("res://Audio/sfx/harmonic_hum.ogg"),
 		AMBIENT_VENT_A    : load("res://Audio/sfx/vent_hiss.ogg"),
 		AMBIENT_VENT_B    : load("res://Audio/sfx/vent_hiss.ogg"),
 		AMBIENT_HUB_A     : load("res://Audio/sfx/hub_bleeps.ogg"),
@@ -220,9 +221,9 @@ func _register_sounds() -> void:
 		if stream != null and slot < _ambient_pool.size():
 			_ambient_pool[slot].stream = stream
 
-	_ambient_pool[AMBIENT_PACKETS_A].pitch_scale = 0.6
-	_ambient_pool[AMBIENT_PACKETS_B].pitch_scale = 0.7
-	_ambient_pool[AMBIENT_PACKETS_C].pitch_scale = 0.8
+	_ambient_pool[AMBIENT_PACKETS_A].pitch_scale = 0.3
+	_ambient_pool[AMBIENT_PACKETS_B].pitch_scale = 0.4
+	_ambient_pool[AMBIENT_PACKETS_C].pitch_scale = 0.5
 	_ambient_pool[AMBIENT_PACKETS_A].volume_db   = -80.0
 	_ambient_pool[AMBIENT_PACKETS_B].volume_db   = -80.0
 	_ambient_pool[AMBIENT_PACKETS_C].volume_db   = -80.0
