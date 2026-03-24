@@ -31,6 +31,7 @@ SignalBus="*uid://me1qrsn08x06"
 NotificationManager="*res://Scenes/notification_manager.tscn"
 TooltipManager="*res://Scenes/tooltip_manager.tscn"
 SceneTransition="*uid://bkriwlrpvhsqb"
+WinSceneData="*uid://cf3fm423fepum"
 
 [display]
 
