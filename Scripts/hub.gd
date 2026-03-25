@@ -42,7 +42,8 @@ var _popup_tween: Tween = null
 # ════════════════════════════════════════════════════════════════
 
 func _ready() -> void:
-	AudioManager.play_sfx("build_hub", 0.3, 5.0)
+	if not SaveManager.is_loading:
+		AudioManager.play_sfx("build_hub", 0.3, 5.0)
 	left_cloud.restart()
 	right_cloud.restart()
 
@@ -56,8 +57,9 @@ func _ready() -> void:
 	repair_button.pressed.connect(_on_repair_button_pressed)
 	upgrade_button.pressed.connect(_on_upgrade_button_pressed)
 
-	SignalBus.camera_shake.emit(0.50, 6.0)
-	SignalBus.building_spawned.emit(entrance_cell, Vector2i(-99, -99))
+	if not SaveManager.is_loading:
+		SignalBus.camera_shake.emit(0.50, 6.0)
+		SignalBus.building_spawned.emit(entrance_cell, Vector2i(-99, -99))
 	SignalBus.check_fractures.connect(on_check_fracture)
 
 func _process(delta: float) -> void:

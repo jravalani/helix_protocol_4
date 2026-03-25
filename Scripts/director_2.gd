@@ -71,12 +71,18 @@ func _ready() -> void:
 	await get_tree().process_frame
 	screen_center = camera_2d.get_screen_center_position()
 	get_camera_bounds()
-	spawn_rocket()
-	spawn_initial_colony()
-	NotificationManager.notify("Colony initialised. Map size: " + str(GameData.current_map_size), NotificationManager.Type.INFO)
+
 	SignalBus.rocket_segment_purchased.connect(_on_rocket_segment_purchased)
 	SignalBus.spawn_hub_requested.connect(request_hub_spawn)
 	SignalBus.spawn_vent_requested.connect(request_vent_spawn)
+
+	if SaveManager.is_loading:
+		SaveManager.restore_game(self)
+	else:
+		GameData.reset_to_defaults()
+		spawn_rocket()
+		spawn_initial_colony()
+		NotificationManager.notify("Colony initialised. Map size: " + str(GameData.current_map_size), NotificationManager.Type.INFO)
 
 func _on_rocket_segment_purchased(phase: int) -> void:
 

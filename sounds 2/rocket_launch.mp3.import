@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://gbflfh3vehk2"
+path="res://.godot/imported/rocket_launch.mp3-0079aa7ee66bbbe4f52819d6e56579f0.mp3str"
+
+[deps]
+
+source_file="res://sounds 2/rocket_launch.mp3"
+dest_files=["res://.godot/imported/rocket_launch.mp3-0079aa7ee66bbbe4f52819d6e56579f0.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
