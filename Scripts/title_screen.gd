@@ -7,6 +7,12 @@ extends Control
 @onready var launch_button: Button = $MarginContainer2/HBoxContainer/Launch
 @onready var abort_button: Button = $MarginContainer2/HBoxContainer/Abort
 
+# Save/Load buttons (created dynamically)
+var resume_button: Button
+var erase_button: Button
+var confirm_overlay: ColorRect
+var button_scene: PackedScene = preload("res://Scenes/button.tscn")
+
 @onready var online_status: Label = $OnlineStatus
 @onready var online_status_rect: ColorRect = $OnlineStatusColorRect
 
@@ -38,12 +44,18 @@ func _ready():
 	original_title_position = title_label.position
 	original_launchpad_position = launchpad.position
 	original_launchpad_shadow_position = launchpad_shadow.position
-	
+
+	# Rename Launch to Boot Colony
+	launch_button.text = "Boot Colony"
+
+	# Create save/load buttons
+	_create_save_buttons()
+
 	# Hide elements initially
 	launchpad.modulate.a = 0.0
 	launchpad_shadow.modulate.a = 0.0
 	title_label.modulate.a = 0.0
-	
+
 	# Hide buttons initially
 	options_button.modulate.a = 0.0
 	launch_button.modulate.a = 0.0
@@ -147,15 +159,19 @@ func reveal_ui():
 	drone_hum.play()
 	electric_hum.play()
 	#start_random_timer()
-	
+
 	var tween = create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(options_button, "modulate:a", 1.0, 0.5)
 	tween.tween_property(launch_button, "modulate:a", 1.0, 0.5)
 	tween.tween_property(abort_button, "modulate:a", 1.0, 0.5)
+	if resume_button:
+		tween.tween_property(resume_button, "modulate:a", 1.0, 0.5)
+	if erase_button:
+		tween.tween_property(erase_button, "modulate:a", 1.0, 0.5)
 	tween.tween_property(online_status, "modulate:a", 1.0, 0.5)
 	tween.tween_property(online_status_rect, "modulate:a", 1.0, 0.5)
-	
+
 	await tween.finished   # <-- wait for fade-in to complete
 	beep.play()
 	ui_ready = true
@@ -242,3 +258,117 @@ func _on_launch_pressed() -> void:
 
 func _on_options_pressed() -> void:
 	AudioManager.play_sfx("upgrade", 1.0, -5.0)
+
+
+# ═══════════════════════════════════════════════════════════════
+# SAVE / LOAD UI
+# ═══════════════════════════════════════════════════════════════
+
+func _create_save_buttons() -> void:
+	var hbox = $MarginContainer2/HBoxContainer
+
+	# Only show save-related buttons if a save exists
+	if not SaveManager.has_save():
+		return
+
+	# Resume Mission button
+	resume_button = button_scene.instantiate()
+	resume_button.text = "Resume"
+	resume_button.custom_minimum_size = Vector2(200, 0)
+	resume_button.add_theme_font_size_override("font_size", 32)
+	resume_button.modulate.a = 0.0
+	resume_button.pressed.connect(_on_resume_pressed)
+	hbox.add_child(resume_button)
+	hbox.move_child(resume_button, launch_button.get_index() + 1)
+
+	# Erase Log button
+	erase_button = button_scene.instantiate()
+	erase_button.text = "Erase Log"
+	erase_button.custom_minimum_size = Vector2(200, 0)
+	erase_button.add_theme_font_size_override("font_size", 32)
+	erase_button.modulate.a = 0.0
+	erase_button.pressed.connect(_on_erase_pressed)
+	hbox.add_child(erase_button)
+	hbox.move_child(erase_button, resume_button.get_index() + 1)
+
+
+func _on_resume_pressed() -> void:
+	AudioManager.play_ui("button_heavy")
+	SaveManager.load_game()
+
+
+func _on_erase_pressed() -> void:
+	AudioManager.play_sfx("upgrade", 1.0, -5.0)
+	_show_erase_confirm()
+
+
+func _show_erase_confirm() -> void:
+	# Fullscreen semi-transparent overlay
+	confirm_overlay = ColorRect.new()
+	confirm_overlay.color = Color(0.04, 0.06, 0.08, 0.85)
+	confirm_overlay.size = get_viewport_rect().size
+	confirm_overlay.position = Vector2.ZERO
+	add_child(confirm_overlay)
+
+	# Warning label
+	var label = Label.new()
+	label.text = "PURGE SAVE DATA?\nTHIS CANNOT BE UNDONE"
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 28)
+	label.add_theme_color_override("font_color", Color("ff4444"))
+	var font = load("res://Assets/Fonts/JetBrainsMonoNL-SemiBold.ttf")
+	if font:
+		label.add_theme_font_override("font", font)
+	label.position = Vector2(get_viewport_rect().size.x / 2 - 250, get_viewport_rect().size.y / 2 - 80)
+	label.size = Vector2(500, 80)
+	confirm_overlay.add_child(label)
+
+	# Confirm button
+	var confirm_btn = button_scene.instantiate()
+	confirm_btn.text = "Confirm"
+	confirm_btn.custom_minimum_size = Vector2(180, 0)
+	confirm_btn.add_theme_font_size_override("font_size", 28)
+	confirm_btn.position = Vector2(get_viewport_rect().size.x / 2 - 200, get_viewport_rect().size.y / 2 + 20)
+	confirm_btn.pressed.connect(_on_erase_confirmed)
+	confirm_overlay.add_child(confirm_btn)
+
+	# Abort button
+	var abort_btn = button_scene.instantiate()
+	abort_btn.text = "Abort"
+	abort_btn.custom_minimum_size = Vector2(180, 0)
+	abort_btn.add_theme_font_size_override("font_size", 28)
+	abort_btn.position = Vector2(get_viewport_rect().size.x / 2 + 20, get_viewport_rect().size.y / 2 + 20)
+	abort_btn.pressed.connect(_on_erase_cancelled)
+	confirm_overlay.add_child(abort_btn)
+
+	# Fade in
+	confirm_overlay.modulate.a = 0.0
+	var tw = create_tween()
+	tw.tween_property(confirm_overlay, "modulate:a", 1.0, 0.2)
+
+
+func _on_erase_confirmed() -> void:
+	SaveManager.delete_save()
+	AudioManager.play_sfx("upgrade", 1.0, -5.0)
+	_close_confirm()
+	# Remove the save buttons since save no longer exists
+	if resume_button:
+		resume_button.queue_free()
+		resume_button = null
+	if erase_button:
+		erase_button.queue_free()
+		erase_button = null
+
+
+func _on_erase_cancelled() -> void:
+	AudioManager.play_ui("button_click")
+	_close_confirm()
+
+
+func _close_confirm() -> void:
+	if confirm_overlay:
+		var tw = create_tween()
+		tw.tween_property(confirm_overlay, "modulate:a", 0.0, 0.15)
+		await tw.finished
+		confirm_overlay.queue_free()
+		confirm_overlay = null

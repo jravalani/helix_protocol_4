@@ -4,6 +4,12 @@ extends Control
 @onready var data_label: Label = $MarginContainer/ParentHbox/HBoxContainer3/DataLabel
 @onready var reserve_label: Label = $MarginContainer/ParentHbox/HBoxContainer3/AutoReserve
 @onready var pressure_label: Label = $MarginContainer/ParentHbox/HBoxContainer/Pressure
+
+# Save button
+var save_button: Button
+var _save_feedback_label: Label
+var _button_font: Font = preload("res://Assets/Fonts/JetBrainsMonoNL-SemiBold.ttf")
+
 # Current displayed values (what the user sees)
 var displayed_pipe: float = 0.0
 var displayed_data: float = 0.0
@@ -31,7 +37,8 @@ var reserve_timer: float = 0.0
 
 func _ready() -> void:
 	ResourceManager.resources_updated.connect(_on_resources_updated)
-	
+	_create_save_button()
+
 	# Initialize to current game state
 	displayed_pipe = float(GameData.current_pipe_count)
 	target_pipe = GameData.current_pipe_count
@@ -136,3 +143,78 @@ func _on_resources_updated(tiles: int, score: int, reserve: int):
 	target_pipe = tiles
 	target_data = score
 	target_reserve = reserve
+
+
+# ═══════════════════════════════════════════════════════════════
+# UPLINK (Save) Button
+# ═══════════════════════════════════════════════════════════════
+
+func _create_save_button() -> void:
+	# Create a styled save button anchored to the top-right
+	save_button = Button.new()
+	save_button.text = "UPLINK"
+	save_button.custom_minimum_size = Vector2(120, 36)
+
+	# Style it as a small industrial panel chip
+	var normal_style = StyleBoxFlat.new()
+	normal_style.bg_color = Color(0.06, 0.08, 0.10, 0.9)
+	normal_style.border_width_left = 2
+	normal_style.border_width_top = 2
+	normal_style.border_width_right = 2
+	normal_style.border_width_bottom = 2
+	normal_style.border_color = Color("4a5568")
+	normal_style.content_margin_left = 8
+	normal_style.content_margin_right = 8
+	normal_style.content_margin_top = 4
+	normal_style.content_margin_bottom = 4
+
+	var hover_style = normal_style.duplicate()
+	hover_style.border_color = Color("ff00ff")
+
+	var pressed_style = normal_style.duplicate()
+	pressed_style.border_color = Color("00ff88")
+
+	save_button.add_theme_stylebox_override("normal", normal_style)
+	save_button.add_theme_stylebox_override("hover", hover_style)
+	save_button.add_theme_stylebox_override("pressed", pressed_style)
+	if _button_font:
+		save_button.add_theme_font_override("font", _button_font)
+	save_button.add_theme_font_size_override("font_size", 18)
+	save_button.add_theme_color_override("font_color", Color("c8ff00"))
+	save_button.add_theme_color_override("font_hover_color", Color("ffaa00"))
+
+	# Position near center-right of the top bar
+	save_button.layout_mode = 1
+	save_button.anchors_preset = Control.PRESET_CENTER_TOP
+	save_button.position = Vector2(600, 14)
+
+	save_button.pressed.connect(_on_save_pressed)
+	add_child(save_button)
+
+
+func _on_save_pressed() -> void:
+	AudioManager.play_sfx("upgrade", 1.0, -5.0)
+	var success = SaveManager.save_game()
+	if success:
+		_show_save_feedback("STATE ARCHIVED", Color("c8ff00"))
+	else:
+		_show_save_feedback("UPLINK FAILURE", Color("ff4444"))
+
+
+func _show_save_feedback(text: String, color: Color) -> void:
+	if _save_feedback_label and is_instance_valid(_save_feedback_label):
+		_save_feedback_label.queue_free()
+
+	_save_feedback_label = Label.new()
+	_save_feedback_label.text = text
+	_save_feedback_label.add_theme_color_override("font_color", color)
+	if _button_font:
+		_save_feedback_label.add_theme_font_override("font", _button_font)
+	_save_feedback_label.add_theme_font_size_override("font_size", 20)
+	_save_feedback_label.position = Vector2(save_button.position.x - 40, save_button.position.y + 44)
+	add_child(_save_feedback_label)
+
+	var tw = create_tween()
+	tw.tween_interval(1.0)
+	tw.tween_property(_save_feedback_label, "modulate:a", 0.0, 0.5)
+	tw.tween_callback(_save_feedback_label.queue_free)

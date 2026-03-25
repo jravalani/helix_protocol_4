@@ -186,6 +186,69 @@ func _ready() -> void:
 	randomize()
 
 
+func reset_to_defaults() -> void:
+	# Map / Stage
+	current_stage = 0
+	current_map_size = Rect2i(-10, -6, 20, 12)
+	rocket_cell = Vector2i(0, 0)
+
+	# Building counts & costs
+	current_hub_count = 0
+	current_vent_count = 0
+	current_pipe_count = 50
+	current_hub_spawn_cost = HUB_SPAWN_BASE_COST
+	current_vent_spawn_cost = VENT_SPAWN_BASE_COST
+
+	# Upgrades
+	current_pipe_upgrade_level = 0
+	current_hull_shield_level = 1
+	hull_schield_integrity = 100.0
+	current_rocket_phase = 0
+
+	# Pressure
+	current_pressure = 0.0
+	current_pressure_phase = 0
+	fracture_wave_active = false
+	wave_warning_enabled = false
+	global_vent_interval_multiplier = 1.0
+	rocket_fracture_reduction = 0.0
+	hub_rate_window = 60.0
+	pressure_rate_multiplier = 1.0
+
+	# Economy
+	total_data = 0
+	lifetime_data_earned = 0
+	previous_threshold = 0
+	score_to_next_reward = 30
+
+	# Zone reinforcement
+	current_reinforced_zone = -1
+	reinforcement_version = 0
+	active_reinforcement_timer = null
+
+	# Auto repair
+	auto_repair_enabled = false
+	data_reserve_for_auto_repairs = 0
+
+	# Grids
+	road_grid.clear()
+	fractured_pipes.clear()
+	building_grid.clear()
+	road_connections.clear()
+	influence_grid.clear()
+	astar = AStar2D.new()
+
+	# Metrics
+	total_hub_backlog = 0
+	total_backlog = 0
+	average_vent_utilization = 0.0
+	active_packet_count = 0
+	metric_timer = 0.0
+
+	# Input
+	input_consumed = false
+
+
 func _process(delta: float) -> void:
 	metric_timer += delta
 	if metric_timer >= 1.0:
