@@ -170,6 +170,32 @@ func _try_send_packet() -> void:
 	_hub_cooldowns[best_hub.get_instance_id()] = HUB_COOLDOWN
 	_spawn_packet(best_hub)
 
+# ════════════════════════════════════════════════════════════════
+#region Save / Restore
+# ════════════════════════════════════════════════════════════════
+
+func get_save_data() -> Dictionary:
+	return {
+		"position":                 SaveManager.vec2_to_array(position),
+		"rotation":                 rotation,
+		"entrance_cell":            SaveManager.vec2i_to_key(entrance_cell),
+		"send_interval":            send_interval,
+		"driveway_marker_rotation": driveway_marker.rotation_degrees,
+		"is_bursting":              _is_bursting,
+		"burst_timer":              _burst_timer,
+	}
+
+
+func restore_from_data(d: Dictionary) -> void:
+	driveway_marker.rotation_degrees = float(d["driveway_marker_rotation"])
+	send_interval    = float(d["send_interval"])
+	_is_bursting     = bool(d["is_bursting"])
+	_burst_timer     = float(d["burst_timer"])
+	current_capacity = 0
+
+#endregion
+
+
 func get_driveway_direction() -> Vector2i:
 	var rotated := DRIVEWAY_OFFSET.rotated(deg_to_rad(driveway_marker.rotation_degrees))
 	return Vector2i(round(rotated.normalized().x), round(rotated.normalized().y))

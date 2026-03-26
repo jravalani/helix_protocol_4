@@ -473,6 +473,133 @@ func get_hull_shield_multiplier() -> float:
 
 #endregion
 
+#region Persistence
+
+func serialize() -> Dictionary:
+	return {
+		"current_stage": current_stage,
+		"current_map_size": SaveManager.rect2i_to_dict(current_map_size),
+		"current_hub_count": current_hub_count,
+		"current_vent_count": current_vent_count,
+		"current_pipe_count": current_pipe_count,
+		"current_hub_spawn_cost": current_hub_spawn_cost,
+		"current_vent_spawn_cost": current_vent_spawn_cost,
+		"current_pipe_upgrade_level": current_pipe_upgrade_level,
+		"current_hull_shield_level": current_hull_shield_level,
+		"hull_schield_integrity": hull_schield_integrity,
+		"current_pressure": current_pressure,
+		"current_pressure_phase": current_pressure_phase,
+		"fracture_wave_active": fracture_wave_active,
+		"wave_warning_enabled": wave_warning_enabled,
+		"global_vent_interval_multiplier": global_vent_interval_multiplier,
+		"rocket_fracture_reduction": rocket_fracture_reduction,
+		"hub_rate_window": hub_rate_window,
+		"pressure_rate_multiplier": pressure_rate_multiplier,
+		"total_data": total_data,
+		"lifetime_data_earned": lifetime_data_earned,
+		"previous_threshold": previous_threshold,
+		"score_to_next_reward": score_to_next_reward,
+		"current_rocket_phase": current_rocket_phase,
+		"rocket_cell": SaveManager.vec2i_to_key(rocket_cell),
+		"auto_repair_enabled": auto_repair_enabled,
+		"data_reserve_for_auto_repairs": data_reserve_for_auto_repairs,
+		"current_reinforced_zone": current_reinforced_zone,
+		"reinforcement_version": reinforcement_version,
+	}
+
+
+func deserialize(d: Dictionary) -> void:
+	current_stage                    = int(d["current_stage"])
+	current_map_size                 = SaveManager.dict_to_rect2i(d["current_map_size"])
+	current_hub_count                = int(d["current_hub_count"])
+	current_vent_count               = int(d["current_vent_count"])
+	current_pipe_count               = int(d["current_pipe_count"])
+	current_hub_spawn_cost           = int(d["current_hub_spawn_cost"])
+	current_vent_spawn_cost          = int(d["current_vent_spawn_cost"])
+	current_pipe_upgrade_level       = int(d["current_pipe_upgrade_level"])
+	current_hull_shield_level        = int(d["current_hull_shield_level"])
+	hull_schield_integrity           = float(d["hull_schield_integrity"])
+	current_pressure                 = float(d["current_pressure"])
+	current_pressure_phase           = int(d["current_pressure_phase"])
+	fracture_wave_active             = bool(d["fracture_wave_active"])
+	wave_warning_enabled             = bool(d["wave_warning_enabled"])
+	global_vent_interval_multiplier  = float(d["global_vent_interval_multiplier"])
+	rocket_fracture_reduction        = float(d["rocket_fracture_reduction"])
+	hub_rate_window                  = float(d["hub_rate_window"])
+	pressure_rate_multiplier         = float(d["pressure_rate_multiplier"])
+	total_data                       = int(d["total_data"])
+	lifetime_data_earned             = int(d["lifetime_data_earned"])
+	previous_threshold               = int(d["previous_threshold"])
+	score_to_next_reward             = int(d["score_to_next_reward"])
+	current_rocket_phase             = int(d["current_rocket_phase"])
+	rocket_cell                      = SaveManager.key_to_vec2i(d["rocket_cell"])
+	auto_repair_enabled              = bool(d["auto_repair_enabled"])
+	data_reserve_for_auto_repairs    = int(d["data_reserve_for_auto_repairs"])
+	current_reinforced_zone          = int(d["current_reinforced_zone"])
+	reinforcement_version            = int(d["reinforcement_version"])
+
+
+func rebuild_astar() -> void:
+	astar = AStar2D.new()
+
+	var seen := {}
+	for cell in building_grid:
+		var building = building_grid[cell]
+		if not is_instance_valid(building):
+			continue
+		var bid = building.get_instance_id()
+		if seen.has(bid):
+			continue
+		seen[bid] = true
+		add_navigation_point(building.entrance_cell)
+
+	for cell in road_grid:
+		add_navigation_point(cell)
+
+	for cell in road_grid:
+		var pipe = road_grid[cell]
+		if not pipe is NewRoadTile:
+			continue
+		for dir in pipe.manual_connections:
+			var neighbor_cell = cell + dir
+			var id_a = get_cell_id(cell)
+			var id_b = get_cell_id(neighbor_cell)
+			if astar.has_point(id_a) and astar.has_point(id_b):
+				if not astar.are_points_connected(id_a, id_b):
+					astar.connect_points(id_a, id_b)
+
+	for cell in fractured_pipes:
+		var cell_hash = get_cell_id(cell)
+		if astar.has_point(cell_hash):
+			astar.set_point_disabled(cell_hash, true)
+
+
+func rebuild_influence() -> void:
+	influence_grid.clear()
+	apply_influence(rocket_cell, "rocket")
+
+	var seen := {}
+	for cell in building_grid:
+		var building = building_grid[cell]
+		if not is_instance_valid(building):
+			continue
+		var bid = building.get_instance_id()
+		if seen.has(bid):
+			continue
+		seen[bid] = true
+		if building is Hub:
+			var tile = Vector2i(
+				floor(building.position.x / CELL_SIZE.x),
+				floor(building.position.y / CELL_SIZE.y)
+			)
+			apply_influence(tile + Vector2i(1, 1), "hub")
+
+	for cell in road_grid:
+		apply_influence(cell, "road")
+
+#endregion
+
+
 #region Zone
 
 func get_zone_for_cell(cell: Vector2i) -> Zone:

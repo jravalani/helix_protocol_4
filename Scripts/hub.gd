@@ -280,3 +280,38 @@ func repair() -> void:
 	smoke_particle_effect2.restart()
 
 #endregion
+
+
+# ════════════════════════════════════════════════════════════════
+#region Save / Restore
+# ════════════════════════════════════════════════════════════════
+
+func get_save_data() -> Dictionary:
+	return {
+		"position":           SaveManager.vec2_to_array(position),
+		"rotation":           rotation,
+		"entrance_cell":      SaveManager.vec2i_to_key(entrance_cell),
+		"upgrade_level":      upgrade_level,
+		"is_fractured":       is_fractured,
+		"oxygen_backlog":     oxygen_backlog,
+		"packets_this_window": packets_this_window,
+		"window_timer":       window_timer,
+		"is_rate_limited":    is_rate_limited,
+	}
+
+
+func restore_from_data(d: Dictionary) -> void:
+	upgrade_level       = int(d["upgrade_level"])
+	oxygen_backlog      = int(d["oxygen_backlog"])
+	packets_this_window = int(d["packets_this_window"])
+	window_timer        = float(d["window_timer"])
+	is_rate_limited     = bool(d["is_rate_limited"])
+
+	if bool(d["is_fractured"]):
+		is_fractured                    = true
+		smoke_particle_effect1.emitting = false
+		smoke_particle_effect2.emitting = false
+		modulate                        = Color("1a0a1f")
+		_start_dead_pulse()
+
+#endregion
