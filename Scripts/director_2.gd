@@ -63,16 +63,26 @@ var increment: float = 0.0
 
 ## Hull shield degradation
 var degradation_rate: float = 0.0
+
+
+const RING_RADII: Array = [6, 6, 8, 8, 11, 11, 14, 14]
+
 func _ready() -> void:
 	await get_tree().process_frame
 	screen_center = camera_2d.get_screen_center_position()
 	get_camera_bounds()
-	spawn_rocket()
-	spawn_initial_colony()
-	NotificationManager.notify("Colony initialised. Map size: " + str(GameData.current_map_size), NotificationManager.Type.INFO)
+
 	SignalBus.rocket_segment_purchased.connect(_on_rocket_segment_purchased)
 	SignalBus.spawn_hub_requested.connect(request_hub_spawn)
 	SignalBus.spawn_vent_requested.connect(request_vent_spawn)
+
+	if SaveManager.is_loading:
+		SaveManager.restore_game(self)
+	else:
+		GameData.reset_to_defaults()
+		spawn_rocket()
+		spawn_initial_colony()
+		NotificationManager.notify("Colony initialised. Map size: " + str(GameData.current_map_size), NotificationManager.Type.INFO)
 
 func _on_rocket_segment_purchased(phase: int) -> void:
 
@@ -111,6 +121,10 @@ func apply_segment_effects(phase: int) -> void:
 	if data.has("pressure_rate_reduction"):
 		GameData.pressure_rate_multiplier *= (1.0 - data["pressure_rate_reduction"])
 		NotificationManager.notify("Planetary pressure rate reduced.", NotificationManager.Type.INFO, "PRESSURE REGULATOR")
+	
+	if data.has("enables_wave_warning"):
+		GameData.wave_warning_enabled = true
+		NotificationManager.notify("Fracture wave early warning system online.", NotificationManager.Type.INFO, "WARNING SYSTEM")
 
 func _process(delta: float) -> void:
 	# Pressure system
@@ -195,6 +209,15 @@ func is_area_clear(target_coord: Vector2i, area_size: Vector2i, camera_bounds: R
 				return false
 			if GameData.building_grid.has(current_tile) or GameData.road_grid.has(current_tile):
 				return false
+
+	# Always enforce 1 tile gap at bottom for entrance access
+	for x in range(0, area_size.x):
+		var bottom_tile = target_coord + Vector2i(x, area_size.y)
+		if not camera_bounds.has_point(bottom_tile):
+			return false
+		if GameData.building_grid.has(bottom_tile) or GameData.road_grid.has(bottom_tile):
+			return false
+
 	return true
 
 func calculate_candidate_tiles(center: Vector2, min_dist: int, max_dist: int, size: Vector2i, buffer: int) -> Array:
@@ -243,7 +266,7 @@ func calculate_candidate_tiles(center: Vector2, min_dist: int, max_dist: int, si
 ## Ideal ring radius per cluster pair. Each pair of values covers 2 clusters per stage.
 ## Stage 0: radius 4, Stage 1: radius 7, Stage 2: radius 11, Stage 3: radius 14.
 ## Easy to tweak for playtesting — just change the values in this array.
-const RING_RADII: Array = [4, 4, 7, 7, 11, 11, 14, 14]
+
 
 func get_ideal_ring_radius() -> float:
 	var index = min(vent_clusters.size(), RING_RADII.size() - 1)
@@ -266,23 +289,32 @@ func transition_to_phase(phase_number: int) -> void:
 	if GameData.current_pressure_phase <= GameData.MAX_PRESSURE_PHASE:
 		GameData.current_pressure_phase = phase_number
 		SignalBus.pressure_phase_changed.emit(phase_number)
-	NotificationManager.notify("Pressure phase " + str(phase_number) + " reached. Brace for impact.", NotificationManager.Type.WARNING, "PHASE SHIFT")
+	# NotificationManager.notify("Pressure phase " + str(phase_number) + " reached. Brace for impact.", NotificationManager.Type.WARNING, "PHASE SHIFT")
 	
 	if phase_number >= 1:
 		trigger_fracture_wave()
 
 func trigger_fracture_wave() -> void:
 	GameData.fracture_wave_active = true
+
+	if GameData.wave_warning_enabled:
+		MusicManager.stop_music(1.0)        # fade out music as warning starts
+		AudioManager.play_sfx("fracture_wave_warning")
+		await get_tree().create_timer(11.0).timeout
+	else:
+		# No warning — music cuts at exact moment wave appears
+		MusicManager.stop_music(0.5)
+
 	SignalBus.fracture_wave.emit()
 	SignalBus.camera_shake.emit(0.4, 6.0)
-	
 	await get_tree().create_timer(5.0).timeout
 	SignalBus.camera_shake.emit(0.5, 8.0)
-	
 	_execute_fracture_wave()
-	
 	await get_tree().create_timer(10.0).timeout
 	GameData.fracture_wave_active = false
+	
+	# Resume music evaluation after wave ends
+	MusicManager.play_game_music()
 
 ## Dispatches fracture effects based on current pressure phase.
 ## Pipes always fracture. Hubs join at phase 3. Slowdown/burst added from phase 5.
@@ -487,7 +519,7 @@ func try_hub_spawn() -> void:
 	var scored_tiles = []
 	var camera_bounds = get_camera_bounds()
 
-	# Scan every tile in the current map bounds
+	# First try with buffer 1 — preferred spacing
 	for x in range(camera_bounds.position.x, camera_bounds.end.x):
 		for y in range(camera_bounds.position.y, camera_bounds.end.y):
 			var tile = Vector2i(x, y)
@@ -496,6 +528,18 @@ func try_hub_spawn() -> void:
 					"tile": tile,
 					"score": score_tile(tile)
 				})
+
+	# Fallback — no space with buffer 1, try buffer 0
+	if scored_tiles.is_empty():
+		NotificationManager.notify("Limited space — placing hub in tight quarters.", NotificationManager.Type.INFO, "HUB SPAWN")
+		for x in range(camera_bounds.position.x, camera_bounds.end.x):
+			for y in range(camera_bounds.position.y, camera_bounds.end.y):
+				var tile = Vector2i(x, y)
+				if is_area_clear(tile, hub_size, camera_bounds, 0):
+					scored_tiles.append({
+						"tile": tile,
+						"score": score_tile(tile)
+					})
 
 	if scored_tiles.is_empty():
 		ResourceManager.refund_hub()

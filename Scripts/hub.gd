@@ -3,10 +3,10 @@ extends Building
 class_name Hub
 
 # ── Rate limit caps per 60s window ──────────────────────────────
-const CAP_LEVEL_0 := 40
-const CAP_LEVEL_1 := 50
-const CAP_LEVEL_2 := 60
-const CAP_LEVEL_3 := 70
+const CAP_LEVEL_0 := 50
+const CAP_LEVEL_1 := 60
+const CAP_LEVEL_2 := 70
+const CAP_LEVEL_3 := 80
 const RATE_WINDOW  := 60.0
 
 # ── Node References ─────────────────────────────────────────────
@@ -42,6 +42,8 @@ var _popup_tween: Tween = null
 # ════════════════════════════════════════════════════════════════
 
 func _ready() -> void:
+	if not SaveManager.is_loading:
+		AudioManager.play_sfx("build_hub", 0.3, 5.0)
 	left_cloud.restart()
 	right_cloud.restart()
 
@@ -55,8 +57,9 @@ func _ready() -> void:
 	repair_button.pressed.connect(_on_repair_button_pressed)
 	upgrade_button.pressed.connect(_on_upgrade_button_pressed)
 
-	SignalBus.camera_shake.emit(0.50, 6.0)
-	SignalBus.building_spawned.emit(entrance_cell, Vector2i(-99, -99))
+	if not SaveManager.is_loading:
+		SignalBus.camera_shake.emit(0.50, 6.0)
+		SignalBus.building_spawned.emit(entrance_cell, Vector2i(-99, -99))
 	SignalBus.check_fractures.connect(on_check_fracture)
 
 func _process(delta: float) -> void:
@@ -67,7 +70,7 @@ func _process(delta: float) -> void:
 		window_timer = 0.0
 		packets_this_window = 0
 		is_rate_limited = false
-	
+
 	# Update popup position if open
 	if _popup_open:
 		var hub_screen_pos = get_global_transform_with_canvas().origin
@@ -259,6 +262,8 @@ func repair() -> void:
 	if _dead_pulse_tween:
 		_dead_pulse_tween.kill()
 		_dead_pulse_tween = null
+	
+	AudioManager.play_sfx("hub_repair", 1.0, -5.0)
 
 	var reboot := create_tween()
 	reboot.tween_property(self, "modulate", Color("4a0e1f"), 0.12)

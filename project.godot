@@ -16,7 +16,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 config/name="fpp4"
 run/main_scene="uid://47v5264qeile"
-config/features=PackedStringArray("4.6", "Mobile")
+config/features=PackedStringArray("4.5", "Mobile")
 config/icon="res://icon.svg"
 
 [audio]
@@ -32,6 +32,9 @@ NotificationManager="*res://Scenes/notification_manager.tscn"
 TooltipManager="*res://Scenes/tooltip_manager.tscn"
 SceneTransition="*uid://bkriwlrpvhsqb"
 WinSceneData="*uid://cf3fm423fepum"
+AudioManager="*uid://2jme0nmsl50x"
+MusicManager="*uid://c3i1danjk202m"
+SaveManager="*res://Globals/save_manager.gd"
 
 [display]
 

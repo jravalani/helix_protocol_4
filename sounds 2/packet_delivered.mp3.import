@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cumjxhumbkj54"
+path="res://.godot/imported/packet_delivered.mp3-78308ac1c21cc66d27ad0340de3d8be5.mp3str"
+
+[deps]
+
+source_file="res://sounds 2/packet_delivered.mp3"
+dest_files=["res://.godot/imported/packet_delivered.mp3-78308ac1c21cc66d27ad0340de3d8be5.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

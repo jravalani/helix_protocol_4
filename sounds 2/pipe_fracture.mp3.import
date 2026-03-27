@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://dya3jn0r8xd8u"
+path="res://.godot/imported/pipe_fracture.mp3-2022b81b1837260728467f1e7c4fcfac.mp3str"
+
+[deps]
+
+source_file="res://sounds 2/pipe_fracture.mp3"
+dest_files=["res://.godot/imported/pipe_fracture.mp3-2022b81b1837260728467f1e7c4fcfac.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
