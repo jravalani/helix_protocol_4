@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://dkj7jo2gckpj2"]
+
+[ext_resource type="Script" uid="uid://dlmeb66vgcbnk" path="res://Scripts/LoseScene.gd" id="1_o6134"]
+
+[node name="LoseScene" type="Control" unique_id=1105995080]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_o6134")

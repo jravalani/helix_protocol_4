@@ -4,6 +4,23 @@ extends Button
 var hum_tween: Tween
 
 func _on_mouse_entered():
+	
+	
+	#win scence
+	WinSceneData.pipe_tiles     = 45
+	WinSceneData.peak_pressure  = 2.51
+	WinSceneData.data_collected = 24991
+	WinSceneData.repair_reserve = 3
+	
+	SceneTransition.transition_to("res://Scenes/win_scene.tscn", SceneTransition.Type.ARMOUR)
+	
+	#loose scence
+	#WinSceneData.pipe_tiles     = 33 
+	#WinSceneData.peak_pressure  = 8.4
+	#WinSceneData.data_collected = 12000
+	#WinSceneData.survival_time  = 240.0    
+	#WinSceneData.failure_cause = "PRESSURE OVERLOAD"
+	#SceneTransition.transition_to("res://Scenes/LoseScene.tscn", SceneTransition.Type.ARMOUR)
 	AudioManager.play_ui("button_hover", 0.2)
 	# Create a pulsing effect on the border color
 	hum_tween = create_tween().set_loops()
