@@ -369,6 +369,45 @@ func remove_reinforcement() -> void:
 		modulate = Color.WHITE
 
 
+# ─────────────────────────────────────────────
+# Save / Restore
+# ─────────────────────────────────────────────
+
+func get_save_data() -> Dictionary:
+	var connections: Array = []
+	for dir in manual_connections:
+		connections.append(SaveManager.vec2i_to_key(dir))
+	return {
+		"cell":         SaveManager.vec2i_to_key(cell),
+		"connections":  connections,
+		"is_fractured": is_fractured,
+		"is_reinforced": is_reinforced,
+		"is_permanent": is_permanent,
+		"is_entrance":  is_entrance,
+		"owner_id":     owner_id,
+	}
+
+
+func restore_from_data(d: Dictionary) -> void:
+	is_permanent  = bool(d["is_permanent"])
+	is_entrance   = bool(d.get("is_entrance", false))
+	owner_id      = int(d["owner_id"])
+	is_reinforced = bool(d["is_reinforced"])
+
+	for conn_key in d["connections"]:
+		add_connection(SaveManager.key_to_vec2i(conn_key))
+
+	if bool(d["is_fractured"]):
+		is_fractured = true
+		modulate = Color("4a0e1f")
+		for arm in arm_lines.values():
+			for ring in arm["connectors"]:
+				ring.default_color = Color("2d0a12")
+		GameData.fractured_pipes[cell] = self
+	elif is_reinforced:
+		modulate = Color(0.4, 0.9, 1.0, 1.0)
+
+
 func _spawn_floating_label(text: String, color: Color) -> void:
 	var label := Label.new()
 	label.text = text
