@@ -12,6 +12,8 @@ var resume_button: Button
 var erase_button: Button
 var confirm_overlay: ColorRect
 var button_scene: PackedScene = preload("res://Scenes/button.tscn")
+var settings_menu_scene: PackedScene = preload("res://Scenes/settings_menu.tscn")
+var settings_menu_instance = null
 
 @onready var online_status: Label = $OnlineStatus
 @onready var online_status_rect: ColorRect = $OnlineStatusColorRect
@@ -258,7 +260,15 @@ func _on_launch_pressed() -> void:
 
 func _on_options_pressed() -> void:
 	AudioManager.play_sfx("upgrade", 1.0, -5.0)
-	SceneTransition.transition_to("res://Scenes/settings_menu.tscn", SceneTransition.Type.ARMOUR)
+	if not settings_menu_instance:
+		settings_menu_instance = settings_menu_scene.instantiate()
+		add_child(settings_menu_instance)
+		settings_menu_instance.close_settings.connect(_close_settings)
+	settings_menu_instance.show()
+
+func _close_settings() -> void:
+	if settings_menu_instance:
+		settings_menu_instance.hide()
 
 
 # ═══════════════════════════════════════════════════════════════
