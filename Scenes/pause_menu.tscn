@@ -17,6 +17,7 @@ shadow_offset = Vector2(8, 8)
 
 [node name="PauseMenu" type="Control" unique_id=1754626687]
 process_mode = 3
+z_index = 100
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

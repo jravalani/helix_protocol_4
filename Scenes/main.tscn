@@ -18,7 +18,6 @@
 [ext_resource type="PackedScene" uid="uid://b5ev0jvtodvqa" path="res://Scenes/hub_window.tscn" id="14_jkdf5"]
 [ext_resource type="AudioStream" uid="uid://ckktjtyow7lju" path="res://Audio/title/drone.ogg" id="16_h1bgf"]
 [ext_resource type="AudioStream" uid="uid://brr220avjspue" path="res://Audio/title/ambient2.wav" id="17_b3802"]
-[ext_resource type="PackedScene" uid="uid://dyx1cme6p6oll" path="res://Scenes/pause_menu.tscn" id="17_hibaj"]
 [ext_resource type="AudioStream" uid="uid://cqkujp2u47ktk" path="res://Audio/title/electric_hum.ogg" id="18_b3802"]
 
 [sub_resource type="Environment" id="Environment_d1ilt"]
@@ -103,8 +102,6 @@ mouse_filter = 2
 
 [node name="TopPanel" parent="CanvasLayer" unique_id=1947777984 instance=ExtResource("10_hptm8")]
 process_mode = 3
-
-[node name="PauseMenu" parent="CanvasLayer" unique_id=1754626687 instance=ExtResource("17_hibaj")]
 
 [node name="Drone" type="AudioStreamPlayer2D" parent="." unique_id=1691619721]
 visible = false

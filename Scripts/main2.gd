@@ -3,7 +3,7 @@ extends Node2D
 @onready var drone_hum: AudioStreamPlayer2D = $Drone
 @onready var ambience_hum: AudioStreamPlayer2D = $Ambience
 @onready var electric_hum: AudioStreamPlayer2D = $ElectricHum
-
+@onready var canvas_layer: CanvasLayer = $CanvasLayer
 @onready var pause_menu_scene = preload("res://Scenes/pause_menu.tscn")
 
 var _thump_timer : float = 0.0
@@ -19,7 +19,7 @@ func _ready() -> void:
 	_next_thump = randf_range(12.0, 16.0)
 		# Instantiate pause menu
 	pause_menu_instance = pause_menu_scene.instantiate()
-	add_child(pause_menu_instance)
+	canvas_layer.add_child(pause_menu_instance)
  
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):  # ESC key
