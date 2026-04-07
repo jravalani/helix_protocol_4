@@ -1,0 +1,278 @@
+[gd_scene format=3 uid="uid://bwv7sp6vcmgw7"]
+
+[ext_resource type="PackedScene" uid="uid://b7lxulyt7rojl" path="res://Scenes/button.tscn" id="1_button"]
+[ext_resource type="Script" uid="uid://fcc8kdfa782o" path="res://Scripts/settings_menu.gd" id="1_settings_script"]
+[ext_resource type="FontFile" uid="uid://f2rhtea60h0j" path="res://Assets/Fonts/JetBrainsMono-ExtraBold.ttf" id="2_font_bold"]
+[ext_resource type="FontFile" uid="uid://ccmc2ygy5pytk" path="res://Assets/Fonts/JetBrainsMonoNL-SemiBold.ttf" id="3_font_semi"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_title"]
+line_spacing = 50.0
+font = ExtResource("2_font_bold")
+font_size = 80
+font_color = Color(1, 0, 1, 1)
+outline_color = Color(0.4392157, 0, 0.4392157, 1)
+shadow_size = 6
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(6, 6)
+
+[node name="SettingsMenu" type="Control" unique_id=688783824]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_settings_script")
+
+[node name="BackgroundRect" type="ColorRect" parent="." unique_id=1307838257]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.09985284, 0.09985284, 0.106126174, 0.95)
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=917531808]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_top = 60
+theme_override_constants/margin_right = 100
+theme_override_constants/margin_bottom = 60
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1411613318]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="HeaderContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1578646907]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderContainer" unique_id=140913935]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.08, 0.58, 1)
+theme_override_fonts/font = ExtResource("2_font_bold")
+text = "SETTINGS"
+label_settings = SubResource("LabelSettings_title")
+
+[node name="CloseButton" parent="MarginContainer/VBoxContainer/HeaderContainer" unique_id=1547389301 instance=ExtResource("1_button")]
+custom_minimum_size = Vector2(80, 50)
+layout_mode = 2
+text = "[ X ]"
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer" unique_id=309524717]
+modulate = Color(1, 0, 1, 0.3)
+layout_mode = 2
+
+[node name="SettingsScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer" unique_id=1987142116]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SettingsContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer/SettingsScroll" unique_id=1599711890]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 25
+
+[node name="AudioSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent" unique_id=902880014]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="AudioLabel" type="Label" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/AudioSection" unique_id=1025339459]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_fonts/font = ExtResource("3_font_semi")
+theme_override_font_sizes/font_size = 24
+text = "AUDIO"
+
+[node name="MasterVolume" type="HBoxContainer" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/AudioSection" unique_id=457723924]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/AudioSection/MasterVolume" unique_id=2140422970]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
+theme_override_fonts/font = ExtResource("3_font_semi")
+theme_override_font_sizes/font_size = 18
+text = "Master Volume"
+
+[node name="Slider" type="HSlider" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/AudioSection/MasterVolume" unique_id=160836370]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="ValueLabel" type="Label" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/AudioSection/MasterVolume" unique_id=1327695843]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
+theme_override_fonts/font = ExtResource("3_font_semi")
+theme_override_font_sizes/font_size = 18
+text = "100%"
+horizontal_alignment = 2
+
+[node name="MusicVolume" type="HBoxContainer" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/AudioSection" unique_id=685866645]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/AudioSection/MusicVolume" unique_id=1611363144]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
+theme_override_fonts/font = ExtResource("3_font_semi")
+theme_override_font_sizes/font_size = 18
+text = "Music Volume"
+
+[node name="Slider" type="HSlider" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/AudioSection/MusicVolume" unique_id=2111182954]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+value = 0.8
+
+[node name="ValueLabel" type="Label" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/AudioSection/MusicVolume" unique_id=677793747]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
+theme_override_fonts/font = ExtResource("3_font_semi")
+theme_override_font_sizes/font_size = 18
+text = "80%"
+horizontal_alignment = 2
+
+[node name="SFXVolume" type="HBoxContainer" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/AudioSection" unique_id=203992249]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/AudioSection/SFXVolume" unique_id=1616752002]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
+theme_override_fonts/font = ExtResource("3_font_semi")
+theme_override_font_sizes/font_size = 18
+text = "SFX Volume"
+
+[node name="Slider" type="HSlider" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/AudioSection/SFXVolume" unique_id=1950998138]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="ValueLabel" type="Label" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/AudioSection/SFXVolume" unique_id=175040251]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
+theme_override_fonts/font = ExtResource("3_font_semi")
+theme_override_font_sizes/font_size = 18
+text = "100%"
+horizontal_alignment = 2
+
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent" unique_id=1500651697]
+modulate = Color(1, 0, 1, 0.2)
+layout_mode = 2
+
+[node name="VideoSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent" unique_id=1734759207]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="VideoLabel" type="Label" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/VideoSection" unique_id=193868263]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_fonts/font = ExtResource("3_font_semi")
+theme_override_font_sizes/font_size = 24
+text = "VIDEO"
+
+[node name="FullscreenToggle" type="HBoxContainer" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/VideoSection" unique_id=1082220002]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/VideoSection/FullscreenToggle" unique_id=1959193573]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
+theme_override_fonts/font = ExtResource("3_font_semi")
+theme_override_font_sizes/font_size = 18
+text = "Fullscreen"
+
+[node name="CheckBox" type="CheckBox" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/VideoSection/FullscreenToggle" unique_id=21231345]
+layout_mode = 2
+
+[node name="VsyncToggle" type="HBoxContainer" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/VideoSection" unique_id=1190977953]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/VideoSection/VsyncToggle" unique_id=93107198]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
+theme_override_fonts/font = ExtResource("3_font_semi")
+theme_override_font_sizes/font_size = 18
+text = "VSync"
+
+[node name="CheckBox" type="CheckBox" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/VideoSection/VsyncToggle" unique_id=1251798129]
+layout_mode = 2
+button_pressed = true
+
+[node name="HSeparator3" type="HSeparator" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent" unique_id=1674753694]
+modulate = Color(1, 0, 1, 0.2)
+layout_mode = 2
+
+[node name="GameplaySection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent" unique_id=710330255]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="GameplayLabel" type="Label" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/GameplaySection" unique_id=2027546709]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_fonts/font = ExtResource("3_font_semi")
+theme_override_font_sizes/font_size = 24
+text = "GAMEPLAY"
+
+[node name="CameraShakeToggle" type="HBoxContainer" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/GameplaySection" unique_id=824992649]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/GameplaySection/CameraShakeToggle" unique_id=490923770]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
+theme_override_fonts/font = ExtResource("3_font_semi")
+theme_override_font_sizes/font_size = 18
+text = "Camera Shake"
+
+[node name="CheckBox" type="CheckBox" parent="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/GameplaySection/CameraShakeToggle" unique_id=16927812]
+layout_mode = 2
+button_pressed = true
+
+[node name="ButtonsContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1244394063]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 2
+
+[node name="ResetButton" parent="MarginContainer/VBoxContainer/ButtonsContainer" unique_id=268072892 instance=ExtResource("1_button")]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+text = "RESET TO DEFAULT"
+
+[node name="BackButton" parent="MarginContainer/VBoxContainer/ButtonsContainer" unique_id=608392398 instance=ExtResource("1_button")]
+custom_minimum_size = Vector2(150, 50)
+layout_mode = 2
+text = "BACK"
+
+[connection signal="pressed" from="MarginContainer/VBoxContainer/HeaderContainer/CloseButton" to="." method="_on_close_button_pressed"]
+[connection signal="value_changed" from="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/AudioSection/MasterVolume/Slider" to="." method="_on_master_volume_changed"]
+[connection signal="value_changed" from="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/AudioSection/MusicVolume/Slider" to="." method="_on_music_volume_changed"]
+[connection signal="value_changed" from="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/AudioSection/SFXVolume/Slider" to="." method="_on_sfx_volume_changed"]
+[connection signal="toggled" from="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/VideoSection/FullscreenToggle/CheckBox" to="." method="_on_fullscreen_toggled"]
+[connection signal="toggled" from="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/VideoSection/VsyncToggle/CheckBox" to="." method="_on_vsync_toggled"]
+[connection signal="toggled" from="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/GameplaySection/CameraShakeToggle/CheckBox" to="." method="_on_camera_shake_toggled"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/ButtonsContainer/ResetButton" to="." method="_on_reset_button_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/ButtonsContainer/BackButton" to="." method="_on_back_button_pressed"]

@@ -258,6 +258,7 @@ func _on_launch_pressed() -> void:
 
 func _on_options_pressed() -> void:
 	AudioManager.play_sfx("upgrade", 1.0, -5.0)
+	SceneTransition.transition_to("res://Scenes/settings_menu.tscn", SceneTransition.Type.ARMOUR)
 
 
 # ═══════════════════════════════════════════════════════════════
