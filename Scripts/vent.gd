@@ -49,11 +49,14 @@ func _physics_process(delta: float) -> void:
 	fan.rotation += fan_rotation_speed * delta
 
 func _ready():
-	if not SaveManager.is_loading:
+	# Capture loading state BEFORE the await — by next frame is_loading
+	# will already be false, which would incorrectly spawn a driveway stub.
+	var _was_loading := SaveManager.is_loading
+	if not _was_loading:
 		AudioManager.play_sfx("build_vent", 0.4, 5.0)
 	left_cloud.restart()
 	right_cloud.restart()
-	if not SaveManager.is_loading:
+	if not _was_loading:
 		SignalBus.camera_shake.emit(0.25, 4.0)
 	cell_type = "VENT"
 	super()
@@ -64,7 +67,7 @@ func _ready():
 
 	var dir_vec = (driveway_marker.global_position - global_position).normalized()
 	var driveway_direction = Vector2i(round(dir_vec.x), round(dir_vec.y))
-	if not SaveManager.is_loading:
+	if not _was_loading:
 		SignalBus.building_spawned.emit(entrance_cell, driveway_direction, get_instance_id())
 
 	_set_interval_from_zone()
