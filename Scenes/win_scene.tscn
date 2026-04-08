@@ -1,10 +1,413 @@
-[gd_scene format=3 uid="uid://cms7s7aj8q0f1"]
+[gd_scene format=3 uid="uid://bsua7a27ng88f"]
 
-[ext_resource type="Script" uid="uid://bbx8mwqhq32ak" path="res://Scripts/WinScene.gd" id="1_eafqm"]
+[sub_resource type="GDScript" id="GDScript_r6k3n"]
+script/source = "## ═══════════════════════════════════════════════════════════════════
+##  WinScene.gd
+##  Attach to a CanvasLayer or Control node in your WinScene.tscn
+##
+##  How to call from your game:
+##    WinSceneData.pipe_tiles     = your_pipe_count
+##    WinSceneData.peak_pressure  = your_peak_pressure
+##    WinSceneData.data_collected = your_data_value
+##    WinSceneData.repair_reserve = your_reserve
+##    SceneTransition.transition_to(\"res://Scenes/WinScene.tscn\", SceneTransition.Type.BEAM)
+##
+##  Or pass data via a global autoload (see WinSceneData.gd below)
+## ═══════════════════════════════════════════════════════════════════
+extends Control
+
+# ── Scene paths — update these to match yours ─────────────────────
+const MAIN_MENU_SCENE := \"res://Scenes/title_screen.tscn\"
+const NEXT_MISSION_SCENE := \"res://Scenes/title_screen.tscn\"
+
+# ── Colours matching your game ────────────────────────────────────
+const C_BG        := Color(0.059, 0.059, 0.075, 1.0)
+const C_MAGENTA   := Color(1.0,   0.0,   1.0,   1.0)
+const C_MAGENTA_D := Color(0.6,   0.0,   0.6,   1.0)
+const C_PANEL     := Color(0.086, 0.086, 0.110, 1.0)
+const C_BORDER    := Color(0.165, 0.165, 0.210, 1.0)
+const C_TEXT_DIM  := Color(0.4,   0.4,   0.45,  1.0)
+
+# ── Stats (set these before loading this scene) ───────────────────
+var pipe_tiles     : int   = 0
+var peak_pressure  : float = 0.0
+var data_collected : int   = 0
+var repair_reserve : int   = 0
+
+# ── Internal nodes ────────────────────────────────────────────────
+var _bg           : ColorRect
+var _bg_mat       : ShaderMaterial
+var _title_label  : Label
+var _sub_label    : Label
+var _rank_label   : Label
+var _rank_desc    : Label
+var _stat_values  : Array[Label] = []
+var _btn_menu     : Button
+var _btn_next     : Button
+var _btn_retry    : Button
+var _orbs         : Array[ColorRect] = []
+
+var _W : float
+var _H : float
+var _anim_time : float = 0.0
+var _revealed  : bool  = false
+
+func _ready() -> void:
+	_W = float(ProjectSettings.get_setting(\"display/window/size/viewport_width\",  1920))
+	_H = float(ProjectSettings.get_setting(\"display/window/size/viewport_height\", 1080))
+
+	# Pull stats from autoload if available
+	if has_node(\"/root/WinSceneData\"):
+		var d : Node = get_node(\"/root/WinSceneData\")
+		pipe_tiles     = d.pipe_tiles
+		peak_pressure  = d.peak_pressure
+		data_collected = d.data_collected
+		repair_reserve = d.repair_reserve
+
+	_build_ui()
+	_animate_in()
+
+# ═══════════════════════ UI BUILD ════════════════════════════════
+func _build_ui() -> void:
+	anchor_right  = 1.0
+	anchor_bottom = 1.0
+
+	# ── Background with scanlines ─────────────────────────────────
+	_bg          = ColorRect.new()
+	_bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_bg.color    = C_BG
+	_bg_mat      = ShaderMaterial.new()
+	_bg_mat.shader = _shader_background()
+	_bg.material = _bg_mat
+	add_child(_bg)
+
+	# ── Floating orbs (ambient atmosphere) ───────────────────────
+	_spawn_orbs()
+
+	# ── Border frame ──────────────────────────────────────────────
+	_build_border_frame()
+
+	# ── Status line ───────────────────────────────────────────────
+	var status := Label.new()
+	status.text = \"HELIX PROTOCOL  /  SECTOR CLEARED\"
+	status.add_theme_color_override(\"font_color\", C_TEXT_DIM)
+	status.add_theme_font_size_override(\"font_size\", 14)
+	status.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	status.position = Vector2(_W * 0.5 - 180, 80)
+	status.modulate.a = 0.0
+	add_child(status)
+	_fade_in_delayed(status, 0.3)
+
+	# ── MISSION title ─────────────────────────────────────────────
+	_title_label = _make_label(\"MISSION\", 72, C_MAGENTA, true)
+	_title_label.position = Vector2(_W * 0.5 - 240, 115)
+	_title_label.modulate.a = 0.0
+	add_child(_title_label)
+	_fade_in_delayed(_title_label, 0.5)
+
+	# ── COMPLETE subtitle ─────────────────────────────────────────
+	_sub_label = _make_label(\"COMPLETE\", 32, C_MAGENTA_D, true)
+	_sub_label.position = Vector2(_W * 0.5 - 150, 200)
+	_sub_label.modulate.a = 0.0
+	add_child(_sub_label)
+	_fade_in_delayed(_sub_label, 0.65)
+
+	# ── Divider line ──────────────────────────────────────────────
+	var divider := ColorRect.new()
+	divider.color   = C_MAGENTA
+	divider.size    = Vector2(_W * 0.55, 1)
+	divider.position = Vector2(_W * 0.5 - _W * 0.275, 258)
+	divider.modulate.a = 0.0
+	add_child(divider)
+	_fade_in_delayed(divider, 0.8)
+
+	# ── Stats grid ────────────────────────────────────────────────
+	_build_stats_grid()
+
+	# ── Rank block ────────────────────────────────────────────────
+	_build_rank_block()
+
+	# ── Buttons ───────────────────────────────────────────────────
+	_build_buttons()
+
+# ── Stats grid ────────────────────────────────────────────────────
+func _build_stats_grid() -> void:
+	var labels  := [\"PIPE TILES\", \"PEAK PRESSURE\", \"DATA\", \"REPAIR RESERVE\"]
+	var values  := [str(pipe_tiles),
+					\"%.2f%%\" % peak_pressure,
+					_format_data(data_collected),
+					str(repair_reserve)]
+	var units   := [\"LAID\", \"CONTAINED\", \"COLLECTED\", \"REMAINING\"]
+
+	var grid_w  := _W * 0.58
+	var card_w  := (grid_w - 30.0) / 4.0
+	var card_h  := 100.0
+	var start_x := _W * 0.5 - grid_w * 0.5
+	var start_y := 278.0
+
+	for i in range(4):
+		var cx := start_x + i * (card_w + 10.0)
+
+		# Card background
+		var card := ColorRect.new()
+		card.color    = C_PANEL
+		card.size     = Vector2(card_w, card_h)
+		card.position = Vector2(cx, start_y)
+		card.modulate.a = 0.0
+		add_child(card)
+
+		# Top accent line
+		var accent := ColorRect.new()
+		accent.color    = Color(C_MAGENTA.r, C_MAGENTA.g, C_MAGENTA.b, 0.25)
+		accent.size     = Vector2(card_w, 2)
+		accent.position = Vector2(cx, start_y)
+		add_child(accent)
+
+		# Card border
+		var border := _make_border_rect(cx, start_y, card_w, card_h)
+		add_child(border)
+
+		# Stat label
+		var lbl := _make_label(labels[i], 10, C_TEXT_DIM, false)
+		lbl.position = Vector2(cx + 10, start_y + 14)
+		add_child(lbl)
+
+		# Stat value
+		var val := _make_label(values[i], 26, C_MAGENTA, true)
+		val.position = Vector2(cx + 10, start_y + 34)
+		add_child(val)
+		_stat_values.append(val)
+
+		# Unit
+		var unit := _make_label(units[i], 10, C_MAGENTA_D, false)
+		unit.position = Vector2(cx + 10, start_y + 76)
+		add_child(unit)
+
+		_fade_in_delayed(card,   0.85 + i * 0.08)
+		_fade_in_delayed(accent, 0.85 + i * 0.08)
+		_fade_in_delayed(border, 0.85 + i * 0.08)
+		_fade_in_delayed(lbl,    0.85 + i * 0.08)
+		_fade_in_delayed(val,    0.85 + i * 0.08)
+		_fade_in_delayed(unit,   0.85 + i * 0.08)
+
+# ── Rank block ────────────────────────────────────────────────────
+func _build_rank_block() -> void:
+	var rank_str  := _calculate_rank()
+	var rank_y    := 408.0
+	var block_w   := 380.0
+	var block_x   := _W * 0.5 - block_w * 0.5
+
+	var bg := ColorRect.new()
+	bg.color    = Color(0.050, 0.030, 0.050, 1.0)
+	bg.size     = Vector2(block_w, 88)
+	bg.position = Vector2(block_x, rank_y)
+	bg.modulate.a = 0.0
+	add_child(bg)
+
+	var border := _make_border_rect(block_x, rank_y, block_w, 88)
+	border.modulate.a = 0.0
+	add_child(border)
+
+	var rlbl := _make_label(\"PERFORMANCE RATING\", 10, C_TEXT_DIM, false)
+	rlbl.position = Vector2(block_x + block_w * 0.5 - 90, rank_y + 14)
+	rlbl.modulate.a = 0.0
+	add_child(rlbl)
+
+	_rank_label = _make_label(rank_str, 36, C_MAGENTA, true)
+	_rank_label.position = Vector2(block_x + block_w * 0.5 - 80, rank_y + 30)
+	_rank_label.modulate.a = 0.0
+	add_child(_rank_label)
+
+	_rank_desc = _make_label(_rank_description(rank_str), 10, C_MAGENTA_D, false)
+	_rank_desc.position = Vector2(block_x + block_w * 0.5 - 140, rank_y + 70)
+	_rank_desc.modulate.a = 0.0
+	add_child(_rank_desc)
+
+	for n in [bg, border, rlbl, _rank_label, _rank_desc]:
+		_fade_in_delayed(n, 1.15)
+
+# ── Buttons ───────────────────────────────────────────────────────
+func _build_buttons() -> void:
+	var btn_y  := 530.0
+	var btn_data := [
+		[\"MAIN MENU\",    C_TEXT_DIM,  C_BORDER,   _on_main_menu],
+		[\"NEXT MISSION\", C_MAGENTA,   C_MAGENTA,  _on_next_mission],
+		[\"RETRY\",        C_TEXT_DIM,  C_BORDER,   _on_retry],
+	]
+	var btn_w := 180.0
+	var total  := btn_w * 3 + 16 * 2
+	var bx     := _W * 0.5 - total * 0.5
+
+	for i in range(btn_data.size()):
+		var btn := Button.new()
+		btn.text = btn_data[i][0]
+		btn.size = Vector2(btn_w, 44)
+		btn.position = Vector2(bx + i * (btn_w + 16), btn_y)
+		btn.add_theme_color_override(\"font_color\",          btn_data[i][1])
+		btn.add_theme_color_override(\"font_hover_color\",    C_MAGENTA)
+		btn.add_theme_color_override(\"font_pressed_color\",  Color.WHITE)
+		btn.add_theme_font_size_override(\"font_size\", 14)
+		btn.modulate.a = 0.0
+		btn.pressed.connect(btn_data[i][3])
+		add_child(btn)
+		_fade_in_delayed(btn, 1.30 + i * 0.08)
+
+# ── Border frame (matches your game's armoured frame) ─────────────
+func _build_border_frame() -> void:
+	var t := 3.0   # thickness
+	var m := 18.0  # margin from screen edge
+	# Top bar
+	var top := ColorRect.new()
+	top.color    = C_BORDER
+	top.size     = Vector2(_W - m * 2, t)
+	top.position = Vector2(m, m)
+	add_child(top)
+	# Bottom bar
+	var bot := ColorRect.new()
+	bot.color    = C_BORDER
+	bot.size     = Vector2(_W - m * 2, t)
+	bot.position = Vector2(m, _H - m - t)
+	add_child(bot)
+	# Left bar
+	var lft := ColorRect.new()
+	lft.color    = C_BORDER
+	lft.size     = Vector2(t, _H - m * 2)
+	lft.position = Vector2(m, m)
+	add_child(lft)
+	# Right bar
+	var rgt := ColorRect.new()
+	rgt.color    = C_BORDER
+	rgt.size     = Vector2(t, _H - m * 2)
+	rgt.position = Vector2(_W - m - t, m)
+	add_child(rgt)
+	# Corner squares (hardware detail)
+	for cx in [m - 4, _W - m - 14]:
+		for cy in [m - 4, _H - m - 14]:
+			var sq := ColorRect.new()
+			sq.color    = Color(0.25, 0.25, 0.32, 1.0)
+			sq.size     = Vector2(18, 18)
+			sq.position = Vector2(cx, cy)
+			add_child(sq)
+
+# ── Floating orbs ─────────────────────────────────────────────────
+func _spawn_orbs() -> void:
+	var positions := [
+		Vector2(0.08, 0.20), Vector2(0.06, 0.45), Vector2(0.12, 0.70),
+		Vector2(0.88, 0.25), Vector2(0.92, 0.55), Vector2(0.85, 0.78),
+		Vector2(0.15, 0.85), Vector2(0.75, 0.15)
+	]
+	for p in positions:
+		var orb := ColorRect.new()
+		orb.color    = Color(1.0, 0.0, 1.0, 0.7)
+		var sz       := randf_range(4.0, 9.0)
+		orb.size     = Vector2(sz, sz)
+		orb.position = Vector2(_W * p.x, _H * p.y)
+		_orbs.append(orb)
+		add_child(orb)
+
+# ═══════════════════════ ANIMATION ════════════════════════════════
+func _process(delta: float) -> void:
+	_anim_time += delta
+	# Animate orbs floating
+	for i in range(_orbs.size()):
+		var orb := _orbs[i]
+		var offset := sin(_anim_time * 1.2 + i * 0.8) * 5.0
+		orb.position.y += offset * delta * 0.6
+		orb.modulate.a  = 0.5 + sin(_anim_time * 0.8 + i) * 0.3
+
+func _animate_in() -> void:
+	# Title punch — scale from 0.8 to 1.0
+	if _title_label:
+		_title_label.scale  = Vector2(0.8, 0.8)
+		var t := create_tween()
+		t.tween_property(_title_label, \"scale\", Vector2(1.0, 1.0), 0.4)\\
+		 .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)\\
+		 .set_delay(0.5)
+
+func _fade_in_delayed(node: CanvasItem, delay: float) -> void:
+	node.modulate.a = 0.0
+	var t := create_tween()
+	t.tween_property(node, \"modulate:a\", 1.0, 0.35)\\
+	 .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)\\
+	 .set_delay(delay)
+
+# ═══════════════════════ BUTTON CALLBACKS ═════════════════════════
+func _on_main_menu() -> void:
+	SceneTransition.transition_to(MAIN_MENU_SCENE, SceneTransition.Type.BEAM)
+
+func _on_next_mission() -> void:
+	SceneTransition.transition_to(NEXT_MISSION_SCENE, SceneTransition.Type.BEAM)
+
+func _on_retry() -> void:
+	SceneTransition.transition_to(NEXT_MISSION_SCENE, SceneTransition.Type.BEAM)
+
+# ═══════════════════════ HELPERS ══════════════════════════════════
+func _calculate_rank() -> String:
+	if peak_pressure < 1.5 and repair_reserve >= 3:
+		return \"S-CLASS\"
+	elif peak_pressure < 3.0 and repair_reserve >= 1:
+		return \"A-CLASS\"
+	elif peak_pressure < 5.0:
+		return \"B-CLASS\"
+	else:
+		return \"C-CLASS\"
+
+func _rank_description(rank: String) -> String:
+	match rank:
+		\"S-CLASS\": return \"HULL INTEGRITY MAINTAINED  /  ZERO BREACHES\"
+		\"A-CLASS\": return \"MINIMAL STRESS  /  SYSTEM STABLE\"
+		\"B-CLASS\": return \"MODERATE STRAIN  /  MISSION SUCCESSFUL\"
+		_:         return \"HIGH PRESSURE  /  BARELY CONTAINED\"
+
+func _format_data(val: int) -> String:
+	if val >= 1000:
+		return \"%dK\" % (val / 1000)
+	return str(val)
+
+func _make_label(text: String, size: int, color: Color, bold: bool) -> Label:
+	var l := Label.new()
+	l.text = text
+	l.add_theme_font_size_override(\"font_size\", size)
+	l.add_theme_color_override(\"font_color\", color)
+	return l
+
+func _make_border_rect(x: float, y: float, w: float, h: float) -> Node2D:
+	# Draws a 1px border around a rect using four thin ColorRects
+	var root := Node2D.new()
+	root.position = Vector2.ZERO
+	var t := 1.0
+	var segs := [
+		[Vector2(x, y),         Vector2(w, t)],
+		[Vector2(x, y+h-t),     Vector2(w, t)],
+		[Vector2(x, y),         Vector2(t, h)],
+		[Vector2(x+w-t, y),     Vector2(t, h)],
+	]
+	for seg in segs:
+		var r := ColorRect.new()
+		r.color    = C_BORDER
+		r.position = seg[0]
+		r.size     = seg[1]
+		root.add_child(r)
+	return root
+
+# ═══════════════════════ SHADERS ══════════════════════════════════
+func _shader_background() -> Shader:
+	var s := Shader.new()
+	s.code = \"\"\"
+shader_type canvas_item;
+void fragment() {
+	vec3 col  = vec3(0.059, 0.059, 0.075);
+	float diag = mod((UV.x - UV.y) * 36.0, 1.0);
+	col -= step(0.78, diag) * 0.008;
+	COLOR = vec4(col, 1.0);
+}
+\"\"\"
+	return s
+"
 
 [node name="WinScene" type="Control" unique_id=81517682]
 layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
-script = ExtResource("1_eafqm")
+script = SubResource("GDScript_r6k3n")
