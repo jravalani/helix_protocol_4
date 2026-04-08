@@ -47,3 +47,5 @@ signal trigger_vent_burst
 signal ui_wake_up
 
 signal notify_player(message: String, type: int)
+
+signal open_pause_menu

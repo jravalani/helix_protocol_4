@@ -111,7 +111,7 @@ alignment = 1
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "Options"
+text = "Settings"
 
 [node name="Launch" parent="MarginContainer2/HBoxContainer" unique_id=1980808902 instance=ExtResource("2_4gxqj")]
 custom_minimum_size = Vector2(200, 0)
@@ -169,6 +169,16 @@ stream = ExtResource("16_07cxn")
 stream = ExtResource("17_x2pfe")
 volume_db = -5.0
 
+[node name="HowTo" parent="." unique_id=1488120613 instance=ExtResource("2_4gxqj")]
+layout_mode = 0
+offset_left = 1752.0
+offset_top = 832.0
+offset_right = 1808.0
+offset_bottom = 885.0
+text = "?"
+
 [connection signal="pressed" from="MarginContainer2/HBoxContainer/Options" to="." method="_on_options_pressed"]
 [connection signal="pressed" from="MarginContainer2/HBoxContainer/Launch" to="." method="_on_launch_pressed"]
+[connection signal="pressed" from="MarginContainer2/HBoxContainer/Abort" to="." method="_on_abort_pressed"]
 [connection signal="timeout" from="ThumpTimer" to="." method="_on_thump_timer_timeout"]
+[connection signal="pressed" from="HowTo" to="." method="_on_how_to_pressed"]

@@ -285,5 +285,3 @@ func _get_director() -> Node2D:
 	return main.get_node_or_null("Director")
 
 #endregion
-
-
