@@ -1,0 +1,117 @@
+[gd_scene format=3 uid="uid://rm70btwmt2yd"]
+
+[ext_resource type="Script" uid="uid://c6nbjkmi3tjv0" path="res://Scripts/how_to_play.gd" id="1_tlhw4"]
+[ext_resource type="FontFile" uid="uid://f2rhtea60h0j" path="res://Assets/Fonts/JetBrainsMono-ExtraBold.ttf" id="2_hthsr"]
+[ext_resource type="FontFile" uid="uid://ccmc2ygy5pytk" path="res://Assets/Fonts/JetBrainsMonoNL-SemiBold.ttf" id="3_n8q0f"]
+[ext_resource type="PackedScene" uid="uid://b7lxulyt7rojl" path="res://Scenes/button.tscn" id="4_yw24t"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_lonyb"]
+font = ExtResource("2_hthsr")
+font_size = 82
+font_color = Color(1, 0, 1, 1)
+outline_color = Color(0.4392157, 0, 0.4392157, 1)
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_offset = Vector2(15, 10)
+
+[node name="HowToPlay" type="Control" unique_id=1856168408]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_tlhw4")
+
+[node name="Background" type="ColorRect" parent="." unique_id=2013307698]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0588235, 0.0666667, 0.0784314, 0.941176)
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=342329827]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 60
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 60
+theme_override_constants/margin_bottom = 40
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=807140301]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="Header" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1311322310]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_hthsr")
+theme_override_font_sizes/font_size = 42
+text = "UPLINK_MANUAL.pdf"
+label_settings = SubResource("LabelSettings_lonyb")
+horizontal_alignment = 1
+
+[node name="TabContainer" type="TabContainer" parent="MarginContainer/VBoxContainer" unique_id=805827016]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_fonts/font = ExtResource("3_n8q0f")
+tab_alignment = 1
+current_tab = 0
+
+[node name="OBJECTIVE" type="RichTextLabel" parent="MarginContainer/VBoxContainer/TabContainer" unique_id=731209649]
+layout_mode = 2
+theme_override_fonts/normal_font = ExtResource("3_n8q0f")
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "[color=#ff00ff][b]> MISSION OVERVIEW[/b][/color]
+The atmospheric pressure is rising. You are stranded on a wasteland planet. 
+Your only way out is UP.
+
+[color=#ff00ff][b]> THE CORE LOOP[/b][/color]
+1. [b]SURVIVE[/b]: Build a pressurized network of pipes to stabilize the base and stop the pressure gauge from hitting [color=#ff4444]100%[/color].
+2. [b]HARVEST[/b]: A stable network generates [b]DATA[/b]. 
+3. [b]ESCAPE[/b]: Spend your accumulated DATA to construct [b]ROCKET SEGMENTS[/b]. 
+
+[color=#ff00ff][b]> WIN CONDITION[/b][/color]
+Complete all rocket stages to launch the UPLINK vessel and escape the wasteland."
+metadata/_tab_index = 0
+
+[node name="CONTROLS" type="RichTextLabel" parent="MarginContainer/VBoxContainer/TabContainer" unique_id=1473177593]
+visible = false
+layout_mode = 2
+theme_override_fonts/normal_font = ExtResource("3_n8q0f")
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "[color=#ff00ff][b]> BASE CONSTRUCTION[/b][/color]
+ [b]Left Click[/b]: Place Pipe / Build Segment
+ [b]Right Click[/b]: Remove Pipe / Repair Leaks
+ [b]Click & Drag[/b]: Rotate Vent stubs for more control over the network
+ [b]Press Uplink[/b]: To save the game."
+metadata/_tab_index = 1
+
+[node name="RESOURCES" type="RichTextLabel" parent="MarginContainer/VBoxContainer/TabContainer" unique_id=1300002764]
+visible = false
+layout_mode = 2
+theme_override_fonts/normal_font = ExtResource("3_n8q0f")
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "
+[color=#c8ff00][b]> DATA[/b][/color]
+Earned through successful pipe connections. Required for base UPLINK (Save).
+
+[color=#c8ff00][b]> REPAIR RESERVE[/b][/color]
+Your safety net. Automated systems use this fund to fix leaks instantly. If this hits 0, you must repair manually."
+metadata/_tab_index = 2
+
+[node name="BackButton" parent="MarginContainer/VBoxContainer" unique_id=800884612 instance=ExtResource("4_yw24t")]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "RETURN TO MENU"
+
+[connection signal="tab_changed" from="MarginContainer/VBoxContainer/TabContainer" to="." method="_on_tab_container_tab_changed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/BackButton" to="." method="_on_back_button_pressed"]

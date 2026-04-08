@@ -1,0 +1,105 @@
+[gd_scene format=3 uid="uid://c7v2k8n4x3j2"]
+
+[ext_resource type="Script" path="res://Scripts/how_to_play.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://f2rhtea60h0j" path="res://Assets/Fonts/JetBrainsMono-ExtraBold.ttf" id="2_font_bold"]
+[ext_resource type="FontFile" uid="uid://ccmc2ygy5pytk" path="res://Assets/Fonts/JetBrainsMonoNL-SemiBold.ttf" id="3_font_semi"]
+[ext_resource type="PackedScene" uid="uid://b7lxulyt7rojl" path="res://Scenes/button.tscn" id="4_button"]
+
+[node name="HowToPlay" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0588235, 0.0666667, 0.0784314, 0.941176)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 60
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 60
+theme_override_constants/margin_bottom = 40
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="Header" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font_bold")
+theme_override_font_sizes/font_size = 42
+text = "UPLINK_MANUAL.pdf"
+horizontal_alignment = 1
+
+[node name="TabContainer" type="TabContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_fonts/font = ExtResource("3_font_semi")
+tab_alignment = 1
+
+[node name="OBJECTIVE" type="RichTextLabel" parent="MarginContainer/VBoxContainer/TabContainer"]
+layout_mode = 2
+theme_override_fonts/normal_font = ExtResource("3_font_semi")
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "
+[color=#ff00ff][b]> MISSION OVERVIEW[/b][/color]
+The atmospheric pressure is rising. Your base is failing. 
+
+[color=#00ffff][b]> PROTOCOL[/b][/color]
+1. Build a pressurized network of pipes.
+2. Maintain the integrity of the base.
+3. Stabilize the environment before the gauge hits [color=#ff4444]100%[/color]."
+
+[node name="CONTROLS" type="RichTextLabel" parent="MarginContainer/VBoxContainer/TabContainer"]
+visible = false
+layout_mode = 2
+theme_override_fonts/normal_font = ExtResource("3_font_semi")
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "
+[color=#ff8800][b]> NAVIGATION[/b][/color]
+- [b]WASD / Arrows[/b]: Pan Camera
+- [b]Scroll[/b]: Zoom View
+
+[color=#ff8800][b]> LOGISTICS[/b][/color]
+- [b]Left Click[/b]: Place Pipe / Interact
+- [b]Right Click / R[/b]: Rotate Piece
+- [b]ESC[/b]: System Pause"
+
+[node name="RESOURCES" type="RichTextLabel" parent="MarginContainer/VBoxContainer/TabContainer"]
+visible = false
+layout_mode = 2
+theme_override_fonts/normal_font = ExtResource("3_font_semi")
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "
+[color=#c8ff00][b]> DATA[/b][/color]
+Earned through successful pipe connections. Required for base UPLINK (Save).
+
+[color=#c8ff00][b]> REPAIR RESERVE[/b][/color]
+Your safety net. Automated systems use this fund to fix leaks instantly. If this hits 0, you must repair manually."
+
+[node name="BackButton" parent="MarginContainer/VBoxContainer" instance=ExtResource("4_button")]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "RETURN TO MENU"
+
+[connection signal="tab_changed" from="MarginContainer/VBoxContainer/TabContainer" to="." method="_on_tab_container_tab_changed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/BackButton" to="." method="_on_back_button_pressed"]
