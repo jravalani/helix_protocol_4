@@ -10,6 +10,15 @@ var save_button: Button
 var _save_feedback_label: Label
 var _button_font: Font = preload("res://Assets/Fonts/JetBrainsMonoNL-SemiBold.ttf")
 
+# Pause button
+var pause_button: Button
+
+# Fast-forward button
+var fast_forward_button: Button
+var fast_forward_active: bool = false
+var _ff_normal_style: StyleBoxFlat
+var _ff_active_style: StyleBoxFlat
+
 # Current displayed values (what the user sees)
 var displayed_pipe: float = 0.0
 var displayed_data: float = 0.0
@@ -38,6 +47,8 @@ var reserve_timer: float = 0.0
 func _ready() -> void:
 	ResourceManager.resources_updated.connect(_on_resources_updated)
 	_create_save_button()
+	_create_fast_forward_button()
+	_create_pause_button()
 
 	# Initialize to current game state
 	displayed_pipe = float(GameData.current_pipe_count)
@@ -174,9 +185,13 @@ func _create_save_button() -> void:
 	var pressed_style = normal_style.duplicate()
 	pressed_style.border_color = Color("00ff88")
 
+	# Focus style matches normal so the outline resets properly
+	var focus_style = normal_style.duplicate()
+
 	save_button.add_theme_stylebox_override("normal", normal_style)
 	save_button.add_theme_stylebox_override("hover", hover_style)
 	save_button.add_theme_stylebox_override("pressed", pressed_style)
+	save_button.add_theme_stylebox_override("focus", focus_style)
 	if _button_font:
 		save_button.add_theme_font_override("font", _button_font)
 	save_button.add_theme_font_size_override("font_size", 18)
@@ -192,8 +207,131 @@ func _create_save_button() -> void:
 	add_child(save_button)
 
 
+# ═══════════════════════════════════════════════════════════════
+# FAST-FORWARD Button 
+# ═══════════════════════════════════════════════════════════════
+
+func _create_fast_forward_button() -> void:
+	fast_forward_button = Button.new()
+	fast_forward_button.text = "▶▶"
+	fast_forward_button.custom_minimum_size = Vector2(36, 36)
+
+	# Normal (inactive) style
+	_ff_normal_style = StyleBoxFlat.new()
+	_ff_normal_style.bg_color = Color(0.06, 0.08, 0.10, 0.9)
+	_ff_normal_style.border_width_left = 2
+	_ff_normal_style.border_width_top = 2
+	_ff_normal_style.border_width_right = 2
+	_ff_normal_style.border_width_bottom = 2
+	_ff_normal_style.border_color = Color("4a5568")
+	_ff_normal_style.content_margin_left = 8
+	_ff_normal_style.content_margin_right = 8
+	_ff_normal_style.content_margin_top = 4
+	_ff_normal_style.content_margin_bottom = 4
+
+	# Active (highlighted) style — bright border to indicate fast-forward is on
+	_ff_active_style = _ff_normal_style.duplicate()
+	_ff_active_style.border_color = Color("00ff88")
+
+	var hover_style = _ff_normal_style.duplicate()
+	hover_style.border_color = Color("ff00ff")
+
+	var pressed_style = _ff_normal_style.duplicate()
+	pressed_style.border_color = Color("00ff88")
+
+	var focus_style = _ff_normal_style.duplicate()
+
+	fast_forward_button.add_theme_stylebox_override("normal", _ff_normal_style)
+	fast_forward_button.add_theme_stylebox_override("hover", hover_style)
+	fast_forward_button.add_theme_stylebox_override("pressed", pressed_style)
+	fast_forward_button.add_theme_stylebox_override("focus", focus_style)
+	if _button_font:
+		fast_forward_button.add_theme_font_override("font", _button_font)
+	fast_forward_button.add_theme_font_size_override("font_size", 18)
+	fast_forward_button.add_theme_color_override("font_color", Color("c8ff00"))
+	fast_forward_button.add_theme_color_override("font_hover_color", Color("ffaa00"))
+
+	fast_forward_button.layout_mode = 1
+	fast_forward_button.anchors_preset = Control.PRESET_CENTER_TOP
+	fast_forward_button.position = Vector2(740, 14)
+
+	fast_forward_button.pressed.connect(_on_fast_forward_pressed)
+	add_child(fast_forward_button)
+
+
+func _on_fast_forward_pressed() -> void:
+	fast_forward_button.release_focus()
+	fast_forward_active = !fast_forward_active
+
+	if fast_forward_active:
+		fast_forward_button.add_theme_stylebox_override("normal", _ff_active_style)
+		fast_forward_button.add_theme_stylebox_override("focus", _ff_active_style)
+	else:
+		fast_forward_button.add_theme_stylebox_override("normal", _ff_normal_style)
+		fast_forward_button.add_theme_stylebox_override("focus", _ff_normal_style)
+
+
+# ═══════════════════════════════════════════════════════════════
+# PAUSE Button
+# ═══════════════════════════════════════════════════════════════
+
+func _create_pause_button() -> void:
+	pause_button = Button.new()
+	pause_button.text = "▶"
+	pause_button.custom_minimum_size = Vector2(36, 36)
+
+	# Style it to match the UPLINK button
+	var normal_style = StyleBoxFlat.new()
+	normal_style.bg_color = Color(0.06, 0.08, 0.10, 0.9)
+	normal_style.border_width_left = 2
+	normal_style.border_width_top = 2
+	normal_style.border_width_right = 2
+	normal_style.border_width_bottom = 2
+	normal_style.border_color = Color("4a5568")
+	normal_style.content_margin_left = 8
+	normal_style.content_margin_right = 8
+	normal_style.content_margin_top = 4
+	normal_style.content_margin_bottom = 4
+
+	var hover_style = normal_style.duplicate()
+	hover_style.border_color = Color("ff00ff")
+
+	var pressed_style = normal_style.duplicate()
+	pressed_style.border_color = Color("00ff88")
+
+	# Focus style matches normal so the outline resets properly
+	var focus_style = normal_style.duplicate()
+
+	pause_button.add_theme_stylebox_override("normal", normal_style)
+	pause_button.add_theme_stylebox_override("hover", hover_style)
+	pause_button.add_theme_stylebox_override("pressed", pressed_style)
+	pause_button.add_theme_stylebox_override("focus", focus_style)
+	if _button_font:
+		pause_button.add_theme_font_override("font", _button_font)
+	pause_button.add_theme_font_size_override("font_size", 18)
+	pause_button.add_theme_color_override("font_color", Color("c8ff00"))
+	pause_button.add_theme_color_override("font_hover_color", Color("ffaa00"))
+
+	# Position to the right of the UPLINK button
+	pause_button.layout_mode = 1
+	pause_button.anchors_preset = Control.PRESET_CENTER_TOP
+	pause_button.position = Vector2(-825, 14)
+
+	pause_button.pressed.connect(_on_pause_pressed)
+	add_child(pause_button)
+
+
+func _on_pause_pressed() -> void:
+	AudioManager.play_sfx("upgrade", 1.0, -5.0)
+	pause_button.release_focus()
+	var pause_menu = get_parent().get_node_or_null("PauseMenu")
+	if pause_menu:
+		pause_menu.show_pause_menu()
+
+
 func _on_save_pressed() -> void:
 	AudioManager.play_sfx("upgrade", 1.0, -5.0)
+	save_button.release_focus()
 	var success = SaveManager.save_game()
 	if success:
 		_show_save_feedback("STATE ARCHIVED", Color("c8ff00"))
