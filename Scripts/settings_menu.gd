@@ -1,6 +1,6 @@
 extends Control
 
-## Settings Menu with ATLAS glitch effects
+# Settings Menu with ATLAS glitch effects
 
 signal close_settings
 
@@ -155,7 +155,6 @@ func _on_vsync_toggled(toggled_on: bool) -> void:
 
 # Gameplay callbacks
 func _on_camera_shake_toggled(toggled_on: bool) -> void:
-	# You can store this in GameData or a settings singleton
 	# GameData.enable_camera_shake = toggled_on
 	save_settings()
 
@@ -173,7 +172,7 @@ func _on_reset_button_pressed() -> void:
 	master_slider.value = 1.0
 	music_slider.value = 0.8
 	sfx_slider.value = 1.0
-	fullscreen_checkbox.button_pressed = false
+	fullscreen_checkbox.button_pressed = true
 	vsync_checkbox.button_pressed = true
 	camera_shake_checkbox.button_pressed = true
 	

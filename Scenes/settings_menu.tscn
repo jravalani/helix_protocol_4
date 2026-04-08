@@ -62,11 +62,6 @@ theme_override_fonts/font = ExtResource("2_font_bold")
 text = "SETTINGS"
 label_settings = SubResource("LabelSettings_title")
 
-[node name="CloseButton" parent="MarginContainer/VBoxContainer/HeaderContainer" unique_id=1547389301 instance=ExtResource("1_button")]
-custom_minimum_size = Vector2(80, 50)
-layout_mode = 2
-text = "[ X ]"
-
 [node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer" unique_id=309524717]
 modulate = Color(1, 0, 1, 0.3)
 layout_mode = 2
@@ -267,7 +262,6 @@ custom_minimum_size = Vector2(150, 50)
 layout_mode = 2
 text = "BACK"
 
-[connection signal="pressed" from="MarginContainer/VBoxContainer/HeaderContainer/CloseButton" to="." method="_on_close_button_pressed"]
 [connection signal="value_changed" from="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/AudioSection/MasterVolume/Slider" to="." method="_on_master_volume_changed"]
 [connection signal="value_changed" from="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/AudioSection/MusicVolume/Slider" to="." method="_on_music_volume_changed"]
 [connection signal="value_changed" from="MarginContainer/VBoxContainer/SettingsScroll/SettingsContent/AudioSection/SFXVolume/Slider" to="." method="_on_sfx_volume_changed"]

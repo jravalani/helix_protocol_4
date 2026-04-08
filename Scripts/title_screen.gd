@@ -259,17 +259,24 @@ func _on_launch_pressed() -> void:
 
 
 func _on_options_pressed() -> void:
-	AudioManager.play_sfx("upgrade", 1.0, -5.0)
+
 	if not settings_menu_instance:
 		settings_menu_instance = settings_menu_scene.instantiate()
 		add_child(settings_menu_instance)
 		settings_menu_instance.close_settings.connect(_close_settings)
 	settings_menu_instance.show()
+	
+func _on_how_to_pressed() -> void:
+	AudioManager.play_sfx("upgrade", 1.0, -5.0)
+	SceneTransition.transition_to("res://how_to_play2.tscn", SceneTransition.Type.ARMOUR)
+
 
 func _close_settings() -> void:
 	if settings_menu_instance:
 		settings_menu_instance.hide()
 
+func _on_abort_pressed() -> void:
+	get_tree().quit()
 
 # ═══════════════════════════════════════════════════════════════
 # SAVE / LOAD UI

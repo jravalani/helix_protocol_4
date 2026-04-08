@@ -67,22 +67,22 @@ layout_mode = 2
 process_mode = 3
 custom_minimum_size = Vector2(300, 60)
 layout_mode = 2
-text = "RESUME"
+text = "Continue"
 
 [node name="SettingsButton" parent="CenterContainer/VBoxContainer" unique_id=1630078040 instance=ExtResource("1_button")]
 custom_minimum_size = Vector2(300, 60)
 layout_mode = 2
-text = "SETTINGS"
+text = "Settings"
 
 [node name="MainMenuButton" parent="CenterContainer/VBoxContainer" unique_id=247646249 instance=ExtResource("1_button")]
 custom_minimum_size = Vector2(300, 60)
 layout_mode = 2
-text = "MAIN MENU"
+text = "Main Menu"
 
 [node name="QuitButton" parent="CenterContainer/VBoxContainer" unique_id=1556353642 instance=ExtResource("1_button")]
 custom_minimum_size = Vector2(300, 60)
 layout_mode = 2
-text = "QUIT GAME"
+text = "Abort"
 
 [node name="Spacer2" type="Control" parent="CenterContainer/VBoxContainer" unique_id=59582702]
 custom_minimum_size = Vector2(0, 20)
