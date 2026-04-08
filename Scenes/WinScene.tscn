@@ -1,6 +1,6 @@
-[gd_scene format=3 uid="uid://ciexvrihi4xmf"]
+[gd_scene format=3 uid="uid://ddyd3msewsvst"]
 
-[ext_resource type="Script" uid="uid://bn7wdxr3e5q7m" path="res://Scripts/LoseScene.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://y7lrxv43obpw" path="res://Scripts/WinScene.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://b7lxulyt7rojl" path="res://Scenes/button.tscn" id="2_button"]
 [ext_resource type="FontFile" uid="uid://f2rhtea60h0j" path="res://Assets/Fonts/JetBrainsMono-ExtraBold.ttf" id="3_fontbold"]
 [ext_resource type="FontFile" uid="uid://ccmc2ygy5pytk" path="res://Assets/Fonts/JetBrainsMonoNL-SemiBold.ttf" id="4_fontsemi"]
@@ -8,12 +8,12 @@
 [sub_resource type="LabelSettings" id="LS_status"]
 font = ExtResource("4_fontsemi")
 font_size = 14
-font_color = Color(0.4, 0.27, 0.27, 1)
+font_color = Color(0.4, 0.4, 0.45, 1)
 
 [sub_resource type="LabelSettings" id="LS_title"]
 font = ExtResource("3_fontbold")
 font_size = 72
-font_color = Color(0.8, 0.13, 0.13, 1)
+font_color = Color(1, 0, 1, 1)
 shadow_size = 8
 shadow_color = Color(0, 0, 0, 0.6)
 shadow_offset = Vector2(4, 4)
@@ -21,58 +21,58 @@ shadow_offset = Vector2(4, 4)
 [sub_resource type="LabelSettings" id="LS_subtitle"]
 font = ExtResource("3_fontbold")
 font_size = 32
-font_color = Color(0.53, 0.1, 0.1, 1)
+font_color = Color(0.6, 0, 0.6, 1)
 
 [sub_resource type="StyleBoxFlat" id="SB_card"]
-bg_color = Color(0.094, 0.059, 0.059, 1)
+bg_color = Color(0.086, 0.086, 0.11, 1)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.22, 0.1, 0.1, 1)
+border_color = Color(0.165, 0.165, 0.21, 1)
 
 [sub_resource type="LabelSettings" id="LS_card_label"]
 font = ExtResource("4_fontsemi")
 font_size = 11
-font_color = Color(0.4, 0.27, 0.27, 1)
+font_color = Color(0.4, 0.4, 0.45, 1)
 
 [sub_resource type="LabelSettings" id="LS_card_value"]
 font = ExtResource("3_fontbold")
 font_size = 26
-font_color = Color(0.8, 0.13, 0.13, 1)
+font_color = Color(1, 0, 1, 1)
 
 [sub_resource type="LabelSettings" id="LS_card_unit"]
 font = ExtResource("4_fontsemi")
 font_size = 11
-font_color = Color(0.53, 0.1, 0.1, 1)
+font_color = Color(0.6, 0, 0.6, 1)
 
-[sub_resource type="StyleBoxFlat" id="SB_cause_block"]
-bg_color = Color(0.07, 0.03, 0.03, 1)
+[sub_resource type="StyleBoxFlat" id="SB_rank_block"]
+bg_color = Color(0.05, 0.03, 0.05, 1)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.28, 0.1, 0.1, 1)
+border_color = Color(0.22, 0.08, 0.22, 1)
 
-[sub_resource type="LabelSettings" id="LS_cause_header"]
+[sub_resource type="LabelSettings" id="LS_rank_header"]
 font = ExtResource("4_fontsemi")
 font_size = 11
-font_color = Color(0.4, 0.27, 0.27, 1)
+font_color = Color(0.4, 0.4, 0.45, 1)
 
-[sub_resource type="LabelSettings" id="LS_cause_value"]
+[sub_resource type="LabelSettings" id="LS_rank_value"]
 font = ExtResource("3_fontbold")
-font_size = 28
-font_color = Color(0.8, 0.13, 0.13, 1)
-shadow_size = 4
+font_size = 36
+font_color = Color(1, 0, 1, 1)
+shadow_size = 6
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_offset = Vector2(2, 2)
 
-[sub_resource type="LabelSettings" id="LS_cause_desc"]
+[sub_resource type="LabelSettings" id="LS_rank_desc"]
 font = ExtResource("4_fontsemi")
 font_size = 11
-font_color = Color(0.53, 0.1, 0.1, 1)
+font_color = Color(0.6, 0, 0.6, 1)
 
-[node name="LoseScene" type="Control" unique_id=1251470918]
+[node name="WinScene" type="Control" unique_id=711873986]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -81,7 +81,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
 
-[node name="BackgroundRect" type="ColorRect" parent="." unique_id=1608082113]
+[node name="BackgroundRect" type="ColorRect" parent="." unique_id=197043051]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -89,9 +89,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.059, 0.051, 0.051, 1)
+color = Color(0.059, 0.059, 0.075, 1)
 
-[node name="BorderFrame" type="Control" parent="." unique_id=1325878032]
+[node name="BorderFrame" type="Control" parent="." unique_id=1496692206]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -100,7 +100,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="TopBorder" type="ColorRect" parent="BorderFrame" unique_id=1653596323]
+[node name="TopBorder" type="ColorRect" parent="BorderFrame" unique_id=606047097]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
@@ -110,9 +110,9 @@ offset_right = -18.0
 offset_bottom = 21.0
 grow_horizontal = 2
 mouse_filter = 2
-color = Color(0.22, 0.1, 0.1, 1)
+color = Color(0.165, 0.165, 0.21, 1)
 
-[node name="BottomBorder" type="ColorRect" parent="BorderFrame" unique_id=1287092942]
+[node name="BottomBorder" type="ColorRect" parent="BorderFrame" unique_id=1019473595]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -125,9 +125,9 @@ offset_bottom = -18.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
-color = Color(0.22, 0.1, 0.1, 1)
+color = Color(0.165, 0.165, 0.21, 1)
 
-[node name="LeftBorder" type="ColorRect" parent="BorderFrame" unique_id=867312176]
+[node name="LeftBorder" type="ColorRect" parent="BorderFrame" unique_id=245862560]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
@@ -141,9 +141,9 @@ offset_bottom = -18.0
 grow_horizontal = 0
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.22, 0.1, 0.1, 1)
+color = Color(0.165, 0.165, 0.21, 1)
 
-[node name="RightBorder" type="ColorRect" parent="BorderFrame" unique_id=211600273]
+[node name="RightBorder" type="ColorRect" parent="BorderFrame" unique_id=622754007]
 layout_mode = 1
 anchors_preset = 11
 anchor_left = 1.0
@@ -156,18 +156,18 @@ offset_bottom = -18.0
 grow_horizontal = 0
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.22, 0.1, 0.1, 1)
+color = Color(0.165, 0.165, 0.21, 1)
 
-[node name="CornerTL" type="ColorRect" parent="BorderFrame" unique_id=553666093]
+[node name="CornerTL" type="ColorRect" parent="BorderFrame" unique_id=1214610219]
 layout_mode = 0
 offset_left = 14.0
 offset_top = 14.0
 offset_right = 32.0
 offset_bottom = 32.0
 mouse_filter = 2
-color = Color(0.28, 0.14, 0.14, 1)
+color = Color(0.22, 0.22, 0.28, 1)
 
-[node name="CornerTR" type="ColorRect" parent="BorderFrame" unique_id=1813845770]
+[node name="CornerTR" type="ColorRect" parent="BorderFrame" unique_id=1055461797]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -178,9 +178,9 @@ offset_right = -14.0
 offset_bottom = 32.0
 grow_horizontal = 0
 mouse_filter = 2
-color = Color(0.28, 0.14, 0.14, 1)
+color = Color(0.22, 0.22, 0.28, 1)
 
-[node name="CornerBL" type="ColorRect" parent="BorderFrame" unique_id=119256886]
+[node name="CornerBL" type="ColorRect" parent="BorderFrame" unique_id=1420097922]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
@@ -191,9 +191,9 @@ offset_right = 32.0
 offset_bottom = -14.0
 grow_vertical = 0
 mouse_filter = 2
-color = Color(0.28, 0.14, 0.14, 1)
+color = Color(0.22, 0.22, 0.28, 1)
 
-[node name="CornerBR" type="ColorRect" parent="BorderFrame" unique_id=1776598225]
+[node name="CornerBR" type="ColorRect" parent="BorderFrame" unique_id=632112272]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
@@ -207,9 +207,9 @@ offset_bottom = -14.0
 grow_horizontal = 0
 grow_vertical = 0
 mouse_filter = 2
-color = Color(0.28, 0.14, 0.14, 1)
+color = Color(0.22, 0.22, 0.28, 1)
 
-[node name="UILayer" type="Control" parent="." unique_id=1436567040]
+[node name="UILayer" type="Control" parent="." unique_id=112910164]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -217,24 +217,24 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="StatusLabel" type="Label" parent="UILayer" unique_id=970216893]
+[node name="StatusLabel" type="Label" parent="UILayer" unique_id=1189893712]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -240.0
+offset_left = -220.0
 offset_top = 72.0
-offset_right = 240.0
+offset_right = 220.0
 offset_bottom = 96.0
 grow_horizontal = 2
-theme_override_colors/font_color = Color(0.4, 0.27, 0.27, 1)
+theme_override_colors/font_color = Color(0.4, 0.4, 0.45, 1)
 theme_override_fonts/font = ExtResource("4_fontsemi")
 theme_override_font_sizes/font_size = 14
-text = "HELIX PROTOCOL  /  HULL INTEGRITY LOST"
+text = "HELIX PROTOCOL  /  SECTOR CLEARED"
 label_settings = SubResource("LS_status")
 horizontal_alignment = 1
 
-[node name="TitleLabel" type="Label" parent="UILayer" unique_id=1443803442]
+[node name="TitleLabel" type="Label" parent="UILayer" unique_id=803409684]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -244,7 +244,7 @@ offset_top = 108.0
 offset_right = 300.0
 offset_bottom = 200.0
 grow_horizontal = 2
-theme_override_colors/font_color = Color(0.8, 0.13, 0.13, 1)
+theme_override_colors/font_color = Color(1, 0, 1, 1)
 theme_override_fonts/font = ExtResource("3_fontbold")
 theme_override_font_sizes/font_size = 72
 text = "MISSION"
@@ -252,7 +252,7 @@ label_settings = SubResource("LS_title")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="SubtitleLabel" type="Label" parent="UILayer" unique_id=1199533431]
+[node name="SubtitleLabel" type="Label" parent="UILayer" unique_id=60164115]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -262,14 +262,14 @@ offset_top = 200.0
 offset_right = 200.0
 offset_bottom = 244.0
 grow_horizontal = 2
-theme_override_colors/font_color = Color(0.53, 0.1, 0.1, 1)
+theme_override_colors/font_color = Color(0.6, 0, 0.6, 1)
 theme_override_fonts/font = ExtResource("3_fontbold")
 theme_override_font_sizes/font_size = 32
-text = "FAILED"
+text = "COMPLETE"
 label_settings = SubResource("LS_subtitle")
 horizontal_alignment = 1
 
-[node name="Divider" type="ColorRect" parent="UILayer" unique_id=645175107]
+[node name="Divider" type="ColorRect" parent="UILayer" unique_id=1256297908]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -280,9 +280,9 @@ offset_right = 528.0
 offset_bottom = 257.0
 grow_horizontal = 2
 mouse_filter = 2
-color = Color(0.8, 0.13, 0.13, 0.5)
+color = Color(1, 0, 1, 0.5)
 
-[node name="StatsRow" type="HBoxContainer" parent="UILayer" unique_id=1152552775]
+[node name="StatsRow" type="HBoxContainer" parent="UILayer" unique_id=1087347846]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -294,224 +294,224 @@ offset_bottom = 382.0
 grow_horizontal = 2
 theme_override_constants/separation = 12
 
-[node name="StatCard1" type="PanelContainer" parent="UILayer/StatsRow" unique_id=1041699318]
+[node name="StatCard1" type="PanelContainer" parent="UILayer/StatsRow" unique_id=870450336]
 custom_minimum_size = Vector2(200, 100)
 layout_mode = 2
 theme_override_styles/panel = SubResource("SB_card")
 
-[node name="VBox" type="VBoxContainer" parent="UILayer/StatsRow/StatCard1" unique_id=904756899]
+[node name="VBox" type="VBoxContainer" parent="UILayer/StatsRow/StatCard1" unique_id=314249523]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="TopAccent" type="ColorRect" parent="UILayer/StatsRow/StatCard1/VBox" unique_id=1552961190]
+[node name="TopAccent" type="ColorRect" parent="UILayer/StatsRow/StatCard1/VBox" unique_id=1002292682]
 custom_minimum_size = Vector2(0, 2)
 layout_mode = 2
 mouse_filter = 2
-color = Color(0.8, 0.13, 0.13, 0.22)
+color = Color(1, 0, 1, 0.22)
 
-[node name="CardLabel" type="Label" parent="UILayer/StatsRow/StatCard1/VBox" unique_id=1997058629]
+[node name="CardLabel" type="Label" parent="UILayer/StatsRow/StatCard1/VBox" unique_id=1197083461]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.27, 0.27, 1)
+theme_override_colors/font_color = Color(0.4, 0.4, 0.45, 1)
 theme_override_fonts/font = ExtResource("4_fontsemi")
 theme_override_font_sizes/font_size = 11
 text = "PIPE TILES"
 label_settings = SubResource("LS_card_label")
 
-[node name="CardValue" type="Label" parent="UILayer/StatsRow/StatCard1/VBox" unique_id=1715490583]
+[node name="CardValue" type="Label" parent="UILayer/StatsRow/StatCard1/VBox" unique_id=1843073762]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.13, 0.13, 1)
+theme_override_colors/font_color = Color(1, 0, 1, 1)
 theme_override_fonts/font = ExtResource("3_fontbold")
 theme_override_font_sizes/font_size = 26
 text = "0"
 label_settings = SubResource("LS_card_value")
 
-[node name="CardUnit" type="Label" parent="UILayer/StatsRow/StatCard1/VBox" unique_id=2060483757]
+[node name="CardUnit" type="Label" parent="UILayer/StatsRow/StatCard1/VBox" unique_id=2127768825]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.53, 0.1, 0.1, 1)
+theme_override_colors/font_color = Color(0.6, 0, 0.6, 1)
 theme_override_fonts/font = ExtResource("4_fontsemi")
 theme_override_font_sizes/font_size = 11
 text = "LAID"
 label_settings = SubResource("LS_card_unit")
 
-[node name="StatCard2" type="PanelContainer" parent="UILayer/StatsRow" unique_id=80744760]
+[node name="StatCard2" type="PanelContainer" parent="UILayer/StatsRow" unique_id=1709453412]
 custom_minimum_size = Vector2(200, 100)
 layout_mode = 2
 theme_override_styles/panel = SubResource("SB_card")
 
-[node name="VBox" type="VBoxContainer" parent="UILayer/StatsRow/StatCard2" unique_id=9183765]
+[node name="VBox" type="VBoxContainer" parent="UILayer/StatsRow/StatCard2" unique_id=1537586227]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="TopAccent" type="ColorRect" parent="UILayer/StatsRow/StatCard2/VBox" unique_id=1323776991]
+[node name="TopAccent" type="ColorRect" parent="UILayer/StatsRow/StatCard2/VBox" unique_id=1856316058]
 custom_minimum_size = Vector2(0, 2)
 layout_mode = 2
 mouse_filter = 2
-color = Color(0.8, 0.13, 0.13, 0.22)
+color = Color(1, 0, 1, 0.22)
 
-[node name="CardLabel" type="Label" parent="UILayer/StatsRow/StatCard2/VBox" unique_id=324778618]
+[node name="CardLabel" type="Label" parent="UILayer/StatsRow/StatCard2/VBox" unique_id=691082129]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.27, 0.27, 1)
+theme_override_colors/font_color = Color(0.4, 0.4, 0.45, 1)
 theme_override_fonts/font = ExtResource("4_fontsemi")
 theme_override_font_sizes/font_size = 11
 text = "PEAK PRESSURE"
 label_settings = SubResource("LS_card_label")
 
-[node name="CardValue" type="Label" parent="UILayer/StatsRow/StatCard2/VBox" unique_id=2029917963]
+[node name="CardValue" type="Label" parent="UILayer/StatsRow/StatCard2/VBox" unique_id=647243549]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.13, 0.13, 1)
+theme_override_colors/font_color = Color(1, 0, 1, 1)
 theme_override_fonts/font = ExtResource("3_fontbold")
 theme_override_font_sizes/font_size = 26
 text = "0.00%"
 label_settings = SubResource("LS_card_value")
 
-[node name="CardUnit" type="Label" parent="UILayer/StatsRow/StatCard2/VBox" unique_id=1873050939]
+[node name="CardUnit" type="Label" parent="UILayer/StatsRow/StatCard2/VBox" unique_id=1889640017]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.53, 0.1, 0.1, 1)
+theme_override_colors/font_color = Color(0.6, 0, 0.6, 1)
 theme_override_fonts/font = ExtResource("4_fontsemi")
 theme_override_font_sizes/font_size = 11
-text = "CRITICAL"
+text = "CONTAINED"
 label_settings = SubResource("LS_card_unit")
 
-[node name="StatCard3" type="PanelContainer" parent="UILayer/StatsRow" unique_id=2143336089]
+[node name="StatCard3" type="PanelContainer" parent="UILayer/StatsRow" unique_id=1226007722]
 custom_minimum_size = Vector2(200, 100)
 layout_mode = 2
 theme_override_styles/panel = SubResource("SB_card")
 
-[node name="VBox" type="VBoxContainer" parent="UILayer/StatsRow/StatCard3" unique_id=1408702700]
+[node name="VBox" type="VBoxContainer" parent="UILayer/StatsRow/StatCard3" unique_id=1959566509]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="TopAccent" type="ColorRect" parent="UILayer/StatsRow/StatCard3/VBox" unique_id=251218093]
+[node name="TopAccent" type="ColorRect" parent="UILayer/StatsRow/StatCard3/VBox" unique_id=963717636]
 custom_minimum_size = Vector2(0, 2)
 layout_mode = 2
 mouse_filter = 2
-color = Color(0.8, 0.13, 0.13, 0.22)
+color = Color(1, 0, 1, 0.22)
 
-[node name="CardLabel" type="Label" parent="UILayer/StatsRow/StatCard3/VBox" unique_id=1921920174]
+[node name="CardLabel" type="Label" parent="UILayer/StatsRow/StatCard3/VBox" unique_id=763319962]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.27, 0.27, 1)
+theme_override_colors/font_color = Color(0.4, 0.4, 0.45, 1)
 theme_override_fonts/font = ExtResource("4_fontsemi")
 theme_override_font_sizes/font_size = 11
-text = "DATA SALVAGED"
+text = "DATA"
 label_settings = SubResource("LS_card_label")
 
-[node name="CardValue" type="Label" parent="UILayer/StatsRow/StatCard3/VBox" unique_id=1396105786]
+[node name="CardValue" type="Label" parent="UILayer/StatsRow/StatCard3/VBox" unique_id=472323461]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.13, 0.13, 1)
+theme_override_colors/font_color = Color(1, 0, 1, 1)
 theme_override_fonts/font = ExtResource("3_fontbold")
 theme_override_font_sizes/font_size = 26
 text = "0"
 label_settings = SubResource("LS_card_value")
 
-[node name="CardUnit" type="Label" parent="UILayer/StatsRow/StatCard3/VBox" unique_id=479900003]
+[node name="CardUnit" type="Label" parent="UILayer/StatsRow/StatCard3/VBox" unique_id=429238336]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.53, 0.1, 0.1, 1)
+theme_override_colors/font_color = Color(0.6, 0, 0.6, 1)
 theme_override_fonts/font = ExtResource("4_fontsemi")
 theme_override_font_sizes/font_size = 11
-text = "RECOVERED"
+text = "COLLECTED"
 label_settings = SubResource("LS_card_unit")
 
-[node name="StatCard4" type="PanelContainer" parent="UILayer/StatsRow" unique_id=705046787]
+[node name="StatCard4" type="PanelContainer" parent="UILayer/StatsRow" unique_id=650948405]
 custom_minimum_size = Vector2(200, 100)
 layout_mode = 2
 theme_override_styles/panel = SubResource("SB_card")
 
-[node name="VBox" type="VBoxContainer" parent="UILayer/StatsRow/StatCard4" unique_id=901785362]
+[node name="VBox" type="VBoxContainer" parent="UILayer/StatsRow/StatCard4" unique_id=2097256002]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="TopAccent" type="ColorRect" parent="UILayer/StatsRow/StatCard4/VBox" unique_id=1921054332]
+[node name="TopAccent" type="ColorRect" parent="UILayer/StatsRow/StatCard4/VBox" unique_id=1420871184]
 custom_minimum_size = Vector2(0, 2)
 layout_mode = 2
 mouse_filter = 2
-color = Color(0.8, 0.13, 0.13, 0.22)
+color = Color(1, 0, 1, 0.22)
 
-[node name="CardLabel" type="Label" parent="UILayer/StatsRow/StatCard4/VBox" unique_id=1432339069]
+[node name="CardLabel" type="Label" parent="UILayer/StatsRow/StatCard4/VBox" unique_id=421755391]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.27, 0.27, 1)
+theme_override_colors/font_color = Color(0.4, 0.4, 0.45, 1)
 theme_override_fonts/font = ExtResource("4_fontsemi")
 theme_override_font_sizes/font_size = 11
-text = "SURVIVAL TIME"
+text = "REPAIR RESERVE"
 label_settings = SubResource("LS_card_label")
 
-[node name="CardValue" type="Label" parent="UILayer/StatsRow/StatCard4/VBox" unique_id=2059601716]
+[node name="CardValue" type="Label" parent="UILayer/StatsRow/StatCard4/VBox" unique_id=2146889922]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.13, 0.13, 1)
+theme_override_colors/font_color = Color(1, 0, 1, 1)
 theme_override_fonts/font = ExtResource("3_fontbold")
 theme_override_font_sizes/font_size = 26
-text = "0s"
+text = "0"
 label_settings = SubResource("LS_card_value")
 
-[node name="CardUnit" type="Label" parent="UILayer/StatsRow/StatCard4/VBox" unique_id=866816839]
+[node name="CardUnit" type="Label" parent="UILayer/StatsRow/StatCard4/VBox" unique_id=1416392248]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.53, 0.1, 0.1, 1)
+theme_override_colors/font_color = Color(0.6, 0, 0.6, 1)
 theme_override_fonts/font = ExtResource("4_fontsemi")
 theme_override_font_sizes/font_size = 11
-text = "ELAPSED"
+text = "REMAINING"
 label_settings = SubResource("LS_card_unit")
 
-[node name="CauseBlock" type="PanelContainer" parent="UILayer" unique_id=446520825]
+[node name="RankBlock" type="PanelContainer" parent="UILayer" unique_id=1328754356]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -240.0
+offset_left = -220.0
 offset_top = 398.0
-offset_right = 240.0
+offset_right = 220.0
 offset_bottom = 496.0
 grow_horizontal = 2
-theme_override_styles/panel = SubResource("SB_cause_block")
+theme_override_styles/panel = SubResource("SB_rank_block")
 
-[node name="VBox" type="VBoxContainer" parent="UILayer/CauseBlock" unique_id=1728053361]
+[node name="VBox" type="VBoxContainer" parent="UILayer/RankBlock" unique_id=561278753]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="CauseHeader" type="Label" parent="UILayer/CauseBlock/VBox" unique_id=2022055860]
+[node name="RatingHeader" type="Label" parent="UILayer/RankBlock/VBox" unique_id=1019766579]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.27, 0.27, 1)
+theme_override_colors/font_color = Color(0.4, 0.4, 0.45, 1)
 theme_override_fonts/font = ExtResource("4_fontsemi")
 theme_override_font_sizes/font_size = 11
-text = "FAILURE CAUSE"
-label_settings = SubResource("LS_cause_header")
+text = "PERFORMANCE RATING"
+label_settings = SubResource("LS_rank_header")
 horizontal_alignment = 1
 
-[node name="CauseValue" type="Label" parent="UILayer/CauseBlock/VBox" unique_id=675223518]
+[node name="RankLabel" type="Label" parent="UILayer/RankBlock/VBox" unique_id=1630166360]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.13, 0.13, 1)
+theme_override_colors/font_color = Color(1, 0, 1, 1)
 theme_override_fonts/font = ExtResource("3_fontbold")
-theme_override_font_sizes/font_size = 28
-text = "PRESSURE OVERLOAD"
-label_settings = SubResource("LS_cause_value")
+theme_override_font_sizes/font_size = 36
+text = "S-CLASS"
+label_settings = SubResource("LS_rank_value")
 horizontal_alignment = 1
 
-[node name="CauseDesc" type="Label" parent="UILayer/CauseBlock/VBox" unique_id=137278644]
+[node name="RankDesc" type="Label" parent="UILayer/RankBlock/VBox" unique_id=1413381334]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.53, 0.1, 0.1, 1)
+theme_override_colors/font_color = Color(0.6, 0, 0.6, 1)
 theme_override_fonts/font = ExtResource("4_fontsemi")
 theme_override_font_sizes/font_size = 11
-text = "HULL SHIELD DEPLETED  /  BREACH UNCONTAINED"
-label_settings = SubResource("LS_cause_desc")
+text = "HULL INTEGRITY MAINTAINED  /  ZERO BREACHES"
+label_settings = SubResource("LS_rank_desc")
 horizontal_alignment = 1
 
-[node name="ButtonRow" type="HBoxContainer" parent="UILayer" unique_id=1218413085]
+[node name="ButtonRow" type="HBoxContainer" parent="UILayer" unique_id=786651953]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -208.0
+offset_left = -196.0
 offset_top = 516.0
-offset_right = 208.0
+offset_right = 196.0
 offset_bottom = 562.0
 grow_horizontal = 2
 theme_override_constants/separation = 16
 alignment = 1
 
-[node name="MainMenuButton" parent="UILayer/ButtonRow" unique_id=596496686 instance=ExtResource("2_button")]
-custom_minimum_size = Vector2(190, 44)
+[node name="MainMenuButton" parent="UILayer/ButtonRow" unique_id=1035912675 instance=ExtResource("2_button")]
+custom_minimum_size = Vector2(180, 44)
 layout_mode = 2
 text = "MAIN MENU"
 
-[node name="TryAgainButton" parent="UILayer/ButtonRow" unique_id=517480858 instance=ExtResource("2_button")]
-custom_minimum_size = Vector2(190, 44)
+[node name="NextMissionButton" parent="UILayer/ButtonRow" unique_id=623530788 instance=ExtResource("2_button")]
+custom_minimum_size = Vector2(180, 44)
 layout_mode = 2
-text = "TRY AGAIN"
+text = "NEXT MISSION"
