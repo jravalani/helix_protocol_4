@@ -6,14 +6,14 @@ var hum_tween: Tween
 func _on_mouse_entered():
 	
 	
-	##win scence
-	WinSceneData.pipe_tiles     = 45
-	WinSceneData.peak_pressure  = 2.51
-	WinSceneData.data_collected = 24991
-	WinSceneData.repair_reserve = 3
-
-	SceneTransition.transition_to("res://Scenes/WinScene.tscn", SceneTransition.Type.ARMOUR)
-	##
+	###win scence
+	#WinSceneData.pipe_tiles     = 45
+	#WinSceneData.peak_pressure  = 2.51
+	#WinSceneData.data_collected = 24991
+	#WinSceneData.repair_reserve = 3
+#
+	#SceneTransition.transition_to("res://Scenes/WinScene.tscn", SceneTransition.Type.ARMOUR)
+	###
 	
 	#loose scence
 	#WinSceneData.pipe_tiles     = 33

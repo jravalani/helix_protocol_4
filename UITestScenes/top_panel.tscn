@@ -1,7 +1,29 @@
-[gd_scene format=3 uid="uid://dtv18ee30jl71"]
+[gd_scene format=3 uid="uid://baqiaaw71gui4"]
 
 [ext_resource type="Script" uid="uid://cef0ql384ei77" path="res://Scripts/top_panel.gd" id="1_l2cge"]
 [ext_resource type="FontFile" uid="uid://ccmc2ygy5pytk" path="res://Assets/Fonts/JetBrainsMonoNL-SemiBold.ttf" id="2_il7hk"]
+[ext_resource type="PackedScene" uid="uid://b7lxulyt7rojl" path="res://Scenes/button.tscn" id="3_button"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_normal"]
+bg_color = Color(0.15, 0.15, 0.15, 0)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pressed"]
+bg_color = Color(0.1, 0.1, 0.1, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hover"]
+bg_color = Color(0.3, 0.3, 0.3, 0.4)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
 
 [sub_resource type="LabelSettings" id="LabelSettings_l2cge"]
 font = ExtResource("2_il7hk")
@@ -23,45 +45,97 @@ script = ExtResource("1_l2cge")
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
+offset_left = 128.0
+offset_right = -120.0
 offset_bottom = 64.0
 grow_horizontal = 2
 mouse_filter = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_right = 12
 
 [node name="ParentHbox" type="HBoxContainer" parent="MarginContainer" unique_id=1481571624]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 100
-alignment = 1
+theme_override_constants/separation = 8
+
+[node name="PauseButton" parent="MarginContainer/ParentHbox" unique_id=1111111002 instance=ExtResource("3_button")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(36, 28)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_normal")
+text = "||"
 
 [node name="HBoxContainer2" type="HBoxContainer" parent="MarginContainer/ParentHbox" unique_id=1258825397]
 layout_mode = 2
-theme_override_constants/separation = 50
+size_flags_horizontal = 3
+theme_override_constants/separation = 100
+alignment = 1
 
 [node name="PipeCount" type="Label" parent="MarginContainer/ParentHbox/HBoxContainer2" unique_id=226785252]
 layout_mode = 2
 text = "Pipe Count: "
 label_settings = SubResource("LabelSettings_l2cge")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/ParentHbox" unique_id=1535723111]
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/ParentHbox/HBoxContainer2" unique_id=1535723111]
 layout_mode = 2
-theme_override_constants/separation = 50
+theme_override_constants/separation = 0
 alignment = 1
 
-[node name="Pressure" type="Label" parent="MarginContainer/ParentHbox/HBoxContainer" unique_id=524132634]
+[node name="Pressure" type="Label" parent="MarginContainer/ParentHbox/HBoxContainer2/HBoxContainer" unique_id=524132634]
 layout_mode = 2
 text = "Pressure:"
 label_settings = SubResource("LabelSettings_l2cge")
 
-[node name="HBoxContainer3" type="HBoxContainer" parent="MarginContainer/ParentHbox" unique_id=2045093520]
+[node name="HBoxContainer3" type="HBoxContainer" parent="MarginContainer/ParentHbox/HBoxContainer2" unique_id=2045093520]
 layout_mode = 2
-theme_override_constants/separation = 50
+theme_override_constants/separation = 80
+alignment = 1
 
-[node name="DataLabel" type="Label" parent="MarginContainer/ParentHbox/HBoxContainer3" unique_id=881179059]
+[node name="DataLabel" type="Label" parent="MarginContainer/ParentHbox/HBoxContainer2/HBoxContainer3" unique_id=881179059]
 layout_mode = 2
 text = "Data: "
 label_settings = SubResource("LabelSettings_il7hk")
 
-[node name="AutoReserve" type="Label" parent="MarginContainer/ParentHbox/HBoxContainer3" unique_id=1097720679]
+[node name="AutoReserve" type="Label" parent="MarginContainer/ParentHbox/HBoxContainer2/HBoxContainer3" unique_id=1097720679]
 layout_mode = 2
 text = "Auto Repair Data: "
 label_settings = SubResource("LabelSettings_l2cge")
+
+[node name="ButtonGroup" type="HBoxContainer" parent="MarginContainer/ParentHbox" unique_id=1111111001]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_constants/separation = 8
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/ParentHbox/ButtonGroup" unique_id=285047306]
+layout_mode = 2
+theme_override_constants/separation = 50
+
+[node name="SpeedUpButton" parent="MarginContainer/ParentHbox/ButtonGroup/HBoxContainer" unique_id=1111111003 instance=ExtResource("3_button")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 28)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_normal")
+text = ">> SPEED"
+
+[node name="UplinkButton" parent="MarginContainer/ParentHbox/ButtonGroup/HBoxContainer" unique_id=1111111004 instance=ExtResource("3_button")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 28)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_normal")
+text = "⬆ UPLINK"
+
+[connection signal="pressed" from="MarginContainer/ParentHbox/PauseButton" to="." method="_on_pause_pressed"]
+[connection signal="pressed" from="MarginContainer/ParentHbox/ButtonGroup/HBoxContainer/SpeedUpButton" to="." method="_on_speed_up_pressed"]
+[connection signal="pressed" from="MarginContainer/ParentHbox/ButtonGroup/HBoxContainer/UplinkButton" to="." method="_on_uplink_pressed"]

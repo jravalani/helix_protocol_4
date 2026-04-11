@@ -30,6 +30,8 @@ var is_rate_limited:     bool  = false
 
 var is_fractured:      bool  = false
 var _dead_pulse_tween: Tween = null
+var _rate_limit_tween: Tween = null
+var _rate_limit_label: Label = null
 
 # ── Popup ────────────────────────────────────────────────────────
 const POPUP_OFFSET_Y: float = -60.0
@@ -69,7 +71,9 @@ func _process(delta: float) -> void:
 	if window_timer >= GameData.hub_rate_window:
 		window_timer = 0.0
 		packets_this_window = 0
-		is_rate_limited = false
+		if is_rate_limited:
+			is_rate_limited = false
+			_stop_rate_limit_visual()
 
 	# Update popup position if open
 	if _popup_open:
@@ -194,6 +198,7 @@ func receive_oxygen_packet() -> void:
 
 	if packets_this_window >= _get_cap():
 		is_rate_limited = true
+		_start_rate_limit_visual()
 
 #endregion
 
@@ -213,6 +218,40 @@ func _spawn_floating_label(text: String, color: Color) -> void:
 	t.tween_property(label, "position:y", label.position.y - 30, 0.8)
 	t.tween_property(label, "modulate:a", 0.0, 0.8)
 	t.tween_callback(label.queue_free).set_delay(0.8)
+
+func _start_rate_limit_visual() -> void:
+	# Pulse the hub red-orange
+	if _rate_limit_tween:
+		_rate_limit_tween.kill()
+	_rate_limit_tween = create_tween().set_loops()
+	_rate_limit_tween.tween_property(self, "modulate", Color(1.8, 0.3, 0.3, 1.0), 0.4)
+	_rate_limit_tween.tween_property(self, "modulate", Color(1.0, 0.6, 0.2, 1.0), 0.4)
+
+	# Permanent label that sits above the hub until rate limit clears
+	if _rate_limit_label:
+		_rate_limit_label.queue_free()
+	_rate_limit_label = Label.new()
+	_rate_limit_label.text = "RATE LIMITED"
+	_rate_limit_label.add_theme_color_override("font_color", Color("ff2222"))
+	_rate_limit_label.add_theme_font_override("font", load("res://Assets/Fonts/JetBrainsMono-ExtraBold.ttf"))
+	_rate_limit_label.add_theme_font_size_override("font_size", 22)
+	_rate_limit_label.position = Vector2(-55, -10)
+	add_child(_rate_limit_label)
+
+	# Pulse the label alpha so it doesn't feel static
+	var label_tween = create_tween().set_loops()
+	label_tween.tween_property(_rate_limit_label, "modulate:a", 0.4, 0.6)
+	label_tween.tween_property(_rate_limit_label, "modulate:a", 1.0, 0.6)
+
+func _stop_rate_limit_visual() -> void:
+	if _rate_limit_tween:
+		_rate_limit_tween.kill()
+		_rate_limit_tween = null
+	if _rate_limit_label:
+		_rate_limit_label.queue_free()
+		_rate_limit_label = null
+	var restore := create_tween()
+	restore.tween_property(self, "modulate", Color.WHITE, 0.3)
 
 #endregion
 
@@ -238,6 +277,12 @@ func fracture() -> void:
 	oxygen_backlog      = 0
 	packets_this_window = 0
 	is_rate_limited     = false
+	if _rate_limit_tween:
+		_rate_limit_tween.kill()
+		_rate_limit_tween = null
+	if _rate_limit_label:
+		_rate_limit_label.queue_free()
+		_rate_limit_label = null
 
 	var flicker := create_tween()
 	for i in range(4):
