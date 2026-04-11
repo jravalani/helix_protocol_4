@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://ddyd3msewsvst"]
 
-[ext_resource type="Script" uid="uid://y7lrxv43obpw" path="res://Scripts/WinScene.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bbx8mwqhq32ak" path="res://Scripts/WinScene.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://b7lxulyt7rojl" path="res://Scenes/button.tscn" id="2_button"]
 [ext_resource type="FontFile" uid="uid://f2rhtea60h0j" path="res://Assets/Fonts/JetBrainsMono-ExtraBold.ttf" id="3_fontbold"]
 [ext_resource type="FontFile" uid="uid://ccmc2ygy5pytk" path="res://Assets/Fonts/JetBrainsMonoNL-SemiBold.ttf" id="4_fontsemi"]
@@ -12,11 +12,12 @@ font_color = Color(0.4, 0.4, 0.45, 1)
 
 [sub_resource type="LabelSettings" id="LS_title"]
 font = ExtResource("3_fontbold")
-font_size = 72
+font_size = 100
 font_color = Color(1, 0, 1, 1)
+outline_color = Color(0.4392157, 0, 0.4392157, 1)
 shadow_size = 8
-shadow_color = Color(0, 0, 0, 0.6)
-shadow_offset = Vector2(4, 4)
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(8, 8)
 
 [sub_resource type="LabelSettings" id="LS_subtitle"]
 font = ExtResource("3_fontbold")
@@ -40,6 +41,7 @@ font_color = Color(0.4, 0.4, 0.45, 1)
 font = ExtResource("3_fontbold")
 font_size = 26
 font_color = Color(1, 0, 1, 1)
+outline_color = Color(0.4392157, 0, 0.4392157, 1)
 
 [sub_resource type="LabelSettings" id="LS_card_unit"]
 font = ExtResource("4_fontsemi")
@@ -63,6 +65,7 @@ font_color = Color(0.4, 0.4, 0.45, 1)
 font = ExtResource("3_fontbold")
 font_size = 36
 font_color = Color(1, 0, 1, 1)
+outline_color = Color(0.4392157, 0, 0.4392157, 1)
 shadow_size = 6
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_offset = Vector2(2, 2)
@@ -72,7 +75,7 @@ font = ExtResource("4_fontsemi")
 font_size = 11
 font_color = Color(0.6, 0, 0.6, 1)
 
-[node name="WinScene" type="Control" unique_id=711873986]
+[node name="WinScene2" type="Control" unique_id=711873986]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -89,7 +92,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.059, 0.059, 0.075, 1)
+color = Color(0.09985284, 0.09985284, 0.106126174, 1)
 
 [node name="BorderFrame" type="Control" parent="." unique_id=1496692206]
 layout_mode = 1
@@ -246,7 +249,7 @@ offset_bottom = 200.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 0, 1, 1)
 theme_override_fonts/font = ExtResource("3_fontbold")
-theme_override_font_sizes/font_size = 72
+theme_override_font_sizes/font_size = 100
 text = "MISSION"
 label_settings = SubResource("LS_title")
 horizontal_alignment = 1
@@ -258,9 +261,9 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -200.0
-offset_top = 200.0
+offset_top = 216.0
 offset_right = 200.0
-offset_bottom = 244.0
+offset_bottom = 260.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0.6, 0, 0.6, 1)
 theme_override_fonts/font = ExtResource("3_fontbold")

@@ -63,8 +63,6 @@ func play_game_music() -> void:
 	AudioManager.start_ambient(AudioManager.AMBIENT_PACKETS_C)
 	AudioManager.start_ambient(AudioManager.AMBIENT_VENT_A)
 	AudioManager.start_ambient(AudioManager.AMBIENT_VENT_B)
-	AudioManager.start_ambient(AudioManager.AMBIENT_HUB_A)
-	AudioManager.start_ambient(AudioManager.AMBIENT_HUB_B)
 	AudioManager.start_ambient(AudioManager.AMBIENT_STEAM_A)
 	AudioManager.start_ambient(AudioManager.AMBIENT_STEAM_B)
 
@@ -156,15 +154,7 @@ func _update_pressure_ambient() -> void:
 	AudioManager.set_ambient_volume(AudioManager.AMBIENT_PACKETS_A, clampf(count / 5.0,            0.001, 0.6))
 	AudioManager.set_ambient_volume(AudioManager.AMBIENT_PACKETS_B, clampf((count - 5.0) / 10.0,  0.001, 0.5))
 	AudioManager.set_ambient_volume(AudioManager.AMBIENT_PACKETS_C, clampf((count - 15.0) / 15.0, 0.001, 0.4))
-
-	var vents = float(GameData.current_vent_count)
-	AudioManager.set_ambient_volume(AudioManager.AMBIENT_VENT_A, clampf(vents / 5.0,          0.001, 1.0))
-	AudioManager.set_ambient_volume(AudioManager.AMBIENT_VENT_B, clampf((vents - 5.0) / 10.0, 0.001, 1.0))
-
-	var hubs = float(GameData.current_hub_count)
-	AudioManager.set_ambient_volume(AudioManager.AMBIENT_HUB_A, clampf(hubs / 5.0,          0.001, 1.0))
-	AudioManager.set_ambient_volume(AudioManager.AMBIENT_HUB_B, clampf((hubs - 5.0) / 10.0, 0.001, 1.0))
-
+	
 	var fractured = float(GameData.fractured_pipes.size())
 	if fractured <= 0.0:
 		AudioManager._ambient_pool[AudioManager.AMBIENT_STEAM_A].volume_db = -80.0

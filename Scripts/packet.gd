@@ -50,7 +50,11 @@ func restore_speed() -> void:
 func _on_fracture_wave() -> void:
 	apply_slowdown(0.7)
 
+var _exploding: bool = false
+
 func _process(delta: float) -> void:
+	if _exploding:
+		return
 	if progress_ratio < 1.0:
 		progress += speed * delta
 		_update_visuals()
@@ -108,18 +112,32 @@ func setup_path(vent_node: Vent, start_cell: Vector2i, end_cell: Vector2i):
 	progress = 0
 
 func deliver_to_hub():
-	"""Deliver oxygen to the target hub."""
 	var hub = GameData.building_grid.get(target_hub_cell)
-	
+	if hub and hub is Hub and hub.is_rate_limited:
+		_explode(false)
+		return
 	if hub and hub is Hub:
 		hub.receive_oxygen_packet()
 		packet_delivered.emit()
 		is_delivered = true
-		print("Packet delivered to hub at %s" % target_hub_cell)
 	else:
 		print("⚠️ Packet: No hub found at %s" % target_hub_cell)
-	
-	# Clean up the Path2D container (which also removes this packet)
+	get_parent().queue_free()
+
+func _explode(delivered: bool) -> void:
+	_exploding = true
+	set_process(false)
+	# Rate limited — red-orange explosion at hub entrance
+	var t := create_tween().set_parallel(true)
+	t.tween_property(packet_line, "modulate", Color(2.0, 0.4, 0.1, 1.0), 0.05)
+	t.tween_property(packet_light, "energy", 4.0, 0.05)
+	t.tween_property(packet_line, "scale", Vector2(2.5, 2.5), 0.08)
+	await get_tree().create_timer(0.08).timeout
+	var t2 := create_tween().set_parallel(true)
+	t2.tween_property(packet_line, "scale", Vector2(0.0, 0.0), 0.18)
+	t2.tween_property(packet_line, "modulate:a", 0.0, 0.18)
+	t2.tween_property(packet_light, "energy", 0.0, 0.18)
+	await get_tree().create_timer(0.2).timeout
 	get_parent().queue_free()
 
 func _exit_tree() -> void:

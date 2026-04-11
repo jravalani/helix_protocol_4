@@ -90,6 +90,7 @@ text = "+Reserve"
 unique_name_in_owner = true
 layout_mode = 2
 text = "Auto Repair"
+toggle_mode = true
 
 [node name="FlowContainer" type="FlowContainer" parent="MarginContainer2" unique_id=1748498943]
 layout_mode = 2

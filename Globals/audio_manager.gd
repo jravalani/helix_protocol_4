@@ -208,10 +208,8 @@ func _register_sounds() -> void:
 		AMBIENT_PACKETS_A : load("res://Audio/sfx/harmonic_hum.ogg"),
 		AMBIENT_PACKETS_B : load("res://Audio/sfx/harmonic_hum.ogg"),
 		AMBIENT_PACKETS_C : load("res://Audio/sfx/harmonic_hum.ogg"),
-		AMBIENT_VENT_A    : load("res://Audio/sfx/vent_hiss.ogg"),
-		AMBIENT_VENT_B    : load("res://Audio/sfx/vent_hiss.ogg"),
-		AMBIENT_HUB_A     : load("res://Audio/sfx/hub_bleeps.ogg"),
-		AMBIENT_HUB_B     : load("res://Audio/sfx/hub_bleeps.ogg"),
+		#AMBIENT_VENT_A    : load("res://Audio/sfx/vent_hiss.ogg"),
+		#AMBIENT_VENT_B    : load("res://Audio/sfx/vent_hiss.ogg"),
 		AMBIENT_STEAM_A   : load("res://Audio/sfx/pipe_fracture.mp3"),
 		AMBIENT_STEAM_B   : load("res://Audio/sfx/pipe_fracture.mp3"),
 	}
@@ -228,10 +226,10 @@ func _register_sounds() -> void:
 	_ambient_pool[AMBIENT_PACKETS_B].volume_db   = -80.0
 	_ambient_pool[AMBIENT_PACKETS_C].volume_db   = -80.0
 
-	_ambient_pool[AMBIENT_VENT_A].pitch_scale = 0.9
-	_ambient_pool[AMBIENT_VENT_B].pitch_scale = 1.1
-	_ambient_pool[AMBIENT_VENT_A].volume_db   = -20.0
-	_ambient_pool[AMBIENT_VENT_B].volume_db   = -20.0
+	#_ambient_pool[AMBIENT_VENT_A].pitch_scale = 0.9
+	#_ambient_pool[AMBIENT_VENT_B].pitch_scale = 1.1
+	#_ambient_pool[AMBIENT_VENT_A].volume_db   = -20.0
+	#_ambient_pool[AMBIENT_VENT_B].volume_db   = -20.0
 
 	_ambient_pool[AMBIENT_HUB_A].pitch_scale = 0.9
 	_ambient_pool[AMBIENT_HUB_B].pitch_scale = 1.1

@@ -10,18 +10,57 @@ extends Control
 @onready var current_vent_count: Label = $PanelContainer/VBoxContainer/CurrentVentCount
 @onready var reinforce_panel_container: PanelContainer = %PanelContainer
 
-#buttons
-@onready var pipe_button: Button = %UpgradePipes
+# Buttons
+@onready var pipe_button: Button        = %UpgradePipes
 @onready var data_reserve_button: Button = %DataReserve
-@onready var hull_shield_button: Button = %HullShield
-@onready var vent_button: Button = %SpawnVent
-@onready var hub_button: Button = %SpawnHub
-@onready var auto_repair_button: Button = %AutoRepair
+@onready var hull_shield_button: Button  = %HullShield
+@onready var vent_button: Button         = %SpawnVent
+@onready var hub_button: Button          = %SpawnHub
+@onready var auto_repair_button: Button  = %AutoRepair
 
-var is_fast_speed: bool = false
 var panel_open := false
 
-# Signal handlers for reinforce buttons (moved before _ready)
+# ── Tooltip data ─────────────────────────────────────────────────
+const TOOLTIPS := {
+	"vent": {
+		"title": "Spawn Vent",
+		"desc": "Deploy a new vent node to increase oxygen throughput across the network.",
+		"cost": "Scales with vent count"
+	},
+	"hub": {
+		"title": "Spawn Hub",
+		"desc": "Add a new hub to expand packet routing capacity. Backlog builds if hubs are overwhelmed.",
+		"cost": "Scales with hub count"
+	},
+	"pipes": {
+		"title": "Upgrade Pipes",
+		"desc": "Increase pipe capacity and flow rate. Higher tiers handle more pressure before fracturing.",
+		"cost": "Fixed cost per tier"
+	},
+	"hull_shield": {
+		"title": "Hull Shield",
+		"desc": "Reinforce the station hull. Reduces damage taken from pressure spikes and breaches.",
+		"cost": "Fixed cost per tier"
+	},
+	"reinforce": {
+		"title": "Reinforce Zone",
+		"desc": "Selectively reinforce a pressure zone to reduce its vulnerability to fractures.",
+		"cost": "Variable by zone"
+	},
+	"data_reserve": {
+		"title": "Data Reserve",
+		"desc": "Allocate data into the repair reserve pool, used by auto repair drones.",
+		"cost": "Free — transfers from Data"
+	},
+	"auto_repair": {
+		"title": "Auto Repair",
+		"desc": "Toggle automated repair drones. Drains your reserve data to fix fractured pipes instantly.",
+		"cost": "Requires: Repair Reserve"
+	}
+}
+
+# ── Signal handlers for reinforce buttons ────────────────────────
+
 func _on_reinforce_core() -> void:
 	ResourceManager.reinforce_zone(0)
 
@@ -35,25 +74,46 @@ func _on_reinforce_frontier() -> void:
 	ResourceManager.reinforce_zone(3)
 
 func _ready() -> void:
-	# Connect all reinforce panel signals
 	reinforce_panel_container.reinforce_core_pressed.connect(_on_reinforce_core)
 	reinforce_panel_container.reinforce_inner_pressed.connect(_on_reinforce_inner)
 	reinforce_panel_container.reinforce_outer_pressed.connect(_on_reinforce_outer)
 	reinforce_panel_container.reinforce_frontier_pressed.connect(_on_reinforce_frontier)
-	
+
 	update_hub_debug_info()
 	update_button_labels()
+	_connect_tooltips()
+
+func _connect_tooltips() -> void:
+	var _connect = func(btn: Button, key: String) -> void:
+		btn.mouse_entered.connect(func():
+			TooltipManager.show_tooltip(
+				TOOLTIPS[key]["title"],
+				TOOLTIPS[key]["desc"],
+				TOOLTIPS[key]["cost"],
+				btn
+			)
+		)
+		btn.mouse_exited.connect(func(): TooltipManager.hide_tooltip())
+
+	_connect.call(vent_button,         "vent")
+	_connect.call(hub_button,          "hub")
+	_connect.call(pipe_button,         "pipes")
+	_connect.call(hull_shield_button,  "hull_shield")
+	_connect.call(data_reserve_button, "data_reserve")
+	_connect.call(auto_repair_button,  "auto_repair")
+
+	# ReinforceZonePanel button is accessed via its unique name
+	var reinforce_btn = get_node_or_null("%ReinforceZonePanel")
+	if reinforce_btn:
+		_connect.call(reinforce_btn, "reinforce")
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if panel_open:
-			# Check if click is outside the panel
 			var panel_rect = reinforce_panel_container.get_global_rect()
-			var click_pos = event.position
-			
-			if not panel_rect.has_point(click_pos):
-				_on_reinforce_zone_panel_pressed()  # Close the panel
-				get_viewport().set_input_as_handled()  # Prevent the click from doing anything else
+			if not panel_rect.has_point(event.position):
+				_on_reinforce_zone_panel_pressed()
+				get_viewport().set_input_as_handled()
 
 func _process(delta: float) -> void:
 	pressure_phase_label.text = "Pressure Phase: " + str(GameData.current_pressure_phase)
@@ -69,56 +129,53 @@ func _process(delta: float) -> void:
 			GameData.current_hub_count, GameData.MAX_HUBS,
 			GameData.current_vent_count, GameData.MAX_VENTS
 		]
-	
-	# Update button states every frame based on current data
+
 	update_button_states()
-	
+
 	if panel_open:
 		reinforce_panel_container.update_button_states()
-		
+
 func update_button_states() -> void:
-	var hub_cost = GameData.HUB_SPAWN_BASE_COST + (GameData.current_hub_count * GameData.HUB_SPAWN_COST_INCREMENT)
+	var hub_cost  = GameData.HUB_SPAWN_BASE_COST  + (GameData.current_hub_count  * GameData.HUB_SPAWN_COST_INCREMENT)
 	var vent_cost = GameData.VENT_SPAWN_BASE_COST + (GameData.current_vent_count * GameData.VENT_SPAWN_COST_INCREMENT)
 
-	# Cap checks
-	var hub_maxed = GameData.current_hub_count >= GameData.MAX_HUBS
-	var vent_maxed = GameData.current_vent_count >= GameData.MAX_VENTS
-	var pipes_maxed = GameData.current_pipe_upgrade_level >= GameData.MAX_PIPE_UPGRADES
+	var hub_maxed    = GameData.current_hub_count >= GameData.MAX_HUBS
+	var vent_maxed   = GameData.current_vent_count >= GameData.MAX_VENTS
+	var pipes_maxed  = GameData.current_pipe_upgrade_level >= GameData.MAX_PIPE_UPGRADES
 	var shield_maxed = GameData.current_hull_shield_level >= GameData.MAX_HULL_SHIELD_UPGRADES
 
-	vent_button.disabled = vent_maxed or GameData.total_data < vent_cost
-	hub_button.disabled = hub_maxed or GameData.total_data < hub_cost
-	pipe_button.disabled = pipes_maxed or GameData.total_data < GameData.PIPE_UPGRADE_COSTS[min(GameData.current_pipe_upgrade_level, GameData.MAX_PIPE_UPGRADES - 1)]
+	vent_button.disabled        = vent_maxed   or GameData.total_data < vent_cost
+	hub_button.disabled         = hub_maxed    or GameData.total_data < hub_cost
+	pipe_button.disabled        = pipes_maxed  or GameData.total_data < GameData.PIPE_UPGRADE_COSTS[min(GameData.current_pipe_upgrade_level, GameData.MAX_PIPE_UPGRADES - 1)]
 	hull_shield_button.disabled = shield_maxed or GameData.total_data < GameData.HULL_SHIELD_UPGRADE_COSTS[min(GameData.current_hull_shield_level, GameData.MAX_HULL_SHIELD_UPGRADES - 1)]
+
+	auto_repair_button.disabled = GameData.data_reserve_for_auto_repairs <= 0 and not GameData.auto_repair_enabled
 
 func update_hub_debug_info():
 	var hub_info_text = "--- ACTIVE HUBS (%d) ---\n" % get_tree().get_nodes_in_group("hubs").size()
-
 	for hub in get_tree().get_nodes_in_group("hubs"):
 		if hub is Hub:
-			var pos = hub.entrance_cell
-			var backlog = hub.oxygen_backlog
-			var packets = hub.packets_this_window
-			var cap = hub._get_cap()
+			var pos        = hub.entrance_cell
+			var backlog    = hub.oxygen_backlog
+			var packets    = hub.packets_this_window
+			var cap        = hub._get_cap()
 			var window_left = Hub.RATE_WINDOW - hub.window_timer
-
 			hub_info_text += "ID: %s | Backlog: %d | Window: %d/%d (resets in %.1fs)\n" % [
 				pos, backlog, packets, cap, window_left
 			]
-
 			if hub.is_rate_limited:
 				hub_info_text += "  >> [RATE LIMITED]\n"
 			if hub.is_fractured:
 				hub_info_text += "  >> [FRACTURED - OFFLINE]\n"
-
 	hub_stats.text = hub_info_text
 
 func update_button_labels() -> void:
-	var hub_cost = GameData.HUB_SPAWN_BASE_COST + (GameData.current_hub_count * GameData.HUB_SPAWN_COST_INCREMENT)
+	var hub_cost  = GameData.HUB_SPAWN_BASE_COST  + (GameData.current_hub_count  * GameData.HUB_SPAWN_COST_INCREMENT)
 	var vent_cost = GameData.VENT_SPAWN_BASE_COST + (GameData.current_vent_count * GameData.VENT_SPAWN_COST_INCREMENT)
-	
 	vent_button.text = "+Vent (%d)" % vent_cost
-	hub_button.text = "+Hub (%d)" % hub_cost
+	hub_button.text  = "+Hub (%d)"  % hub_cost
+
+# ── Button callbacks ─────────────────────────────────────────────
 
 func _on_spawn_hub_pressed() -> void:
 	ResourceManager.spawn_hub()
@@ -136,13 +193,10 @@ func _on_hull_shield_pressed() -> void:
 
 func _on_reinforce_zone_panel_pressed() -> void:
 	var tween = create_tween()
-	
 	if panel_open:
-		# Close: slide down
 		tween.tween_property(reinforce_panel_container, "position:y", 136, 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 		panel_open = false
 	else:
-		# Open: slide up
 		tween.tween_property(reinforce_panel_container, "position:y", -326, 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		panel_open = true
 
@@ -155,9 +209,11 @@ func _on_data_reserve_pressed() -> void:
 func _on_auto_repair_toggled(toggled_on: bool) -> void:
 	GameData.auto_repair_enabled = toggled_on
 	if toggled_on:
-		auto_repair_button.modulate = Color(0.2, 1.0, 0.2)
+		auto_repair_button.modulate = Color(0.2, 1.0, 0.4)
+		auto_repair_button.text = "Auto Repair [ON]"
 	else:
 		auto_repair_button.modulate = Color(1.0, 1.0, 1.0)
+		auto_repair_button.text = "Auto Repair"
 
 func _on_one_sec_timer_timeout() -> void:
 	update_hub_debug_info()

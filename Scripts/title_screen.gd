@@ -255,7 +255,8 @@ func glitch_color_shift():
 
 func _on_launch_pressed() -> void:
 	AudioManager.play_ui("button_heavy")
-	SceneTransition.transition_to("res://Scenes/main.tscn", SceneTransition.Type.ARMOUR)
+	var next = "res://Scenes/intro_scene.tscn" if not FileAccess.file_exists("user://savegame.save") else "res://Scenes/main.tscn"
+	SceneTransition.transition_to(next, SceneTransition.Type.ARMOUR)
 
 
 func _on_options_pressed() -> void:
