@@ -1,20 +1,22 @@
 extends PanelContainer
 
 ## Notification types — controls color and icon
-enum Type { INFO, WARNING, ERROR }
+enum Type { INFO, WARNING, ERROR, OBJECTIVE }
 
 @onready var icon: Label = $MarginContainer/HBoxContainer/IconLabel
 @onready var title: Label = $MarginContainer/HBoxContainer/VBoxContainer/Title
 @onready var message: Label = $MarginContainer/HBoxContainer/VBoxContainer/Message
 @onready var close_button: Button = $MarginContainer/HBoxContainer/CloseButton
 
-const COLOR_INFO    := Color("#00ccff")
-const COLOR_WARNING := Color("#ffaa00")
-const COLOR_ERROR   := Color("#ff3333")
+const COLOR_INFO      := Color("00ccff")
+const COLOR_WARNING   := Color("ffaa00")
+const COLOR_ERROR     := Color("ff3333")
+const COLOR_OBJECTIVE := Color("d946ef")  # magenta — distinct, on-theme
 
-const ICON_INFO    := "i"
-const ICON_WARNING := "!"
-const ICON_ERROR   := "!!"
+const ICON_INFO      := "i"
+const ICON_WARNING   := "!"
+const ICON_ERROR     := "!!"
+const ICON_OBJECTIVE := "★"
 
 const AUTO_DISMISS_TIME := 10.0
 
@@ -28,9 +30,10 @@ func setup(p_message: String, p_type: Type = Type.INFO, p_title: String = "") ->
 	var display_title := p_title
 	if display_title.is_empty():
 		match p_type:
-			Type.INFO:    display_title = "INFO"
-			Type.WARNING: display_title = "WARNING"
-			Type.ERROR:   display_title = "ERROR"
+			Type.INFO:      display_title = "INFO"
+			Type.WARNING:   display_title = "WARNING"
+			Type.ERROR:     display_title = "ERROR"
+			Type.OBJECTIVE: display_title = "OBJECTIVE"
 
 	title.text   = display_title
 	message.text = p_message
@@ -45,14 +48,16 @@ func _ready() -> void:
 func _apply_style(p_type: Type) -> void:
 	var color := COLOR_INFO
 	match p_type:
-		Type.WARNING: color = COLOR_WARNING
-		Type.ERROR:   color = COLOR_ERROR
+		Type.WARNING:   color = COLOR_WARNING
+		Type.ERROR:     color = COLOR_ERROR
+		Type.OBJECTIVE: color = COLOR_OBJECTIVE
 
 	# Icon
 	icon.text = ICON_INFO
 	match p_type:
-		Type.WARNING: icon.text = ICON_WARNING
-		Type.ERROR:   icon.text = ICON_ERROR
+		Type.WARNING:   icon.text = ICON_WARNING
+		Type.ERROR:     icon.text = ICON_ERROR
+		Type.OBJECTIVE: icon.text = ICON_OBJECTIVE
 
 	icon.add_theme_color_override("font_color", color)
 	title.add_theme_color_override("font_color", color)

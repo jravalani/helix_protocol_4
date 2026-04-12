@@ -1,6 +1,6 @@
 extends CanvasLayer
 
-enum Type { INFO, WARNING, ERROR }
+enum Type { INFO, WARNING, ERROR, OBJECTIVE }
 
 const NOTIFICATION_SCENE := preload("res://Scenes/notification.tscn")
 const MAX_NOTIFICATIONS := 5

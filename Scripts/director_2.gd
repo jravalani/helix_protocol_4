@@ -8,6 +8,8 @@ extends Node2D
 @onready var research_hub_scene: PackedScene = preload("res://Scenes/hub3x2.tscn")
 @onready var vent_scene: PackedScene = preload("res://Scenes/vent.tscn")
 
+const SpecialTileScene := preload("res://Scenes/special_tile.tscn")
+
 ## =============================================================================
 ## NODE REFERENCES
 ## =============================================================================
@@ -63,6 +65,24 @@ var increment: float = 0.0
 
 ## Hull shield degradation
 var degradation_rate: float = 0.0
+var _game_over_triggered: bool = false
+
+# ── Secondary Objectives ───────────────────────────────────────────────────────
+# At most one active objective at a time. Spawns a SpecialTile in the world.
+# The player completes it by routing pipes through the tile before it expires.
+
+enum Objective {
+	NONE,
+	BOOST_CORRIDOR,    # Keep Boost Corridor alive through the next wave → +150 data
+	UNSTABLE_CONDUIT,  # Route 10 packets through Unstable Conduit → -10 pressure
+	DEAD_ZONE,         # Clear the Dead Zone within 90s → +100 data
+	PRESSURE_SINK,     # Connect to Pressure Sink before pressure hits threshold → -5 pressure (instant, tile handles it)
+}
+
+var active_objective: Objective = Objective.NONE
+var active_special_tile: SpecialTile = null
+var _objective_packets_needed: int = 10
+var _pressure_sink_threshold: float = 0.0
 
 
 const RING_RADII: Array = [6, 6, 8, 8, 11, 11, 14, 14]
@@ -78,6 +98,7 @@ func _ready() -> void:
 
 	if SaveManager.is_loading:
 		SaveManager.restore_game(self)
+		_game_over_triggered = false
 	else:
 		GameData.reset_to_defaults()
 		spawn_rocket()
@@ -145,9 +166,16 @@ func _process(delta: float) -> void:
 	if target_phase > GameData.current_pressure_phase:
 		transition_to_phase(target_phase)
 	
-	if GameData.current_pressure >= 100:
-		NotificationManager.notify("Core meltdown imminent. Systems critical.", NotificationManager.Type.ERROR, "MELTDOWN")
-		SignalBus.game_over.emit()
+	if GameData.current_pressure >= 100 and not GameData.fracture_wave_active:
+		if not _game_over_triggered:
+			_game_over_triggered = true
+			NotificationManager.notify("Core meltdown imminent. Systems critical.", NotificationManager.Type.ERROR, "MELTDOWN")
+			SignalBus.game_over.emit()
+			WinSceneData.capture("PRESSURE OVERLOAD")
+			await get_tree().create_timer(2.0).timeout
+			SceneTransition.transition_to("res://Scenes/LoseScene.tscn", SceneTransition.Type.BEAM)
+
+	_tick_objective_system(delta)
 
 #region Camera
 func get_camera_bounds() -> Rect2i:
@@ -289,10 +317,155 @@ func transition_to_phase(phase_number: int) -> void:
 	if GameData.current_pressure_phase <= GameData.MAX_PRESSURE_PHASE:
 		GameData.current_pressure_phase = phase_number
 		SignalBus.pressure_phase_changed.emit(phase_number)
-	# NotificationManager.notify("Pressure phase " + str(phase_number) + " reached. Brace for impact.", NotificationManager.Type.WARNING, "PHASE SHIFT")
-	
+
 	if phase_number >= 1:
 		trigger_fracture_wave()
+
+# ── Secondary Objective Timer ──────────────────────────────────────────────────
+
+var _objective_timer: float = 0.0
+var _next_objective_interval: float = 90.0  # first one after 90s
+
+func _tick_objective_system(delta: float) -> void:
+	# Never spawn during an active wave
+	if GameData.fracture_wave_active:
+		return
+	# Only start after phase 2
+	if GameData.current_pressure_phase < 2:
+		return
+	# Already have one active
+	if active_objective != Objective.NONE:
+		return
+
+	_objective_timer += delta
+	if _objective_timer >= _next_objective_interval:
+		_objective_timer = 0.0
+		_next_objective_interval = randf_range(60.0, 180.0)
+		_spawn_random_objective()
+
+func _spawn_random_objective() -> void:
+	var phase: int = GameData.current_pressure_phase
+
+	# Pool grows as more zones unlock and pressure rises
+	var pool: Array[SpecialTile.Type] = [
+		SpecialTile.Type.BOOST_CORRIDOR,
+		SpecialTile.Type.PRESSURE_SINK,
+	]
+	if phase >= 4:
+		pool.append(SpecialTile.Type.UNSTABLE_CONDUIT)
+	if phase >= 6:
+		pool.append(SpecialTile.Type.DEAD_ZONE)
+
+	var tile_type: SpecialTile.Type = pool.pick_random()
+
+	var spawn_cell: Vector2i = _find_special_tile_spawn_cell()
+	if spawn_cell == Vector2i(-9999, -9999):
+		return
+
+	var st: SpecialTile = SpecialTileScene.instantiate()
+	entities.add_child(st)
+	st.setup(tile_type, spawn_cell)
+
+	st.tile_connected.connect(_on_objective_tile_connected)
+	st.tile_expired.connect(_on_objective_tile_expired)
+	st.packet_passed_through.connect(_on_objective_packet_through)
+
+	active_special_tile = st
+
+	match tile_type:
+		SpecialTile.Type.BOOST_CORRIDOR:
+			active_objective = Objective.BOOST_CORRIDOR
+			NotificationManager.notify(
+				"Boost Corridor detected. Route pipes through it and survive the next wave for +150 data.",
+				NotificationManager.Type.OBJECTIVE, "OBJECTIVE")
+		SpecialTile.Type.UNSTABLE_CONDUIT:
+			active_objective = Objective.UNSTABLE_CONDUIT
+			_objective_packets_needed = 10
+			NotificationManager.notify(
+				"Unstable Conduit active. Route 10 packets through it to reduce pressure by 10.",
+				NotificationManager.Type.OBJECTIVE, "OBJECTIVE")
+		SpecialTile.Type.DEAD_ZONE:
+			active_objective = Objective.DEAD_ZONE
+			NotificationManager.notify(
+				"Dead Zone emerging. Spend 50 data to clear it within 90 seconds for +100 data bonus.",
+				NotificationManager.Type.OBJECTIVE, "OBJECTIVE")
+		SpecialTile.Type.PRESSURE_SINK:
+			active_objective = Objective.PRESSURE_SINK
+			_pressure_sink_threshold = GameData.current_pressure + 15.0
+			NotificationManager.notify(
+				"Pressure Sink nearby. Connect before pressure rises 15 points for an instant -5 pressure drop.",
+				NotificationManager.Type.OBJECTIVE, "OBJECTIVE")
+
+func _find_special_tile_spawn_cell() -> Vector2i:
+	var bounds: Rect2i = get_camera_bounds()
+	var candidates: Array[Vector2i] = []
+	for x in range(bounds.position.x, bounds.end.x):
+		for y in range(bounds.position.y, bounds.end.y):
+			var c: Vector2i = Vector2i(x, y)
+			if GameData.road_grid.has(c): continue
+			if GameData.building_grid.has(c): continue
+			if GameData.special_tiles.has(c): continue
+			# Only spawn in zones the player has actually unlocked
+			if GameData.get_zone_for_cell(c) not in unlocked_zones: continue
+			candidates.append(c)
+	if candidates.is_empty():
+		return Vector2i(-9999, -9999)
+	# Prefer cells near existing pipes so the player can actually reach it
+	candidates.sort_custom(func(a, b):
+		var a_near: bool = false
+		var b_near: bool = false
+		for dir in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
+			if GameData.road_grid.has(a + dir): a_near = true
+			if GameData.road_grid.has(b + dir): b_near = true
+		return int(b_near) < int(a_near)
+	)
+	# Pick from top half of near-pipe candidates, or any if none near pipes
+	var pool_size: int = max(1, candidates.size() / 2)
+	return candidates.slice(0, pool_size).pick_random()
+
+# ── Objective signal handlers ──────────────────────────────────────────────────
+
+func _on_objective_tile_connected(tile: SpecialTile) -> void:
+	# Pressure Sink completes on connection (tile handles the pressure drop itself)
+	if active_objective == Objective.PRESSURE_SINK:
+		if GameData.current_pressure < _pressure_sink_threshold:
+			_complete_objective("Pressure Sink connected in time! Pressure reduced.", 0)
+		else:
+			NotificationManager.notify("Pressure Sink connected — but too late for the bonus.",
+				NotificationManager.Type.OBJECTIVE, "OBJECTIVE")
+			_clear_objective()
+
+func _on_objective_packet_through(tile: SpecialTile) -> void:
+	if active_objective == Objective.UNSTABLE_CONDUIT:
+		var remaining: int = _objective_packets_needed - tile.packets_passed
+		if tile.packets_passed >= _objective_packets_needed:
+			GameData.current_pressure = max(0.0, GameData.current_pressure - 10.0)
+			_complete_objective("Unstable Conduit objective complete! -10 pressure.", 0)
+
+func _on_objective_tile_expired(tile: SpecialTile) -> void:
+	if tile != active_special_tile:
+		return
+	match active_objective:
+		Objective.BOOST_CORRIDOR:
+			NotificationManager.notify("Boost Corridor destroyed by the wave. Objective failed.",
+				NotificationManager.Type.OBJECTIVE, "OBJECTIVE")
+		Objective.DEAD_ZONE:
+			NotificationManager.notify("Dead Zone persisted. 200 data drained.",
+				NotificationManager.Type.OBJECTIVE, "OBJECTIVE")
+			GameData.total_data = max(0, GameData.total_data - 200)
+		_:
+			NotificationManager.notify("Objective expired.", NotificationManager.Type.OBJECTIVE, "OBJECTIVE")
+	_clear_objective()
+
+func _complete_objective(message: String, bonus_data: int) -> void:
+	if bonus_data > 0:
+		GameData.total_data += bonus_data
+	NotificationManager.notify(message, NotificationManager.Type.OBJECTIVE, "OBJECTIVE COMPLETE")
+	_clear_objective()
+
+func _clear_objective() -> void:
+	active_objective = Objective.NONE
+	active_special_tile = null
 
 func trigger_fracture_wave() -> void:
 	GameData.fracture_wave_active = true
@@ -310,6 +483,13 @@ func trigger_fracture_wave() -> void:
 	await get_tree().create_timer(5.0).timeout
 	SignalBus.camera_shake.emit(0.5, 8.0)
 	_execute_fracture_wave()
+
+	# Check Boost Corridor objective — if still alive after wave, player wins it
+	if active_objective == Objective.BOOST_CORRIDOR and active_special_tile and not active_special_tile.is_expired:
+		_complete_objective("Boost Corridor survived the wave! +150 data.", 150)
+	elif active_special_tile and not active_special_tile.is_expired:
+		active_special_tile.on_fracture_wave()
+
 	await get_tree().create_timer(10.0).timeout
 	GameData.fracture_wave_active = false
 	
@@ -319,7 +499,7 @@ func trigger_fracture_wave() -> void:
 ## Dispatches fracture effects based on current pressure phase.
 ## Pipes always fracture. Hubs join at phase 3. Slowdown/burst added from phase 5.
 func _execute_fracture_wave() -> void:
-	var phase := GameData.current_pressure_phase
+	var phase: int = GameData.current_pressure_phase
 
 	_apply_pipe_fractures(phase)
 

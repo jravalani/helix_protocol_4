@@ -170,6 +170,7 @@ var fractured_pipes  : Dictionary = {}
 var building_grid    : Dictionary = {}
 var road_connections : Dictionary = {}
 var influence_grid   : Dictionary = {}
+var special_tiles    : Dictionary = {}   # cell → SpecialTile
 var astar            : AStar2D    = AStar2D.new()
 
 #endregion
@@ -216,7 +217,7 @@ func reset_to_defaults() -> void:
 	pressure_rate_multiplier = 1.0
 
 	# Economy
-	total_data = 0
+	total_data = 25000
 	lifetime_data_earned = 0
 	previous_threshold = 0
 	score_to_next_reward = 30
@@ -236,6 +237,7 @@ func reset_to_defaults() -> void:
 	building_grid.clear()
 	road_connections.clear()
 	influence_grid.clear()
+	special_tiles.clear()
 	astar = AStar2D.new()
 
 	# Metrics
