@@ -22,6 +22,26 @@ const SEGMENT_SCALE = Vector2(0.43, 0.43)
 const SHADOW_SCALE = Vector2(0.42, 0.42)
 
 var launch_effect_scene = preload("res://ParticleEffects/rocket_launch_effect.tscn")
+const HAZE_SHADER = preload("res://shaders/rocket_haze.gdshader")
+
+var _haze_materials: Array[ShaderMaterial] = []
+
+func _apply_haze_shader() -> void:
+	var segs = [segment_2, segment_3, segment_4, segment_5]
+	_haze_materials.clear()
+	for seg in segs:
+		var mat := ShaderMaterial.new()
+		mat.shader = HAZE_SHADER
+		mat.set_shader_parameter("strength", 0.0)
+		mat.set_shader_parameter("speed", 3.0)
+		seg.material = mat
+		_haze_materials.append(mat)
+
+func _ramp_haze(target_strength: float, duration: float) -> void:
+	for mat in _haze_materials:
+		var tw := create_tween()
+		tw.tween_method(func(v: float): mat.set_shader_parameter("strength", v),
+			mat.get_shader_parameter("strength"), target_strength, duration)
 
 func _input_event(viewport: Viewport, event: InputEvent, shape_idx: int) -> void:
 	if event is InputEventMouseButton and event.is_pressed():
@@ -138,62 +158,72 @@ func _animate_new_segment(phase: int) -> void:
 			tween.tween_property(segment_shadow, "scale", SHADOW_SCALE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func launch_rocket() -> void:
-	print("Initiating Launch Sequence!")
+	# ── Phase 1: Pre-launch buildup (3 seconds) ──────────────────
+	_apply_haze_shader()
 
-	# Spawn one-shot launch particle effect at rocket center
+	# Spawn launch effect early for smoke/particles
 	var launch_effect = launch_effect_scene.instantiate()
 	launch_effect.global_position = global_position + Vector2(128, 128)
 	get_parent().add_child(launch_effect)
 	launch_effect.play()
-	
+
+	# Ramp haze wobble up over 2.5s — heat building in the engines
+	_ramp_haze(12.0, 2.5)
+
+	# Escalating camera shakes — engines powering up
+	SignalBus.camera_shake.emit(0.4, 4.0)
+	await get_tree().create_timer(0.8).timeout
+	SignalBus.camera_shake.emit(0.5, 7.0)
+	await get_tree().create_timer(0.8).timeout
+	SignalBus.camera_shake.emit(0.6, 11.0)
+	await get_tree().create_timer(0.9).timeout
+
+	# ── Phase 2: Liftoff ─────────────────────────────────────────
+	# One final massive shake at ignition
+	SignalBus.camera_shake.emit(0.8, 18.0)
+
+	# Kill haze — rocket is gone, no more heat distortion needed
+	_ramp_haze(0.0, 0.5)
+
 	var tween = create_tween()
 	tween.set_parallel(true)
-	
-	# SCALE UP the rocket parts (getting bigger as it comes toward camera)
-	var final_scale = SEGMENT_SCALE * 3.0  # Grow to 3x size
+
+	# Scale up (coming toward camera)
+	var final_scale = SEGMENT_SCALE * 3.0
 	tween.tween_property(segment_2, "scale", final_scale, 3.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tween.tween_property(segment_3, "scale", final_scale, 3.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tween.tween_property(segment_4, "scale", final_scale, 3.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tween.tween_property(segment_5, "scale", final_scale, 3.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	
-	# Fade out the rocket parts as they pass the camera
+
+	# Fade out as they pass camera
 	tween.tween_property(segment_2, "modulate:a", 0.0, 3.0).set_delay(1.5)
 	tween.tween_property(segment_3, "modulate:a", 0.0, 3.0).set_delay(1.5)
 	tween.tween_property(segment_4, "modulate:a", 0.0, 3.0).set_delay(1.5)
 	tween.tween_property(segment_5, "modulate:a", 0.0, 3.0).set_delay(1.5)
-	
-	# Immediately hide shadows on launchpad
+
+	# Shadows
 	segment2_shadow_on_launchpad.visible = false
 	segment3_shadow_on_launchpad.visible = false
 	segment4_shadow_on_launchpad.visible = false
 	segment5_shadow_on_launchpad.visible = false
-	
-	# Move shadows up and left (100px each)
+
 	var shadow_movement = Vector2(-100, -100)
-	
-	# Fade out and move ground shadows (2.5 seconds)
 	tween.tween_property(shadow_5, "modulate:a", 0.0, 2.5)
 	tween.tween_property(shadow_5, "position", shadow_5.position + shadow_movement, 2.5).set_trans(Tween.TRANS_QUAD)
-	
 	tween.tween_property(shadow_2, "modulate:a", 0.0, 2.5)
 	tween.tween_property(shadow_2, "position", shadow_2.position + shadow_movement, 2.5).set_trans(Tween.TRANS_QUAD)
-	
 	tween.tween_property(shadow_3, "modulate:a", 0.0, 2.5)
 	tween.tween_property(shadow_3, "position", shadow_3.position + shadow_movement, 2.5).set_trans(Tween.TRANS_QUAD)
-	
 	tween.tween_property(shadow_4, "modulate:a", 0.0, 2.5)
 	tween.tween_property(shadow_4, "position", shadow_4.position + shadow_movement, 2.5).set_trans(Tween.TRANS_QUAD)
-	
-	# Hide shadows after fade completes
+
 	tween.tween_callback(func():
 		shadow_5.visible = false
 		shadow_2.visible = false
 		shadow_3.visible = false
 		shadow_4.visible = false
-		# Shadow_1 (launchpad) remains visible
 	).set_delay(2.5)
-	
-	# When launch complete
+
 	tween.finished.connect(_on_launch_complete, CONNECT_ONE_SHOT)
 
 func _on_launch_requested() -> void:
@@ -203,7 +233,5 @@ func _on_launch_requested() -> void:
 		launch_rocket()
 
 func _on_launch_complete() -> void:
-	print("Rocket has left the atmosphere!")
-	print("You Win!")
-	# segment_1 (launchpad) remains on the ground
-	# add the signal here for the actual panel to show.
+	WinSceneData.capture()
+	SceneTransition.transition_to("res://Scenes/WinScene.tscn", SceneTransition.Type.BEAM)

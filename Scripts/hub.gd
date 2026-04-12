@@ -3,10 +3,10 @@ extends Building
 class_name Hub
 
 # ── Rate limit caps per 60s window ──────────────────────────────
-const CAP_LEVEL_0 := 50
-const CAP_LEVEL_1 := 60
-const CAP_LEVEL_2 := 70
-const CAP_LEVEL_3 := 80
+const CAP_LEVEL_0 := 60
+const CAP_LEVEL_1 := 70
+const CAP_LEVEL_2 := 80
+const CAP_LEVEL_3 := 90
 const RATE_WINDOW  := 60.0
 
 # ── Node References ─────────────────────────────────────────────
@@ -32,6 +32,7 @@ var is_fractured:      bool  = false
 var _dead_pulse_tween: Tween = null
 var _rate_limit_tween: Tween = null
 var _rate_limit_label: Label = null
+var _rate_limit_label_tween: Tween = null
 
 # ── Popup ────────────────────────────────────────────────────────
 const POPUP_OFFSET_Y: float = -60.0
@@ -227,7 +228,7 @@ func _start_rate_limit_visual() -> void:
 	_rate_limit_tween.tween_property(self, "modulate", Color(1.8, 0.3, 0.3, 1.0), 0.4)
 	_rate_limit_tween.tween_property(self, "modulate", Color(1.0, 0.6, 0.2, 1.0), 0.4)
 
-	# Permanent label that sits above the hub until rate limit clears
+	# Permanent label centered on top of the hub until rate limit clears
 	if _rate_limit_label:
 		_rate_limit_label.queue_free()
 	_rate_limit_label = Label.new()
@@ -235,18 +236,31 @@ func _start_rate_limit_visual() -> void:
 	_rate_limit_label.add_theme_color_override("font_color", Color("ff2222"))
 	_rate_limit_label.add_theme_font_override("font", load("res://Assets/Fonts/JetBrainsMono-ExtraBold.ttf"))
 	_rate_limit_label.add_theme_font_size_override("font_size", 22)
-	_rate_limit_label.position = Vector2(-55, -10)
 	add_child(_rate_limit_label)
 
+	# Wait one frame for the label to have a valid size, then center it on the hub
+	# Hub is 3x2 tiles = 192x128px. Center horizontally, sit on top vertically.
+	await get_tree().process_frame
+	var hub_width := 192.0
+	_rate_limit_label.position = Vector2(
+		(hub_width - _rate_limit_label.size.x) / 2.0,
+		-_rate_limit_label.size.y - 4.0
+	)
+
 	# Pulse the label alpha so it doesn't feel static
-	var label_tween = create_tween().set_loops()
-	label_tween.tween_property(_rate_limit_label, "modulate:a", 0.4, 0.6)
-	label_tween.tween_property(_rate_limit_label, "modulate:a", 1.0, 0.6)
+	if _rate_limit_label_tween:
+		_rate_limit_label_tween.kill()
+	_rate_limit_label_tween = create_tween().set_loops()
+	_rate_limit_label_tween.tween_property(_rate_limit_label, "modulate:a", 0.4, 0.6)
+	_rate_limit_label_tween.tween_property(_rate_limit_label, "modulate:a", 1.0, 0.6)
 
 func _stop_rate_limit_visual() -> void:
 	if _rate_limit_tween:
 		_rate_limit_tween.kill()
 		_rate_limit_tween = null
+	if _rate_limit_label_tween:
+		_rate_limit_label_tween.kill()
+		_rate_limit_label_tween = null
 	if _rate_limit_label:
 		_rate_limit_label.queue_free()
 		_rate_limit_label = null
@@ -280,6 +294,9 @@ func fracture() -> void:
 	if _rate_limit_tween:
 		_rate_limit_tween.kill()
 		_rate_limit_tween = null
+	if _rate_limit_label_tween:
+		_rate_limit_label_tween.kill()
+		_rate_limit_label_tween = null
 	if _rate_limit_label:
 		_rate_limit_label.queue_free()
 		_rate_limit_label = null

@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://d2jsv8yrqdp5c"]
+
+[ext_resource type="Script" uid="uid://kl324h6pcmgn" path="res://Scripts/special_tile.gd" id="1_5y2br"]
+
+[node name="SpecialTile" type="Node2D" unique_id=1920857612]
+script = ExtResource("1_5y2br")

@@ -5,9 +5,9 @@ extends Control
 @onready var reserve_label: Label = $MarginContainer/ParentHbox/HBoxContainer2/HBoxContainer3/AutoReserve
 @onready var pressure_label: Label = $MarginContainer/ParentHbox/HBoxContainer2/HBoxContainer/Pressure
 
-@onready var pause_button: Button = $MarginContainer/ParentHbox/PauseButton
-@onready var speed_up_button: Button = $MarginContainer/ParentHbox/ButtonGroup/SpeedUpButton
-@onready var uplink_button: Button = $MarginContainer/ParentHbox/ButtonGroup/UplinkButton
+@onready var pause_button: Button = %PauseButton
+@onready var speed_up_button: Button = %SpeedUpButton
+@onready var uplink_button: Button = %UplinkButton
 
 var _save_feedback_label: Label
 var _button_font: Font = preload("res://Assets/Fonts/JetBrainsMonoNL-SemiBold.ttf")
@@ -162,11 +162,11 @@ func _on_speed_up_pressed() -> void:
 	is_fast_speed = not is_fast_speed
 	if is_fast_speed:
 		Engine.time_scale = 2.0
-		speed_up_button.text = ">> 2x  ON"
+		speed_up_button.text = ">>"
 		speed_up_button.modulate = Color(1.0, 0.8, 0.2)
 	else:
 		Engine.time_scale = 1.0
-		speed_up_button.text = ">> SPEED"
+		speed_up_button.text = ">"
 		speed_up_button.modulate = Color(1.0, 1.0, 1.0)
 
 

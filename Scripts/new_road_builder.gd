@@ -21,9 +21,9 @@ const DIRS := {
 
 # last_build_cell: the last real pipe cell built — used for handshake between real pipes
 # anchor_cell: virtual start point for first drag — no pipe there, just draws the arm direction
-var last_build_cell := Vector2i(-9999, -9999)
-var last_remove_cell := Vector2i(-9999, -9999)
-var anchor_cell := Vector2i(-9999, -9999)
+var last_build_cell: Vector2i = Vector2i(-9999, -9999)
+var last_remove_cell: Vector2i = Vector2i(-9999, -9999)
+var anchor_cell: Vector2i = Vector2i(-9999, -9999)
 
 var ghost_road: NewRoadTile
 var _out_of_pipes_notified: bool = false
@@ -59,7 +59,7 @@ func _update_ghost_visuals(ghost_cell: Vector2i) -> void:
 
 	# Use last_build_cell if available, else fall back to anchor_cell
 	# This makes the ghost show the arm direction from wherever the chain last was
-	var arm_from := last_build_cell if last_build_cell != Vector2i(-9999, -9999) else anchor_cell
+	var arm_from: Vector2i = last_build_cell if last_build_cell != Vector2i(-9999, -9999) else anchor_cell
 	if arm_from != Vector2i(-9999, -9999) and ghost_cell != arm_from:
 		var dir_to_anchor = arm_from - ghost_cell
 		if max(abs(dir_to_anchor.x), abs(dir_to_anchor.y)) <= 1:
@@ -76,7 +76,7 @@ func mouse_to_cell() -> Vector2i:
 
 func build_road(cell: Vector2i) -> void:
 	var building_at_cell = GameData.building_grid.get(cell)
-	var was_entrance := false
+	var was_entrance: bool = false
 
 	if building_at_cell != null:
 		if building_at_cell is Building:
@@ -116,7 +116,7 @@ func build_road(cell: Vector2i) -> void:
 
 	# 3. HANDSHAKE — connect to previous real pipe OR draw arm toward anchor
 	# Determine what to connect from: prefer last real pipe, fall back to anchor
-	var connect_from := last_build_cell if last_build_cell != Vector2i(-9999, -9999) else anchor_cell
+	var connect_from: Vector2i = last_build_cell if last_build_cell != Vector2i(-9999, -9999) else anchor_cell
 
 	if connect_from != Vector2i(-9999, -9999) and connect_from != cell:
 		var dir_to_current = cell - connect_from
@@ -137,6 +137,9 @@ func build_road(cell: Vector2i) -> void:
 
 	SignalBus.map_changed.emit.call_deferred()
 	last_build_cell = cell
+
+	# Notify any special tile on this cell or directly connected neighbours
+	_notify_special_tiles_near(cell)
 
 func build_road_line(target_cell: Vector2i) -> void:
 	if last_build_cell == Vector2i(-9999, -9999):
@@ -189,6 +192,19 @@ func remove_road(cell: Vector2i) -> void:
 	SignalBus.map_changed.emit.call_deferred()
 
 # --- Helper Functions ---
+
+func _notify_special_tiles_near(cell: Vector2i) -> void:
+	# Check the cell itself
+	var st: SpecialTile = GameData.special_tiles.get(cell) as SpecialTile
+	if st:
+		st.on_pipe_connected()
+	# Check all connected neighbours
+	var pipe: NewRoadTile = GameData.road_grid.get(cell) as NewRoadTile
+	if pipe is NewRoadTile:
+		for dir in pipe.manual_connections:
+			var n_st: SpecialTile = GameData.special_tiles.get(cell + dir) as SpecialTile
+			if n_st:
+				n_st.on_pipe_connected()
 
 func _connect_two_points(cell_a: Vector2i, cell_b: Vector2i) -> void:
 	var road_a = GameData.road_grid.get(cell_a)

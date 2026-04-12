@@ -26,6 +26,26 @@ var is_fractured: bool = false
 var just_repaired: bool = false
 var is_reinforced: bool = false
 
+var packet_count: int = 0
+
+const WEIGHT_BASE: float    = 1.0
+const WEIGHT_PER_PKT: float = 0.4   # each packet adds this much to A* weight
+const WEIGHT_MAX: float     = 6.0   # cap so packets don't get stranded
+
+func on_packet_entered() -> void:
+	packet_count += 1
+	_update_weight()
+
+func on_packet_exited() -> void:
+	packet_count = max(0, packet_count - 1)
+	_update_weight()
+
+func _update_weight() -> void:
+	var w: float = clampf(WEIGHT_BASE + packet_count * WEIGHT_PER_PKT, WEIGHT_BASE, WEIGHT_MAX)
+	var id: int = GameData.get_cell_id(cell)
+	if GameData.astar.has_point(id):
+		GameData.astar.set_point_weight_scale(id, w)
+
 var zone_rates = {
 	GameData.Zone.CORE:     0.001,  # Safest — heavily maintained
 	GameData.Zone.INNER:    0.003,  # Moderate traffic, regular upkeep
@@ -34,14 +54,14 @@ var zone_rates = {
 }
 
 # Pipe visual
-const BASE_WIDTH    := 10.0
-const OUTLINE_WIDTH := 36.0
-const UPGRADE_WIDTH := 40.0
+const BASE_WIDTH: float    = 10.0
+const OUTLINE_WIDTH: float = 36.0
+const UPGRADE_WIDTH: float = 40.0
 
 # Connector ring settings
-const CONNECTOR_SPACING   := 16.0  # pixels between rings along the arm
-const CONNECTOR_HALF_SIZE :=  5.0  # half-length of the perpendicular crossbar
-const CONNECTOR_THICKNESS :=  2.5  # Line2D width of each ring
+const CONNECTOR_SPACING: float   = 16.0  # pixels between rings along the arm
+const CONNECTOR_HALF_SIZE: float =  5.0  # half-length of the perpendicular crossbar
+const CONNECTOR_THICKNESS: float =  2.5  # Line2D width of each ring
 
 # Assign your texture here or leave null for solid color
 var pipe_texture: Texture = null
@@ -68,11 +88,22 @@ func _on_area_2d_input_event(viewport: Node, event: InputEvent, shape_idx: int) 
 					get_viewport().set_input_as_handled()
 				else:
 					_spawn_floating_label("Insufficient Data", Color("d946ef"))
-			elif is_permanent:
-				_spawn_floating_label("Pipe Online", Color("8b92a3"))
-				get_viewport().set_input_as_handled()
 			else:
-				_spawn_floating_label("Pipe Online", Color("8b92a3"))
+				# Check if any neighbour cell has a Dead Zone special tile
+				var cleared_dead_zone: bool = false
+				for dir in manual_connections:
+					var st: SpecialTile = GameData.special_tiles.get(cell + dir) as SpecialTile
+					if st and st.tile_type == SpecialTile.Type.DEAD_ZONE:
+						if st.try_clear_dead_zone():
+							cleared_dead_zone = true
+							get_viewport().set_input_as_handled()
+						break
+				if not cleared_dead_zone:
+					if is_permanent:
+						_spawn_floating_label("Pipe Online", Color("8b92a3"))
+						get_viewport().set_input_as_handled()
+					else:
+						_spawn_floating_label("Pipe Online", Color("8b92a3"))
 			
 
 
@@ -120,12 +151,12 @@ func _spawn_arm(direction: Vector2i) -> void:
 	if arm_lines.has(direction):
 		return
 
-	var end_pt := Vector2(direction) * GameData.CELL_SIZE / 2.0
+	var end_pt: Vector2 = Vector2(direction) * GameData.CELL_SIZE / 2.0
 
-	var outline    := _make_line2d(OUTLINE_WIDTH, "outline")
-	var base       := _make_line2d(BASE_WIDTH,    "base")
-	var upgrade    := _make_line2d(UPGRADE_WIDTH, "upgrade")
-	var connectors := _spawn_connectors(direction)
+	var outline: Line2D    = _make_line2d(OUTLINE_WIDTH, "outline")
+	var base: Line2D       = _make_line2d(BASE_WIDTH,    "base")
+	var upgrade: Line2D    = _make_line2d(UPGRADE_WIDTH, "upgrade")
+	var connectors: Array = _spawn_connectors(direction)
 
 	for line in [outline, base, upgrade]:
 		line.add_point(Vector2.ZERO)
@@ -151,7 +182,7 @@ func _destroy_arm(direction: Vector2i) -> void:
 	arm_lines.erase(direction)
 
 func _make_line2d(width: float, layer: String) -> Line2D:
-	var l := Line2D.new()
+	var l: Line2D = Line2D.new()
 	l.width = width
 	l.begin_cap_mode = Line2D.LINE_CAP_ROUND
 	l.end_cap_mode   = Line2D.LINE_CAP_ROUND
@@ -173,7 +204,7 @@ func _make_line2d(width: float, layer: String) -> Line2D:
 		"upgrade":
 			l.z_index = 0
 			l.default_color = Color(0, 0, 0, 0)
-			var mat := CanvasItemMaterial.new()
+			var mat: CanvasItemMaterial = CanvasItemMaterial.new()
 			mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 			l.material = mat
 
@@ -190,15 +221,15 @@ func _make_line2d(width: float, layer: String) -> Line2D:
 
 func _spawn_connectors(direction: Vector2i) -> Array:
 	var connectors: Array = []
-	var length  := GameData.CELL_SIZE.x / 2.0
-	var dir_vec := Vector2(direction).normalized()
-	var perp    := Vector2(-dir_vec.y, dir_vec.x)  # 90° rotation
+	var length: float  = GameData.CELL_SIZE.x / 2.0
+	var dir_vec: Vector2 = Vector2(direction).normalized()
+	var perp: Vector2    = Vector2(-dir_vec.y, dir_vec.x)  # 90° rotation
 
 	# Start one step in, stop one step before the tip
-	var i := 1
+	var i: int = 1
 	while i * CONNECTOR_SPACING < length - 4.0:
-		var pos  := dir_vec * i * CONNECTOR_SPACING
-		var ring := Line2D.new()
+		var pos: Vector2  = dir_vec * i * CONNECTOR_SPACING
+		var ring: Line2D = Line2D.new()
 		ring.width          = CONNECTOR_THICKNESS
 		ring.default_color  = Color("3d4451")  # matches level-0 outline color
 		ring.z_index        = 3                # above all pipe layers
@@ -269,8 +300,20 @@ func calculate_fracture_chance(
 	shield_multiplier: float = GameData.get_hull_shield_multiplier()
 ) -> float:
 	var base_chance: float = zone_rates.get(my_zone, 0.04)
-	var pressure_modifier := (pressure / 100.0) * 0.8
-	return max(0.005, (base_chance + pressure_modifier) * shield_multiplier)
+	var pressure_modifier: float = (pressure / 100.0) * 0.8
+	var base: float = max(0.005, (base_chance + pressure_modifier) * shield_multiplier)
+
+	# If this pipe sits on or adjacent to an Unstable Conduit, 5x fracture chance
+	var st: SpecialTile = GameData.special_tiles.get(cell) as SpecialTile
+	if not st:
+		for dir in manual_connections:
+			st = GameData.special_tiles.get(cell + dir) as SpecialTile
+			if st:
+				break
+	if st and st.tile_type == SpecialTile.Type.UNSTABLE_CONDUIT and not st.is_expired:
+		return min(1.0, base * 5.0)
+
+	return base
 
 func fracture() -> void:
 	if is_reinforced:
@@ -283,7 +326,7 @@ func fracture() -> void:
 		GameData.data_reserve_for_auto_repairs -= GameData.SINGLE_PIPE_REPAIR_COST * 1.1
 		return
 
-	var cell_hash := GameData.get_cell_id(cell)
+	var cell_hash: int = GameData.get_cell_id(cell)
 	is_fractured = true
 
 	# Shake
@@ -303,6 +346,10 @@ func fracture() -> void:
 		for ring in arm["connectors"]:
 			ring.default_color = Color("2d0a12")
 
+	packet_count = 0
+	var _id: int = GameData.get_cell_id(cell)
+	if GameData.astar.has_point(_id):
+		GameData.astar.set_point_weight_scale(_id, WEIGHT_BASE)
 	GameData.astar.set_point_disabled(cell_hash, true)
 	GameData.fractured_pipes[cell] = self
 
@@ -310,9 +357,11 @@ func repair() -> void:
 	if GameData.fractured_pipes.has(cell):
 		GameData.fractured_pipes.erase(cell)
 
-	var cell_hash := GameData.get_cell_id(cell)
+	var cell_hash: int = GameData.get_cell_id(cell)
 	is_fractured = false
 	just_repaired = true
+	packet_count = 0
+	_update_weight()
 	get_tree().create_timer(0.1).timeout.connect(func(): just_repaired = false)
 	GameData.astar.set_point_disabled(cell_hash, false)
 	
@@ -328,17 +377,17 @@ func _play_repair_animation() -> void:
 	for arm in arm_lines.values():
 		all_rings.append_array(arm["connectors"])
 
-	var ring_delay := 0.08
+	var ring_delay: float = 0.08
 	for i in range(all_rings.size()):
 		var ring: Line2D = all_rings[i]
-		var t := create_tween()
+		var t: Tween = create_tween()
 		t.tween_interval(i * ring_delay)
 		t.tween_property(ring, "default_color", Color("f0abfc"), 0.05)  # flash bright pink
 		t.tween_property(ring, "default_color", _get_ring_color_for_level(), 0.2)  # settle to upgrade color
 
 	# 3. After rings finish, fade modulate back to white
-	var total_ring_time := all_rings.size() * ring_delay + 0.25
-	var fade := create_tween()
+	var total_ring_time: float = all_rings.size() * ring_delay + 0.25
+	var fade: Tween = create_tween()
 	fade.tween_interval(total_ring_time * 0.5)  # start fading halfway through ring sequence
 	fade.tween_property(self, "modulate", Color.WHITE, 0.4)
 	
@@ -409,14 +458,14 @@ func restore_from_data(d: Dictionary) -> void:
 
 
 func _spawn_floating_label(text: String, color: Color) -> void:
-	var label := Label.new()
+	var label: Label = Label.new()
 	label.text = text
 	label.add_theme_color_override("font_color", color)
 	label.position = Vector2(-20, -30)
 	label.self_modulate = Color(1, 1, 1, 1)
 	add_child(label)
 
-	var t := create_tween()
+	var t: Tween = create_tween()
 	t.set_parallel(true)
 	t.tween_property(label, "position:y", label.position.y - 30, 0.8)
 	t.tween_property(label, "modulate:a", 0.0, 0.8)

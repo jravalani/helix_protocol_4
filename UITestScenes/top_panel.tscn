@@ -123,7 +123,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_normal")
-text = ">> SPEED"
+text = ">"
 
 [node name="UplinkButton" parent="MarginContainer/ParentHbox/ButtonGroup/HBoxContainer" unique_id=1111111004 instance=ExtResource("3_button")]
 unique_name_in_owner = true

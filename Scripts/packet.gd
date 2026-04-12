@@ -17,12 +17,13 @@ var source_vent: Vent
 var is_delivered: bool = false
 var _fading_out: bool = false
 var _waiting_to_free: bool = false
+var _path_cells: Array[Vector2i] = []
 
 signal packet_delivered
 
-const TAIL_STEPS    := 8
-const TAIL_DISTANCE := 20.0
-const PACKET_WIDTH  := 10.0
+const TAIL_STEPS: int    = 8
+const TAIL_DISTANCE: float = 20.0
+const PACKET_WIDTH: float  = 10.0
 
 func _ready() -> void:
 	loop = false
@@ -68,15 +69,15 @@ func _update_visuals() -> void:
 	if not curve:
 		return
 	
-	var total_length := curve.get_baked_length()
+	var total_length: float = curve.get_baked_length()
 	
 	# Sample from tail → head so Line2D draws tail first (thin end)
 	for i in range(TAIL_STEPS + 1):
-		var t := float(i) / float(TAIL_STEPS)
-		var sample_progress := progress - TAIL_DISTANCE * (1.0 - t)
+		var t: float = float(i) / float(TAIL_STEPS)
+		var sample_progress: float = progress - TAIL_DISTANCE * (1.0 - t)
 		sample_progress = clamp(sample_progress, 0.0, total_length)
 		
-		var world_pos := curve.sample_baked(sample_progress)
+		var world_pos: Vector2 = curve.sample_baked(sample_progress)
 		packet_line.add_point(to_local(world_pos))
 	
 	# Light stays at head (this node's position is already the head)
@@ -111,6 +112,19 @@ func setup_path(vent_node: Vent, start_cell: Vector2i, end_cell: Vector2i):
 	get_parent().curve = new_curve
 	progress = 0
 
+	# Register this packet on every pipe tile in the path so A* weights stay live
+	_path_cells.clear()
+	for pt in path_points:
+		var c: Vector2i = GameData.world_to_cell(pt)
+		var tile = GameData.road_grid.get(c)
+		if tile is NewRoadTile:
+			_path_cells.append(c)
+			tile.on_packet_entered()
+		# Notify special tiles along the path
+		var st: SpecialTile = GameData.special_tiles.get(c) as SpecialTile
+		if st:
+			st.on_packet_through()
+
 func deliver_to_hub():
 	var hub = GameData.building_grid.get(target_hub_cell)
 	if hub and hub is Hub and hub.is_rate_limited:
@@ -128,12 +142,12 @@ func _explode(delivered: bool) -> void:
 	_exploding = true
 	set_process(false)
 	# Rate limited — red-orange explosion at hub entrance
-	var t := create_tween().set_parallel(true)
+	var t: Tween = create_tween().set_parallel(true)
 	t.tween_property(packet_line, "modulate", Color(2.0, 0.4, 0.1, 1.0), 0.05)
 	t.tween_property(packet_light, "energy", 4.0, 0.05)
 	t.tween_property(packet_line, "scale", Vector2(2.5, 2.5), 0.08)
 	await get_tree().create_timer(0.08).timeout
-	var t2 := create_tween().set_parallel(true)
+	var t2: Tween = create_tween().set_parallel(true)
 	t2.tween_property(packet_line, "scale", Vector2(0.0, 0.0), 0.18)
 	t2.tween_property(packet_line, "modulate:a", 0.0, 0.18)
 	t2.tween_property(packet_light, "energy", 0.0, 0.18)
@@ -141,6 +155,11 @@ func _explode(delivered: bool) -> void:
 	get_parent().queue_free()
 
 func _exit_tree() -> void:
+	# Deregister from all path tiles so weights drop back down
+	for c in _path_cells:
+		var tile = GameData.road_grid.get(c)
+		if tile is NewRoadTile:
+			tile.on_packet_exited()
 	# Free up vent capacity
 	if source_vent:
 		source_vent.current_capacity = max(0, source_vent.current_capacity - 1)

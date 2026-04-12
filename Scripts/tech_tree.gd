@@ -179,8 +179,34 @@ func _click_node(idx: int) -> void:
 
 func _on_hub_pressed() -> void:
 	if GameData.current_rocket_phase >= 5:
-		SignalBus.launch_rocket_requested.emit()
-		_close()
+		_dramatic_launch_close()
+
+func _dramatic_launch_close() -> void:
+	TooltipManager.hide_tooltip()
+	# Freeze input immediately
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	# Flash white then slam to black as the menu closes
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(self, "modulate", Color(2.0, 2.0, 2.0, 1.0), 0.08)
+
+	await get_tree().create_timer(0.08).timeout
+
+	var tw2 := create_tween().set_parallel(true)
+	tw2.tween_property(self, "modulate", Color(0.0, 0.0, 0.0, 0.0), 0.35)\
+		.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+	tw2.tween_property(self, "scale", Vector2(1.08, 1.08), 0.35)
+
+	await get_tree().create_timer(0.35).timeout
+
+	self.hide()
+	self.modulate = Color(1, 1, 1, 1)
+	self.scale = Vector2(1, 1)
+	mouse_filter = Control.MOUSE_FILTER_STOP
+
+	# Camera shake then emit launch signal
+	SignalBus.camera_shake.emit(0.3, 10.0)
+	SignalBus.launch_rocket_requested.emit()
 
 func _on_node_hover_enter(idx: int) -> void:
 	var ph  : int        = phase_map[idx]
@@ -220,4 +246,9 @@ func _on_open_rocket_menu() -> void:
 func _on_rocket_segment_purchased(to_phase: int) -> void:
 	_refresh_ui()
 	if to_phase >= 5:
-		print("All segments complete! Launch ready.")
+		# Flash the whole menu magenta then settle
+		var tw := create_tween()
+		tw.tween_property(self, "modulate", Color(2.0, 0.0, 2.0, 1.0), 0.1)
+		tw.tween_property(self, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.4)\
+			.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+		SignalBus.camera_shake.emit(0.5, 12.0)
