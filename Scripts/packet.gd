@@ -12,14 +12,10 @@ var _speed_multiplier: float = 1.0
 const SPEED_PER_LEVEL := [120.0, 150.0, 185.0, 225.0]
 
 var target_hub_cell: Vector2i
-var source_vent_cell: Vector2i
+var source_vent_cell: Vector2i          # vent's driveway cell (A* endpoint)
 var source_vent: Vent
-var is_delivered: bool = false
-var _fading_out: bool = false
-var _waiting_to_free: bool = false
+var returning: bool = false             # true = heading back toward vent
 var _path_cells: Array[Vector2i] = []
-
-signal packet_delivered
 
 const TAIL_STEPS: int    = 8
 const TAIL_DISTANCE: float = 20.0
@@ -27,7 +23,6 @@ const PACKET_WIDTH: float  = 10.0
 
 func _ready() -> void:
 	loop = false
-	# Base speed driven by current pipe upgrade level
 	_base_speed = SPEED_PER_LEVEL[clamp(GameData.current_pipe_upgrade_level, 0, 3)]
 	speed = _base_speed
 	SignalBus.trigger_packet_slowdown.connect(_on_fracture_wave)
@@ -40,8 +35,7 @@ func _on_pipes_upgraded(level: int) -> void:
 func apply_slowdown(multiplier: float) -> void:
 	_speed_multiplier = multiplier
 	speed = _base_speed * _speed_multiplier
-	if packet_line:
-		packet_line.modulate = Color(1.6, 0.2, 1.4, packet_line.modulate.a)
+	packet_line.modulate = Color(1.6, 0.2, 1.4, packet_line.modulate.a)
 
 func restore_speed() -> void:
 	_speed_multiplier = 1.0
@@ -60,7 +54,7 @@ func _process(delta: float) -> void:
 		progress += speed * delta
 		_update_visuals()
 	else:
-		deliver_to_hub()
+		_on_arrival()
 
 func _update_visuals() -> void:
 	packet_line.clear_points()
@@ -71,7 +65,6 @@ func _update_visuals() -> void:
 	
 	var total_length: float = curve.get_baked_length()
 	
-	# Sample from tail → head so Line2D draws tail first (thin end)
 	for i in range(TAIL_STEPS + 1):
 		var t: float = float(i) / float(TAIL_STEPS)
 		var sample_progress: float = progress - TAIL_DISTANCE * (1.0 - t)
@@ -80,39 +73,77 @@ func _update_visuals() -> void:
 		var world_pos: Vector2 = curve.sample_baked(sample_progress)
 		packet_line.add_point(to_local(world_pos))
 	
-	# Light stays at head (this node's position is already the head)
 	packet_light.position = Vector2.ZERO
 
-func setup_path(vent_node: Vent, start_cell: Vector2i, end_cell: Vector2i):
+# ════════════════════════════════════════════════════════════════
+#region Path Building
+# ════════════════════════════════════════════════════════════════
+
+func setup_path(vent_node: Vent, start_cell: Vector2i, end_cell: Vector2i) -> void:
 	source_vent = vent_node
 	source_vent_cell = start_cell
 	target_hub_cell = end_cell
-	
-	var start_id = GameData.get_cell_id(start_cell)
-	var end_id = GameData.get_cell_id(end_cell)
-	
+	returning = false
+
+	if not _build_forward_path():
+		get_parent().queue_free()
+
+
+func _build_forward_path() -> bool:
+	_deregister_path_tiles()
+
+	var start_id = GameData.get_cell_id(source_vent_cell)
+	var end_id   = GameData.get_cell_id(target_hub_cell)
+
 	if not (GameData.astar.has_point(start_id) and GameData.astar.has_point(end_id)):
-		print("⚠️ Packet: A* points missing for path from %s to %s" % [start_cell, end_cell])
-		get_parent().queue_free()
-		return
-	
+		return false
+
 	var path_points = GameData.astar.get_point_path(start_id, end_id)
-	
 	if path_points.size() < 2:
-		print("⚠️ Packet: No valid path from %s to %s" % [start_cell, end_cell])
-		get_parent().queue_free()
-		return
-	
+		return false
+
 	var new_curve = Curve2D.new()
-	# Prepend vent's world position so packet visually spawns from inside the vent
-	new_curve.add_point(vent_node.global_position)
-	for i in range(path_points.size()):
-		new_curve.add_point(path_points[i])
-	
+	# Prepend vent position so the packet visually exits from inside the vent
+	if source_vent and is_instance_valid(source_vent):
+		new_curve.add_point(source_vent.global_position)
+	for pt in path_points:
+		new_curve.add_point(pt)
+
 	get_parent().curve = new_curve
 	progress = 0
 
-	# Register this packet on every pipe tile in the path so A* weights stay live
+	_register_path_tiles(path_points)
+	return true
+
+
+func _build_return_path() -> bool:
+	_deregister_path_tiles()
+
+	var start_id = GameData.get_cell_id(target_hub_cell)
+	var end_id   = GameData.get_cell_id(source_vent_cell)
+
+	if not (GameData.astar.has_point(start_id) and GameData.astar.has_point(end_id)):
+		return false
+
+	var path_points = GameData.astar.get_point_path(start_id, end_id)
+	if path_points.size() < 2:
+		return false
+
+	var new_curve = Curve2D.new()
+	for pt in path_points:
+		new_curve.add_point(pt)
+	# Append vent position so the packet visually enters the vent
+	if source_vent and is_instance_valid(source_vent):
+		new_curve.add_point(source_vent.global_position)
+
+	get_parent().curve = new_curve
+	progress = 0
+
+	_register_path_tiles(path_points)
+	return true
+
+
+func _register_path_tiles(path_points: PackedVector2Array) -> void:
 	_path_cells.clear()
 	for pt in path_points:
 		var c: Vector2i = GameData.world_to_cell(pt)
@@ -120,28 +151,76 @@ func setup_path(vent_node: Vent, start_cell: Vector2i, end_cell: Vector2i):
 		if tile is NewRoadTile:
 			_path_cells.append(c)
 			tile.on_packet_entered()
-		# Notify special tiles along the path
 		var st: SpecialTile = GameData.special_tiles.get(c) as SpecialTile
 		if st:
 			st.on_packet_through(self)
 
-func deliver_to_hub():
-	var hub = GameData.building_grid.get(target_hub_cell)
-	if hub and hub is Hub and hub.is_rate_limited:
-		_explode(false)
-		return
-	if hub and hub is Hub:
-		hub.receive_oxygen_packet()
-		packet_delivered.emit()
-		is_delivered = true
-	else:
-		print("⚠️ Packet: No hub found at %s" % target_hub_cell)
-	get_parent().queue_free()
 
-func _explode(delivered: bool) -> void:
+func _deregister_path_tiles() -> void:
+	for c in _path_cells:
+		var tile = GameData.road_grid.get(c)
+		if tile is NewRoadTile:
+			tile.on_packet_exited()
+	_path_cells.clear()
+
+#endregion
+
+
+# ════════════════════════════════════════════════════════════════
+#region Arrival Handling
+# ════════════════════════════════════════════════════════════════
+
+func _on_arrival() -> void:
+	if returning:
+		_arrive_at_vent()
+	else:
+		_arrive_at_hub()
+
+
+func _arrive_at_hub() -> void:
+	var hub = GameData.building_grid.get(target_hub_cell)
+
+	# Rate-limited → explode (vent will respawn a replacement)
+	if hub and hub is Hub and hub.is_rate_limited:
+		_explode()
+		return
+
+	# Hub fractured or gone → destroy so vent can respawn with a valid hub
+	if not hub or not hub is Hub or hub.is_fractured:
+		get_parent().queue_free()
+		return
+
+	# Score
+	hub.receive_oxygen_packet()
+
+	# Flip direction — head back to vent
+	returning = true
+	if not _build_return_path():
+		get_parent().queue_free()
+
+
+func _arrive_at_vent() -> void:
+	# Validate hub is still worth looping to
+	var hub = GameData.building_grid.get(target_hub_cell)
+	if not hub or not hub is Hub or hub.is_fractured:
+		get_parent().queue_free()
+		return
+
+	# Flip direction — head back to hub
+	returning = false
+	if not _build_forward_path():
+		get_parent().queue_free()
+
+#endregion
+
+
+# ════════════════════════════════════════════════════════════════
+#region Destruction
+# ════════════════════════════════════════════════════════════════
+
+func _explode() -> void:
 	_exploding = true
 	set_process(false)
-	# Rate limited — red-orange explosion at hub entrance
 	var t: Tween = create_tween().set_parallel(true)
 	t.tween_property(packet_line, "modulate", Color(2.0, 0.4, 0.1, 1.0), 0.05)
 	t.tween_property(packet_light, "energy", 4.0, 0.05)
@@ -154,13 +233,12 @@ func _explode(delivered: bool) -> void:
 	await get_tree().create_timer(0.2).timeout
 	get_parent().queue_free()
 
+
 func _exit_tree() -> void:
-	# Deregister from all path tiles so weights drop back down
-	for c in _path_cells:
-		var tile = GameData.road_grid.get(c)
-		if tile is NewRoadTile:
-			tile.on_packet_exited()
-	# Free up vent capacity
-	if source_vent:
+	_deregister_path_tiles()
+	# Free up vent capacity so it can respawn a replacement
+	if source_vent and is_instance_valid(source_vent):
 		source_vent.current_capacity = max(0, source_vent.current_capacity - 1)
 		source_vent.notify_capacity_freed()
+
+#endregion
