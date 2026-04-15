@@ -13,7 +13,7 @@
 [ext_resource type="PackedScene" uid="uid://crjalt6n7n0in" path="res://Scenes/vignette.tscn" id="9_6iyac"]
 [ext_resource type="PackedScene" uid="uid://chapr2oeoqwub" path="res://UITestScenes/tech_tree.tscn" id="9_ynf5e"]
 [ext_resource type="PackedScene" uid="uid://oksegi45gqak" path="res://Scenes/heat_haze.tscn" id="10_fdnlq"]
-[ext_resource type="PackedScene" uid="uid://dtv18ee30jl71" path="res://UITestScenes/top_panel.tscn" id="10_hptm8"]
+[ext_resource type="PackedScene" uid="uid://baqiaaw71gui4" path="res://UITestScenes/top_panel.tscn" id="10_hptm8"]
 [ext_resource type="PackedScene" uid="uid://bfq5ber3wwxdb" path="res://Scenes/dust_particles.tscn" id="11_d1ilt"]
 [ext_resource type="PackedScene" uid="uid://b5ev0jvtodvqa" path="res://Scenes/hub_window.tscn" id="14_jkdf5"]
 [ext_resource type="AudioStream" uid="uid://ckktjtyow7lju" path="res://Audio/title/drone.ogg" id="16_h1bgf"]
@@ -24,7 +24,7 @@
 [sub_resource type="Environment" id="Environment_d1ilt"]
 background_mode = 3
 tonemap_mode = 1
-tonemap_exposure = 1.2
+tonemap_exposure = 1.1
 glow_enabled = true
 glow_bloom = 0.2
 glow_blend_mode = 0

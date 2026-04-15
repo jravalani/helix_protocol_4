@@ -68,26 +68,53 @@ var degradation_rate: float = 0.0
 var _game_over_triggered: bool = false
 
 # ── Secondary Objectives ───────────────────────────────────────────────────────
-# At most one active objective at a time. Spawns a SpecialTile in the world.
-# The player completes it by routing pipes through the tile before it expires.
+# Up to two active objectives simultaneously. Each slot is a Dictionary:
+#   { "objective": Objective, "tile": SpecialTile, "packets_needed": int, "pressure_threshold": float }
+# Dual spawn probability scales with pressure phase (0% at p1 → 60% at p8+).
+# When dual-spawning, one slot is always Positive category, one is Hazard.
 
 enum Objective {
 	NONE,
 	BOOST_CORRIDOR,    # Keep Boost Corridor alive through the next wave → +150 data
 	UNSTABLE_CONDUIT,  # Route 10 packets through Unstable Conduit → -10 pressure
 	DEAD_ZONE,         # Clear the Dead Zone within 90s → +100 data
-	PRESSURE_SINK,     # Connect to Pressure Sink before pressure hits threshold → -5 pressure (instant, tile handles it)
+	PRESSURE_SINK,     # Maintain packet flow through Pressure Sink → reduces pressure rate
 }
 
-var active_objective: Objective = Objective.NONE
-var active_special_tile: SpecialTile = null
+# Tile type → objective category
+enum TileCategory { POSITIVE, HAZARD }
+const TILE_CATEGORIES: Dictionary = {
+	SpecialTile.Type.BOOST_CORRIDOR:   TileCategory.POSITIVE,
+	SpecialTile.Type.PRESSURE_SINK:    TileCategory.POSITIVE,
+	SpecialTile.Type.UNSTABLE_CONDUIT: TileCategory.HAZARD,
+	SpecialTile.Type.DEAD_ZONE:        TileCategory.HAZARD,
+}
+
+var active_slots: Array = []           # Array of slot Dictionaries, max size 2
 var _objective_packets_needed: int = 10
 var _pressure_sink_threshold: float = 0.0
+
+# ── Objective spawn control ────────────────────────────────────────────────────
+var _recent_types: Array = []          # last 2 spawned types — no consecutive repeats
+var _spawn_attempts: int = 0           # failed spawn attempts in current cycle
+const MAX_SPAWN_ATTEMPTS: int = 3      # give up after this many fails in one cycle
+
+# Dual spawn probability curve — linear 0% at phase 1 → 60% at phase 8, capped
+func _dual_spawn_chance() -> float:
+	var phase: int = GameData.current_pressure_phase
+	return clampf(remap(float(phase), 1.0, 8.0, 0.0, 0.60), 0.0, 0.60)
+
+# Legacy single-tile accessors used by fracture wave handler
+var active_objective: Objective:
+	get: return active_slots[0]["objective"] if active_slots.size() > 0 else Objective.NONE
+var active_special_tile: SpecialTile:
+	get: return active_slots[0]["tile"] if active_slots.size() > 0 else null
 
 
 const RING_RADII: Array = [6, 6, 8, 8, 11, 11, 14, 14]
 
 func _ready() -> void:
+	add_to_group("director")
 	await get_tree().process_frame
 	screen_center = camera_2d.get_screen_center_position()
 	get_camera_bounds()
@@ -104,6 +131,9 @@ func _ready() -> void:
 		spawn_rocket()
 		spawn_initial_colony()
 		NotificationManager.notify("Colony initialised. Map size: " + str(GameData.current_map_size), NotificationManager.Type.INFO)
+	
+	await get_tree().create_timer(5.0).timeout
+	_spawn_random_objective()
 
 func _on_rocket_segment_purchased(phase: int) -> void:
 
@@ -324,43 +354,122 @@ func transition_to_phase(phase_number: int) -> void:
 # ── Secondary Objective Timer ──────────────────────────────────────────────────
 
 var _objective_timer: float = 0.0
-var _next_objective_interval: float = 90.0  # first one after 90s
+var _next_objective_interval: float = 60.0  # first one after 60s
 
 func _tick_objective_system(delta: float) -> void:
-	# Never spawn during an active wave
 	if GameData.fracture_wave_active:
 		return
-	# Only start after phase 2
-	if GameData.current_pressure_phase < 2:
+	if GameData.current_pressure_phase < 1:
 		return
-	# Already have one active
-	if active_objective != Objective.NONE:
+	# Only spawn if all slots are empty
+	if active_slots.size() > 0:
 		return
 
 	_objective_timer += delta
 	if _objective_timer >= _next_objective_interval:
 		_objective_timer = 0.0
-		_next_objective_interval = randf_range(60.0, 180.0)
 		_spawn_random_objective()
 
-func _spawn_random_objective() -> void:
+func _weighted_pick_type(force_category: int = -1) -> SpecialTile.Type:
 	var phase: int = GameData.current_pressure_phase
+	var t: float = clampf((float(phase) - 1.0) / 9.0, 0.0, 1.0)
 
-	# Pool grows as more zones unlock and pressure rises
-	var pool: Array[SpecialTile.Type] = [
+	# Weights: [BOOST_CORRIDOR, PRESSURE_SINK, UNSTABLE_CONDUIT, DEAD_ZONE]
+	var weights: Array = [
+		lerpf(50.0, 35.0, t),
+		lerpf(2.0,  15.0, t),
+		(lerpf(8.0, 20.0, t) if phase >= 4 else 0.0),
+		(lerpf(6.0, 25.0, t) if phase >= 6 else 0.0),
+	]
+
+	var types: Array = [
 		SpecialTile.Type.BOOST_CORRIDOR,
 		SpecialTile.Type.PRESSURE_SINK,
+		SpecialTile.Type.UNSTABLE_CONDUIT,
+		SpecialTile.Type.DEAD_ZONE,
 	]
-	if phase >= 4:
-		pool.append(SpecialTile.Type.UNSTABLE_CONDUIT)
-	if phase >= 6:
-		pool.append(SpecialTile.Type.DEAD_ZONE)
 
-	var tile_type: SpecialTile.Type = pool.pick_random()
+	# Build exclusion set: recent types + wrong category if forced
+	var eligible_total: float = 0.0
+	for i in range(types.size()):
+		var excluded: bool = weights[i] <= 0.0 or types[i] in _recent_types
+		if force_category >= 0 and TILE_CATEGORIES[types[i]] != force_category:
+			excluded = true
+		if not excluded:
+			eligible_total += weights[i]
 
-	var spawn_cell: Vector2i = _find_special_tile_spawn_cell()
+	var use_exclusion: bool = eligible_total > 0.0
+
+	var total: float = 0.0
+	for i in range(types.size()):
+		var w: float = weights[i]
+		var excluded: bool = types[i] in _recent_types
+		if force_category >= 0 and TILE_CATEGORIES[types[i]] != force_category:
+			excluded = true
+		if use_exclusion and excluded:
+			w = 0.0
+		total += w
+
+	var roll: float = randf() * total
+	var acc: float = 0.0
+	for i in range(types.size()):
+		var w: float = weights[i]
+		var excluded: bool = types[i] in _recent_types
+		if force_category >= 0 and TILE_CATEGORIES[types[i]] != force_category:
+			excluded = true
+		if use_exclusion and excluded:
+			w = 0.0
+		acc += w
+		if roll <= acc:
+			return types[i]
+
+	# Fallback: ignore category/recent restrictions and just pick anything with weight
+	for i in range(types.size()):
+		if weights[i] > 0.0:
+			return types[i]
+	return SpecialTile.Type.BOOST_CORRIDOR
+
+func _spawn_random_objective() -> void:
+	var spawn_dual: bool = randf() < _dual_spawn_chance()
+
+	if spawn_dual:
+		# Force one positive, one hazard — pick positive first (rarer), hazard second
+		var type_a: SpecialTile.Type = _weighted_pick_type(TileCategory.POSITIVE)
+		var type_b: SpecialTile.Type = _weighted_pick_type(TileCategory.HAZARD)
+		var cell_a: Vector2i = _find_special_tile_spawn_cell(type_a)
+		var cell_b: Vector2i = _find_special_tile_spawn_cell(type_b)
+
+		if cell_a == Vector2i(-9999, -9999) or cell_b == Vector2i(-9999, -9999):
+			# Fall back to single spawn if dual placement fails
+			spawn_dual = false
+		else:
+			_spawn_slot(type_a, cell_a)
+			_spawn_slot(type_b, cell_b)
+			_spawn_attempts = 0
+			_next_objective_interval = randf_range(60.0, 180.0)
+			return
+
+	# Single spawn
+	var tile_type: SpecialTile.Type = _weighted_pick_type()
+	var spawn_cell: Vector2i = _find_special_tile_spawn_cell(tile_type)
+
 	if spawn_cell == Vector2i(-9999, -9999):
+		_spawn_attempts += 1
+		if _spawn_attempts >= MAX_SPAWN_ATTEMPTS:
+			_spawn_attempts = 0
+			_next_objective_interval = randf_range(60.0, 180.0)
+		else:
+			_next_objective_interval = randf_range(15.0, 25.0)
 		return
+
+	_spawn_attempts = 0
+	_next_objective_interval = randf_range(60.0, 180.0)
+	_spawn_slot(tile_type, spawn_cell)
+
+func _spawn_slot(tile_type: SpecialTile.Type, spawn_cell: Vector2i) -> void:
+	_recent_types.append(tile_type)
+	if _recent_types.size() > 2:
+		_recent_types.pop_front()
 
 	var st: SpecialTile = SpecialTileScene.instantiate()
 	entities.add_child(st)
@@ -370,82 +479,85 @@ func _spawn_random_objective() -> void:
 	st.tile_expired.connect(_on_objective_tile_expired)
 	st.packet_passed_through.connect(_on_objective_packet_through)
 
-	active_special_tile = st
+	var slot: Dictionary = {
+		"objective": _type_to_objective(tile_type),
+		"tile": st,
+		"packets_needed": 10,
+		"pressure_threshold": GameData.current_pressure + 15.0 if tile_type == SpecialTile.Type.PRESSURE_SINK else 0.0,
+	}
+	active_slots.append(slot)
 
-	match tile_type:
-		SpecialTile.Type.BOOST_CORRIDOR:
-			active_objective = Objective.BOOST_CORRIDOR
-			NotificationManager.notify(
-				"Boost Corridor detected. Route pipes through it and survive the next wave for +150 data.",
-				NotificationManager.Type.OBJECTIVE, "OBJECTIVE")
-		SpecialTile.Type.UNSTABLE_CONDUIT:
-			active_objective = Objective.UNSTABLE_CONDUIT
-			_objective_packets_needed = 10
-			NotificationManager.notify(
-				"Unstable Conduit active. Route 10 packets through it to reduce pressure by 10.",
-				NotificationManager.Type.OBJECTIVE, "OBJECTIVE")
-		SpecialTile.Type.DEAD_ZONE:
-			active_objective = Objective.DEAD_ZONE
-			NotificationManager.notify(
-				"Dead Zone emerging. Spend 50 data to clear it within 90 seconds for +100 data bonus.",
-				NotificationManager.Type.OBJECTIVE, "OBJECTIVE")
-		SpecialTile.Type.PRESSURE_SINK:
-			active_objective = Objective.PRESSURE_SINK
-			_pressure_sink_threshold = GameData.current_pressure + 15.0
-			NotificationManager.notify(
-				"Pressure Sink nearby. Connect before pressure rises 15 points for an instant -5 pressure drop.",
-				NotificationManager.Type.OBJECTIVE, "OBJECTIVE")
+func _type_to_objective(t: SpecialTile.Type) -> Objective:
+	match t:
+		SpecialTile.Type.BOOST_CORRIDOR:   return Objective.BOOST_CORRIDOR
+		SpecialTile.Type.PRESSURE_SINK:    return Objective.PRESSURE_SINK
+		SpecialTile.Type.UNSTABLE_CONDUIT: return Objective.UNSTABLE_CONDUIT
+		SpecialTile.Type.DEAD_ZONE:        return Objective.DEAD_ZONE
+	return Objective.NONE
 
-func _find_special_tile_spawn_cell() -> Vector2i:
+func _find_slot(tile: SpecialTile) -> Dictionary:
+	for slot in active_slots:
+		if slot["tile"] == tile:
+			return slot
+	return {}
+
+func _find_special_tile_spawn_cell(tile_type: SpecialTile.Type) -> Vector2i:
+	# Just find a valid seed cell — flood fill in SpecialTile handles the shape growth
 	var bounds: Rect2i = get_camera_bounds()
 	var candidates: Array[Vector2i] = []
+	var require_empty: bool = (tile_type == SpecialTile.Type.PRESSURE_SINK)
+
 	for x in range(bounds.position.x, bounds.end.x):
 		for y in range(bounds.position.y, bounds.end.y):
 			var c: Vector2i = Vector2i(x, y)
-			if GameData.road_grid.has(c): continue
 			if GameData.building_grid.has(c): continue
 			if GameData.special_tiles.has(c): continue
-			# Only spawn in zones the player has actually unlocked
+			if require_empty and GameData.road_grid.has(c): continue
 			if GameData.get_zone_for_cell(c) not in unlocked_zones: continue
 			candidates.append(c)
+
 	if candidates.is_empty():
 		return Vector2i(-9999, -9999)
-	# Prefer cells near existing pipes so the player can actually reach it
-	candidates.sort_custom(func(a, b):
-		var a_near: bool = false
-		var b_near: bool = false
-		for dir in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
-			if GameData.road_grid.has(a + dir): a_near = true
-			if GameData.road_grid.has(b + dir): b_near = true
-		return int(b_near) < int(a_near)
-	)
-	# Pick from top half of near-pipe candidates, or any if none near pipes
+
+	if require_empty:
+		# Pressure Sink: prefer far from existing pipes
+		candidates.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
+			var a_near: bool = false
+			var b_near: bool = false
+			for dir in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
+				if GameData.road_grid.has(a + dir): a_near = true
+				if GameData.road_grid.has(b + dir): b_near = true
+			return int(a_near) < int(b_near)
+		)
+	else:
+		# Others: prefer near existing pipes
+		candidates.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
+			var a_near: bool = false
+			var b_near: bool = false
+			for dir in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
+				if GameData.road_grid.has(a + dir): a_near = true
+				if GameData.road_grid.has(b + dir): b_near = true
+			return int(b_near) < int(a_near)
+		)
+
 	var pool_size: int = max(1, candidates.size() / 2)
 	return candidates.slice(0, pool_size).pick_random()
 
 # ── Objective signal handlers ──────────────────────────────────────────────────
 
 func _on_objective_tile_connected(tile: SpecialTile) -> void:
-	# Pressure Sink completes on connection (tile handles the pressure drop itself)
-	if active_objective == Objective.PRESSURE_SINK:
-		if GameData.current_pressure < _pressure_sink_threshold:
-			_complete_objective("Pressure Sink connected in time! Pressure reduced.", 0)
-		else:
-			NotificationManager.notify("Pressure Sink connected — but too late for the bonus.",
-				NotificationManager.Type.OBJECTIVE, "OBJECTIVE")
-			_clear_objective()
+	var slot: Dictionary = _find_slot(tile)
+	if slot.is_empty(): return
+	# Pressure Sink no longer completes on connection — flow mechanic handles it
+	# (kept as a hook for future objective variants)
 
 func _on_objective_packet_through(tile: SpecialTile) -> void:
-	if active_objective == Objective.UNSTABLE_CONDUIT:
-		var remaining: int = _objective_packets_needed - tile.packets_passed
-		if tile.packets_passed >= _objective_packets_needed:
-			GameData.current_pressure = max(0.0, GameData.current_pressure - 10.0)
-			_complete_objective("Unstable Conduit objective complete! -10 pressure.", 0)
+	pass
 
 func _on_objective_tile_expired(tile: SpecialTile) -> void:
-	if tile != active_special_tile:
-		return
-	match active_objective:
+	var slot: Dictionary = _find_slot(tile)
+	if slot.is_empty(): return
+	match slot["objective"]:
 		Objective.BOOST_CORRIDOR:
 			NotificationManager.notify("Boost Corridor destroyed by the wave. Objective failed.",
 				NotificationManager.Type.OBJECTIVE, "OBJECTIVE")
@@ -455,17 +567,16 @@ func _on_objective_tile_expired(tile: SpecialTile) -> void:
 			GameData.total_data = max(0, GameData.total_data - 200)
 		_:
 			NotificationManager.notify("Objective expired.", NotificationManager.Type.OBJECTIVE, "OBJECTIVE")
-	_clear_objective()
+	_remove_slot(slot)
 
-func _complete_objective(message: String, bonus_data: int) -> void:
+func _complete_slot(slot: Dictionary, message: String, bonus_data: int) -> void:
 	if bonus_data > 0:
 		GameData.total_data += bonus_data
 	NotificationManager.notify(message, NotificationManager.Type.OBJECTIVE, "OBJECTIVE COMPLETE")
-	_clear_objective()
+	_remove_slot(slot)
 
-func _clear_objective() -> void:
-	active_objective = Objective.NONE
-	active_special_tile = null
+func _remove_slot(slot: Dictionary) -> void:
+	active_slots.erase(slot)
 
 func trigger_fracture_wave() -> void:
 	GameData.fracture_wave_active = true
@@ -484,11 +595,14 @@ func trigger_fracture_wave() -> void:
 	SignalBus.camera_shake.emit(0.5, 8.0)
 	_execute_fracture_wave()
 
-	# Check Boost Corridor objective — if still alive after wave, player wins it
-	if active_objective == Objective.BOOST_CORRIDOR and active_special_tile and not active_special_tile.is_expired:
-		_complete_objective("Boost Corridor survived the wave! +150 data.", 150)
-	elif active_special_tile and not active_special_tile.is_expired:
-		active_special_tile.on_fracture_wave()
+	# Check objectives after wave — Boost Corridor completes if still alive, others get wave notification
+	for slot in active_slots.duplicate():
+		if not is_instance_valid(slot["tile"]) or slot["tile"].is_expired:
+			continue
+		if slot["objective"] == Objective.BOOST_CORRIDOR:
+			_complete_slot(slot, "Boost Corridor survived the wave! +150 data.", 150)
+		else:
+			slot["tile"].on_fracture_wave()
 
 	await get_tree().create_timer(10.0).timeout
 	GameData.fracture_wave_active = false
