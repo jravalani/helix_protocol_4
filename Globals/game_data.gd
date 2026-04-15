@@ -217,7 +217,7 @@ func reset_to_defaults() -> void:
 	pressure_rate_multiplier = 1.0
 
 	# Economy
-	total_data = 25000
+	total_data = 0
 	lifetime_data_earned = 0
 	previous_threshold = 0
 	score_to_next_reward = 30
@@ -373,6 +373,44 @@ func remove_navigation_point(cell: Vector2i) -> void:
 	var id = get_cell_id(cell)
 	if astar.has_point(id):
 		astar.remove_point(id)
+
+func get_clean_path(from_cell: Vector2i, to_cell: Vector2i, seeker_vent: Building) -> Array[Vector2i]:
+	var start_id = get_cell_id(from_cell)
+	var end_id   = get_cell_id(to_cell)
+
+	if not astar.has_point(start_id) or not astar.has_point(end_id):
+		return []
+
+	# Disable all foreign vent entrances
+	var blocked_ids: Array[int] = []
+	var seen := {}
+	for cell in building_grid:
+		var b = building_grid[cell]
+		if not is_instance_valid(b):
+			continue
+		var bid = b.get_instance_id()
+		if seen.has(bid):
+			continue
+		seen[bid] = true
+		if b is Vent and b != seeker_vent:
+			var ent_id = get_cell_id(b.entrance_cell)
+			if astar.has_point(ent_id) and not astar.is_point_disabled(ent_id):
+				astar.set_point_disabled(ent_id, true)
+				blocked_ids.append(ent_id)
+
+	var pts := astar.get_point_path(start_id, end_id)
+
+	# Re-enable immediately
+	for id in blocked_ids:
+		astar.set_point_disabled(id, false)
+
+	if pts.size() < 2:
+		return []
+
+	var result: Array[Vector2i] = []
+	for pt in pts:
+		result.append(world_to_cell(pt))
+	return result
 
 #endregion
 

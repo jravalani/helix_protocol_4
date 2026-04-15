@@ -1,6 +1,46 @@
-[gd_scene format=3 uid="uid://d2jsv8yrqdp5c"]
+[gd_scene format=3 uid="uid://cxdqj7y83sx8x"]
 
-[ext_resource type="Script" uid="uid://kl324h6pcmgn" path="res://Scripts/special_tile.gd" id="1_5y2br"]
+[ext_resource type="Script" uid="uid://kl324h6pcmgn" path="res://Scripts/special_tile.gd" id="1_special"]
+[ext_resource type="FontFile" uid="uid://f2rhtea60h0j" path="res://Assets/Fonts/JetBrainsMono-ExtraBold.ttf" id="2"]
+[ext_resource type="FontFile" uid="uid://ccmc2ygy5pytk" path="res://Assets/Fonts/JetBrainsMonoNL-SemiBold.ttf" id="3"]
 
-[node name="SpecialTile" type="Node2D" unique_id=1920857612]
-script = ExtResource("1_5y2br")
+[node name="SpecialTile" type="Node2D" unique_id=1490287259]
+script = ExtResource("1_special")
+
+[node name="Labels" type="Node2D" parent="." unique_id=1128363746]
+
+[node name="TitleLabel" type="Label" parent="Labels" unique_id=1799229876]
+z_index = 10
+custom_minimum_size = Vector2(160, 0)
+offset_left = -80.0
+offset_top = -28.0
+offset_right = -80.0
+offset_bottom = -28.0
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+
+[node name="SubLabel" type="Label" parent="Labels" unique_id=776751026]
+z_index = 10
+custom_minimum_size = Vector2(160, 0)
+offset_left = -80.0
+offset_top = -6.0
+offset_right = -80.0
+offset_bottom = -6.0
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+
+[node name="TimerLabel" type="Label" parent="Labels" unique_id=1380613292]
+z_index = 10
+custom_minimum_size = Vector2(160, 0)
+offset_left = -80.0
+offset_top = 14.0
+offset_right = -80.0
+offset_bottom = 14.0
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1

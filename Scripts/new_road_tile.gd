@@ -54,14 +54,14 @@ var zone_rates = {
 }
 
 # Pipe visual
-const BASE_WIDTH: float    = 10.0
+const BASE_WIDTH: float    = 20.0
 const OUTLINE_WIDTH: float = 36.0
-const UPGRADE_WIDTH: float = 40.0
+const UPGRADE_WIDTH: float = 34.0
 
 # Connector ring settings
 const CONNECTOR_SPACING: float   = 16.0  # pixels between rings along the arm
-const CONNECTOR_HALF_SIZE: float =  5.0  # half-length of the perpendicular crossbar
-const CONNECTOR_THICKNESS: float =  2.5  # Line2D width of each ring
+const CONNECTOR_HALF_SIZE: float =  8.0  # half-length of the perpendicular crossbar
+const CONNECTOR_THICKNESS: float =  4.0  # Line2D width of each ring
 
 # Assign your texture here or leave null for solid color
 var pipe_texture: Texture = null
@@ -352,6 +352,11 @@ func fracture() -> void:
 		GameData.astar.set_point_weight_scale(_id, WEIGHT_BASE)
 	GameData.astar.set_point_disabled(cell_hash, true)
 	GameData.fractured_pipes[cell] = self
+
+	# Notify any special tile on this cell that its pipe just fractured
+	var st: SpecialTile = GameData.special_tiles.get(cell) as SpecialTile
+	if st:
+		st.on_pipe_fractured_under()
 
 func repair() -> void:
 	if GameData.fractured_pipes.has(cell):

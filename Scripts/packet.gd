@@ -123,7 +123,7 @@ func setup_path(vent_node: Vent, start_cell: Vector2i, end_cell: Vector2i):
 		# Notify special tiles along the path
 		var st: SpecialTile = GameData.special_tiles.get(c) as SpecialTile
 		if st:
-			st.on_packet_through()
+			st.on_packet_through(self)
 
 func deliver_to_hub():
 	var hub = GameData.building_grid.get(target_hub_cell)
