@@ -376,10 +376,10 @@ func _weighted_pick_type(force_category: int = -1) -> SpecialTile.Type:
 
 	# Weights: [BOOST_CORRIDOR, PRESSURE_SINK, UNSTABLE_CONDUIT, DEAD_ZONE]
 	var weights: Array = [
-		lerpf(50.0, 35.0, t),
-		lerpf(2.0,  15.0, t),
-		(lerpf(8.0, 20.0, t) if phase >= 4 else 0.0),
-		(lerpf(6.0, 25.0, t) if phase >= 6 else 0.0),
+		lerpf(50.0, 35.0, t),   # BOOST_CORRIDOR   — most common
+		lerpf(10.0,  12.0, t),   # PRESSURE_SINK     — rarest
+		lerpf(15.0,  20.0, t),   # UNSTABLE_CONDUIT
+		lerpf(15.0,  25.0, t),   # DEAD_ZONE
 	]
 
 	var types: Array = [
@@ -559,7 +559,7 @@ func _on_objective_tile_expired(tile: SpecialTile) -> void:
 	if slot.is_empty(): return
 	match slot["objective"]:
 		Objective.BOOST_CORRIDOR:
-			NotificationManager.notify("Boost Corridor destroyed by the wave. Objective failed.",
+			NotificationManager.notify("Boost Corridor Ended.",
 				NotificationManager.Type.OBJECTIVE, "OBJECTIVE")
 		Objective.DEAD_ZONE:
 			NotificationManager.notify("Dead Zone persisted. 200 data drained.",
@@ -681,8 +681,16 @@ func _apply_pipe_fractures(phase: int) -> void:
 		var slice = chain.slice(start, start + MAX_CHAIN_FRACTURE)
 		if slice.size() < 2:
 			slice = chain.slice(0, 2)
+		var notified_tiles: Array = []
 		for pipe in slice:
 			pipe.fracture()
+			# Notify any special tile occupying this pipe's cell
+			var pipe_cell: Vector2i = Vector2i(pipe.position / GameData.CELL_SIZE.x)
+			if GameData.special_tiles.has(pipe_cell):
+				var st = GameData.special_tiles[pipe_cell]
+				if is_instance_valid(st) and st not in notified_tiles and st.tile_type == SpecialTile.Type.UNSTABLE_CONDUIT:
+					notified_tiles.append(st)
+					st.on_pipe_fractured_under()
 		fractured_count += 1
 
 ## Fractures a guaranteed number of hubs based on phase.
@@ -825,7 +833,7 @@ func try_hub_spawn() -> void:
 
 	# Fallback — no space with buffer 1, try buffer 0
 	if scored_tiles.is_empty():
-		NotificationManager.notify("Limited space — placing hub in tight quarters.", NotificationManager.Type.INFO, "HUB SPAWN")
+		#NotificationManager.notify("Limited space — placing hub in tight quarters.", NotificationManager.Type.INFO, "HUB SPAWN")
 		for x in range(camera_bounds.position.x, camera_bounds.end.x):
 			for y in range(camera_bounds.position.y, camera_bounds.end.y):
 				var tile = Vector2i(x, y)

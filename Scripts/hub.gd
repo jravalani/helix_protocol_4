@@ -34,6 +34,10 @@ var _rate_limit_tween: Tween = null
 var _rate_limit_label: Label = null
 var _rate_limit_label_tween: Tween = null
 
+# ── Tutorial ──────────────────────────────────────────────────────
+static var _hub_fracture_tutorial_shown: bool = false
+static var _rate_limit_tutorial_shown: bool = false
+
 # ── Popup ────────────────────────────────────────────────────────
 const POPUP_OFFSET_Y: float = -60.0
 var _popup_open:  bool  = false
@@ -228,6 +232,16 @@ func _start_rate_limit_visual() -> void:
 	_rate_limit_tween.tween_property(self, "modulate", Color(1.8, 0.3, 0.3, 1.0), 0.4)
 	_rate_limit_tween.tween_property(self, "modulate", Color(1.0, 0.6, 0.2, 1.0), 0.4)
 
+	# One-time tutorial notification for first rate limit event
+	if not _rate_limit_tutorial_shown:
+		_rate_limit_tutorial_shown = true
+		NotificationManager.notify(
+			"Hub is rate limited — it has processed too many packets this window.\nIt will recover automatically. Build another Hub to share the load.",
+			NotificationManager.Type.WARNING,
+			"HUB RATE LIMITED",
+			30.0
+		)
+
 	# Permanent label centered on top of the hub until rate limit clears
 	if _rate_limit_label:
 		_rate_limit_label.queue_free()
@@ -311,6 +325,32 @@ func fracture() -> void:
 	smoke_particle_effect1.emitting = false
 	smoke_particle_effect2.emitting = false
 	_start_dead_pulse()
+
+	# ── Tutorial: first hub fracture ─────────────────────────────
+	if not _hub_fracture_tutorial_shown:
+		_hub_fracture_tutorial_shown = true
+		_show_hub_fracture_tutorial()
+
+func _show_hub_fracture_tutorial() -> void:
+	Engine.time_scale = 0.25
+	NotificationManager.notify(
+		"A hub has gone offline! Right-click the Hub to open its menu,\nthen press Repair (100 Data).",
+		NotificationManager.Type.WARNING,
+		"HUB OFFLINE",
+		30.0
+	)
+	# Restore time scale once repaired — or after 10 real-time seconds
+	# so a player who can't afford repair isn't stuck in slow-mo forever.
+	var elapsed: float = 0.0
+	while is_fractured:
+		await get_tree().process_frame
+		elapsed += get_process_delta_time()
+		if elapsed >= 10.0:
+			break
+	Engine.time_scale = 1.0
+	var top_panel = get_tree().get_root().find_child("TopPanel", true, false)
+	if top_panel and top_panel.has_method("sync_speed_button_state"):
+		top_panel.sync_speed_button_state()
 
 func _start_dead_pulse() -> void:
 	if not is_fractured:

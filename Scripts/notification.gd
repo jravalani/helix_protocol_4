@@ -18,13 +18,14 @@ const ICON_WARNING   := "!"
 const ICON_ERROR     := "!!"
 const ICON_OBJECTIVE := "★"
 
-const AUTO_DISMISS_TIME := 10.0
-
 var _type: Type = Type.INFO
+var _duration: float = 40.0  # 0.0 = permanent (only dismissible via close button)
 
 ## Call this right after instancing to configure the notification.
-func setup(p_message: String, p_type: Type = Type.INFO, p_title: String = "") -> void:
-	_type = p_type
+## p_duration: seconds before auto-dismiss. Pass 0.0 for a permanent notification.
+func setup(p_message: String, p_type: Type = Type.INFO, p_title: String = "", p_duration: float = 10.0) -> void:
+	_type     = p_type
+	_duration = p_duration
 
 	# Title fallback
 	var display_title := p_title
@@ -81,8 +82,11 @@ func _animate_in() -> void:
 	t.tween_property(self, "modulate:a", 1.0, 0.2)
 	t.tween_property(self, "position:x", position.x - 40, 0.2).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
 	t.set_parallel(false)
-	t.tween_interval(AUTO_DISMISS_TIME)
-	t.tween_callback(_dismiss)
+	
+	# Only schedule auto-dismiss if duration > 0; 0.0 = permanent (close button only).
+	if _duration > 0.0:
+		t.tween_interval(_duration)
+		t.tween_callback(_dismiss)
 
 func _dismiss() -> void:
 	AudioManager.play_ui("menu_close", 0.5)

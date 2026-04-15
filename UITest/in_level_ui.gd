@@ -11,31 +11,38 @@ extends Control
 @onready var reinforce_panel_container: PanelContainer = %PanelContainer
 
 # Buttons
+
 @onready var pipe_button: Button        = %UpgradePipes
 @onready var data_reserve_button: Button = %DataReserve
 @onready var hull_shield_button: Button  = %HullShield
 @onready var vent_button: Button         = %SpawnVent
 @onready var hub_button: Button          = %SpawnHub
 @onready var auto_repair_button: Button  = %AutoRepair
+@onready var tech_tree: Button = %TechTree
+@onready var reinforce_zone: Button = %ReinforceZonePanel
+
 
 var panel_open := false
 
+# ── Tutorial state ────────────────────────────────────────────────
+enum TutorialStep { CONNECT_PIPES, WAIT_FOR_DATA, EXPAND_VENT, PLACE_HUB, SAVE_GAME, DONE }
+var tutorial_step: TutorialStep = TutorialStep.CONNECT_PIPES
 # ── Tooltip data ─────────────────────────────────────────────────
-const TOOLTIPS := {
+var TOOLTIPS := {
 	"vent": {
 		"title": "Spawn Vent",
-		"desc": "Deploy a new vent node to increase oxygen throughput across the network.",
-		"cost": "Scales with vent count"
+		"desc": "Deploy a new vent node to generate more packets.",
+		"cost": ""
 	},
 	"hub": {
 		"title": "Spawn Hub",
-		"desc": "Add a new hub to expand packet routing capacity. Backlog builds if hubs are overwhelmed.",
-		"cost": "Scales with hub count"
+		"desc": "Add a new hub to generate more data.",
+		"cost": ""
 	},
 	"pipes": {
 		"title": "Upgrade Pipes",
-		"desc": "Increase pipe capacity and flow rate. Higher tiers handle more pressure before fracturing.",
-		"cost": "Fixed cost per tier"
+		"desc": "Increase pipe capacity and flow rate. Higher tiers increase packet speeds.",
+		"cost": ""
 	},
 	"hull_shield": {
 		"title": "Hull Shield",
@@ -50,7 +57,7 @@ const TOOLTIPS := {
 	"data_reserve": {
 		"title": "Data Reserve",
 		"desc": "Allocate data into the repair reserve pool, used by auto repair drones.",
-		"cost": "Free — transfers from Data"
+		"cost": "100"
 	},
 	"auto_repair": {
 		"title": "Auto Repair",
@@ -82,6 +89,25 @@ func _ready() -> void:
 	update_hub_debug_info()
 	update_button_labels()
 	_connect_tooltips()
+
+	# ── Tutorial: create objective label ─────────────────────────
+	# ── Tutorial: fire opening objective as a permanent notification ──
+	NotificationManager.notify(
+		"Connect the Vent to the Hub with Pipes to start your network.\nBuild pipes by left click and drawing on the grid.",
+		NotificationManager.Type.OBJECTIVE,
+		"OBJECTIVE",
+		40
+	)
+
+	# ── Tutorial: hide + disable all economy buttons until player progresses ──
+	hub_button.hide();          hub_button.disabled          = true
+	vent_button.hide();         vent_button.disabled         = true
+	pipe_button.hide();         pipe_button.disabled         = true
+	hull_shield_button.hide();  hull_shield_button.disabled  = true
+	data_reserve_button.hide(); data_reserve_button.disabled = true
+	auto_repair_button.hide();  auto_repair_button.disabled  = true
+	tech_tree.hide(); tech_tree.disabled = true
+	reinforce_zone.hide(); reinforce_zone.disabled = true
 
 func _connect_tooltips() -> void:
 	var _connect = func(btn: Button, key: String) -> void:
@@ -130,10 +156,117 @@ func _process(delta: float) -> void:
 			GameData.current_vent_count, GameData.MAX_VENTS
 		]
 
+	_tick_tutorial()
 	update_button_states()
 
 	if panel_open:
 		reinforce_panel_container.update_button_states()
+
+func _tick_tutorial() -> void:
+	if tutorial_step == TutorialStep.DONE:
+		return
+
+	match tutorial_step:
+		TutorialStep.CONNECT_PIPES:
+			# Advance once the first packet reaches a hub (total_data > 0)
+			if GameData.total_data > 0:
+				tutorial_step = TutorialStep.WAIT_FOR_DATA
+				vent_button.show()
+				vent_button.disabled = false
+				# Unlock 2x speed now — player will likely be waiting for data to build up
+				var top_panel = get_node_or_null("/root/Main/CanvasLayer/TopPanel")
+				if top_panel and top_panel.has_method("unlock_speed_button"):
+					top_panel.unlock_speed_button()
+				NotificationManager.notify(
+					"Network is live! Data is flowing.\nWait for enough Data to afford a Vent.",
+					NotificationManager.Type.OBJECTIVE,
+					"NETWORK LIVE",
+					30.0
+				)
+				NotificationManager.notify(
+					"Tip: Use the >> button to speed up time while you wait for Data to accumulate.",
+					NotificationManager.Type.INFO,
+					"SPEED UP",
+					20.0
+				)
+
+		TutorialStep.WAIT_FOR_DATA:
+			if GameData.total_data >= GameData.current_vent_spawn_cost:
+				tutorial_step = TutorialStep.EXPAND_VENT
+				NotificationManager.notify(
+					"You can afford a Vent! Deploy one using the Spawn Vent button.\nExpand your network to increase Data flow.",
+					NotificationManager.Type.OBJECTIVE,
+					"DEPLOY A VENT",
+					30.0
+				)
+
+		# --- MODIFIED STEP ---
+		TutorialStep.EXPAND_VENT:
+			if GameData.current_vent_count >= 2:
+				tutorial_step = TutorialStep.PLACE_HUB # Move to Hub placement instead of DONE
+				hub_button.show()
+				hub_button.disabled = false
+				NotificationManager.notify(
+					"Expand your reach. Place a secondary Hub Node to stabilize the sector.",
+					NotificationManager.Type.OBJECTIVE,
+					"FINAL LINK",
+					30.0
+				)
+
+		# --- NEW STEP ---
+		TutorialStep.PLACE_HUB:
+			if GameData.current_hub_count >= 1: # Assuming they start with 1
+				tutorial_step = TutorialStep.SAVE_GAME
+		
+		TutorialStep.SAVE_GAME:
+			var top_panel = get_node_or_null("/root/Main/CanvasLayer/TopPanel")
+			if top_panel and top_panel.has_method("unlock_speed_button"):
+				top_panel.unlock_uplink_button()
+			tutorial_step = TutorialStep.DONE
+			_unlock_full_game()
+			NotificationManager.notify(
+				"Save the game state by clicking the up-link button.\nThat is the only way to save the game on your system.",
+				NotificationManager.Type.OBJECTIVE,
+				"SAVE GAME",
+				30.0
+			)
+
+func _unlock_full_game() -> void:
+	# 1. Finalize State
+	tutorial_step = TutorialStep.DONE
+	
+	# 2. Safety: Reset time scale 
+	# (In case they finished during the 10s repair window)
+	Engine.time_scale = 1.0
+	var top_panel = get_node_or_null("/root/Main/CanvasLayer/TopPanel")
+	if top_panel and top_panel.has_method("sync_speed_button_state"):
+		top_panel.sync_speed_button_state()
+	
+	# 3. Reveal and Enable All Gameplay Systems
+	# Consolidating the list of buttons you previously had in EXPAND_VENT
+	var gameplay_buttons = [
+		hub_button,
+		pipe_button,
+		hull_shield_button,
+		data_reserve_button,
+		auto_repair_button,
+		tech_tree,
+		reinforce_zone
+	]
+	
+	for btn in gameplay_buttons:
+		if btn:
+			btn.show()
+			btn.disabled = false
+	
+	# 4. Final Success Notification
+	# Using the Magenta 'OBJECTIVE' type for the final milestone
+	NotificationManager.notify(
+		"Network established. All systems are now online.\nManage pressure, expand carefully, and survive.",
+		NotificationManager.Type.OBJECTIVE,
+		"STATION ONLINE",
+		30.0
+	)
 
 func update_button_states() -> void:
 	var hub_cost  = GameData.HUB_SPAWN_BASE_COST  + (GameData.current_hub_count  * GameData.HUB_SPAWN_COST_INCREMENT)
@@ -144,12 +277,17 @@ func update_button_states() -> void:
 	var pipes_maxed  = GameData.current_pipe_upgrade_level >= GameData.MAX_PIPE_UPGRADES
 	var shield_maxed = GameData.current_hull_shield_level >= GameData.MAX_HULL_SHIELD_UPGRADES
 
-	vent_button.disabled        = vent_maxed   or GameData.total_data < vent_cost
-	hub_button.disabled         = hub_maxed    or GameData.total_data < hub_cost
-	pipe_button.disabled        = pipes_maxed  or GameData.total_data < GameData.PIPE_UPGRADE_COSTS[min(GameData.current_pipe_upgrade_level, GameData.MAX_PIPE_UPGRADES - 1)]
-	hull_shield_button.disabled = shield_maxed or GameData.total_data < GameData.HULL_SHIELD_UPGRADE_COSTS[min(GameData.current_hull_shield_level, GameData.MAX_HULL_SHIELD_UPGRADES - 1)]
+	# During tutorial, only update states for buttons that are visible/unlocked.
+	# Buttons that are still hidden stay hidden — don't re-enable them here.
+	if tutorial_step == TutorialStep.DONE or tutorial_step == TutorialStep.PLACE_HUB:
+		hub_button.disabled         = hub_maxed    or GameData.total_data < hub_cost
+		pipe_button.disabled        = pipes_maxed  or GameData.total_data < GameData.PIPE_UPGRADE_COSTS[min(GameData.current_pipe_upgrade_level, GameData.MAX_PIPE_UPGRADES - 1)]
+		hull_shield_button.disabled = shield_maxed or GameData.total_data < GameData.HULL_SHIELD_UPGRADE_COSTS[min(GameData.current_hull_shield_level, GameData.MAX_HULL_SHIELD_UPGRADES - 1)]
+		data_reserve_button.disabled = false
+		auto_repair_button.disabled = GameData.data_reserve_for_auto_repairs <= 0 and not GameData.auto_repair_enabled
 
-	auto_repair_button.disabled = GameData.data_reserve_for_auto_repairs <= 0 and not GameData.auto_repair_enabled
+	if tutorial_step != TutorialStep.CONNECT_PIPES:
+		vent_button.disabled = vent_maxed or GameData.total_data < vent_cost
 
 func update_hub_debug_info():
 	var hub_info_text = "--- ACTIVE HUBS (%d) ---\n" % get_tree().get_nodes_in_group("hubs").size()

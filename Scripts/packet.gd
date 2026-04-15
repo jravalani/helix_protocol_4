@@ -40,8 +40,8 @@ func _on_pipes_upgraded(level: int) -> void:
 func apply_slowdown(multiplier: float) -> void:
 	_speed_multiplier = multiplier
 	speed = _base_speed * _speed_multiplier
-	# Tint the packet orange-red to signal slowdown
-	packet_line.modulate = Color(1.6, 0.2, 1.4, packet_line.modulate.a)
+	if packet_line:
+		packet_line.modulate = Color(1.6, 0.2, 1.4, packet_line.modulate.a)
 
 func restore_speed() -> void:
 	_speed_multiplier = 1.0
