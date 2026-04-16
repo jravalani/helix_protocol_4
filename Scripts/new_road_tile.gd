@@ -26,6 +26,9 @@ var is_fractured: bool = false
 var just_repaired: bool = false
 var is_reinforced: bool = false
 
+# ── Tutorial ──────────────────────────────────────────────────────
+static var _pipe_fracture_tutorial_shown: bool = false
+
 var packet_count: int = 0
 
 const WEIGHT_BASE: float    = 1.0
@@ -358,6 +361,11 @@ func fracture() -> void:
 	if st:
 		st.on_pipe_fractured_under()
 
+	# ── Tutorial: first pipe fracture ────────────────────────────
+	if not _pipe_fracture_tutorial_shown:
+		_pipe_fracture_tutorial_shown = true
+		_show_pipe_fracture_tutorial()
+
 func repair() -> void:
 	if GameData.fractured_pipes.has(cell):
 		GameData.fractured_pipes.erase(cell)
@@ -410,6 +418,21 @@ func _get_ring_color_for_level() -> Color:
 # ─────────────────────────────────────────────
 # Reinforce
 # ─────────────────────────────────────────────
+
+func _show_pipe_fracture_tutorial() -> void:
+	Engine.time_scale = 0.25
+	NotificationManager.notify(
+		"A pipe has breached! Right-click the glowing pipe to repair it.\nCost: %d Data." % GameData.SINGLE_PIPE_REPAIR_COST,
+		NotificationManager.Type.WARNING,
+		"PIPE BREACH",
+		0.0
+	)
+	# Restore time scale once this pipe is repaired.
+	# Uses process_frame with physics_process disabled so the await
+	# still fires even at low time_scale.
+	while is_fractured:
+		await get_tree().process_frame
+	Engine.time_scale = 1.0
 
 func reinforce() -> void:
 	is_reinforced = true

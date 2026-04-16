@@ -54,6 +54,7 @@ layout_mode = 2
 text = "Upgrade Pipes"
 
 [node name="TechTree" parent="MarginContainer2/HBoxContainer" unique_id=1991793187 instance=ExtResource("2_gwosu")]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Tech Tree"
 
@@ -89,6 +90,7 @@ text = "+Reserve"
 [node name="AutoRepair" parent="MarginContainer2/HBoxContainer" unique_id=1559227664 instance=ExtResource("2_gwosu")]
 unique_name_in_owner = true
 layout_mode = 2
+toggle_mode = true
 text = "Auto Repair"
 toggle_mode = true
 

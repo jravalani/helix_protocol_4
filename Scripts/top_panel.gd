@@ -54,6 +54,14 @@ func _ready() -> void:
 
 	_update_labels()
 
+	# Speed-up is hidden until the tutorial reaches the WAIT_FOR_DATA step
+	speed_up_button.hide()
+	speed_up_button.disabled = true
+	
+	# Up-link is hidden until the tutorial reaches the SAVE_GAME step
+	uplink_button.hide()
+	uplink_button.disabled = true
+
 func _process(delta: float) -> void:
 	var needs_update = false
 
@@ -157,8 +165,23 @@ func _on_pause_pressed() -> void:
 # SPEED UP Button
 # ═══════════════════════════════════════════════════════════════
 
+## Called by in_level_ui when the tutorial reaches WAIT_FOR_DATA.
+func unlock_speed_button() -> void:
+	speed_up_button.show()
+	speed_up_button.disabled = false
+
+## Called externally (e.g. hub repair restore) to sync button state
+## after time_scale has been changed outside this script.
+func sync_speed_button_state() -> void:
+	is_fast_speed = false
+	speed_up_button.text = ">"
+	speed_up_button.modulate = Color(1.0, 1.0, 1.0)
+
 func _on_speed_up_pressed() -> void:
 	speed_up_button.release_focus()
+	# Don't interfere while the tutorial slow-mo is active
+	if Engine.time_scale == 0.25:
+		return
 	is_fast_speed = not is_fast_speed
 	if is_fast_speed:
 		Engine.time_scale = 2.0
@@ -173,6 +196,10 @@ func _on_speed_up_pressed() -> void:
 # ═══════════════════════════════════════════════════════════════
 # UPLINK Button
 # ═══════════════════════════════════════════════════════════════
+
+func unlock_uplink_button() -> void:
+	uplink_button.show()
+	uplink_button.disabled = false
 
 func _on_uplink_pressed() -> void:
 	AudioManager.play_sfx("upgrade", 1.0, -5.0)

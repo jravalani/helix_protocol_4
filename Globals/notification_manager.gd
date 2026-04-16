@@ -14,7 +14,7 @@ func _on_notify_player(message: String, type: int) -> void:
 	notify(message, type as Type)
 
 ## Public API — call this from anywhere.
-func notify(message: String, type: Type = Type.INFO, title: String = "") -> void:
+func notify(message: String, type: Type = Type.INFO, title: String = "", p_duration: float = 10.0) -> void:
 	# Remove oldest immediately if at cap
 	while container.get_child_count() >= MAX_NOTIFICATIONS:
 		var oldest = container.get_child(0)
@@ -23,4 +23,4 @@ func notify(message: String, type: Type = Type.INFO, title: String = "") -> void
 
 	var n := NOTIFICATION_SCENE.instantiate()
 	container.add_child(n)
-	n.setup(message, type, title)
+	n.setup(message, type, title, p_duration)
