@@ -18,6 +18,8 @@ const ICON_WARNING   := "!"
 const ICON_ERROR     := "!!"
 const ICON_OBJECTIVE := "★"
 
+const AUTO_DISMISS_TIME := 10.0
+
 var _type: Type = Type.INFO
 var _duration: float = 40.0  # 0.0 = permanent (only dismissible via close button)
 

@@ -376,10 +376,10 @@ func _weighted_pick_type(force_category: int = -1) -> SpecialTile.Type:
 
 	# Weights: [BOOST_CORRIDOR, PRESSURE_SINK, UNSTABLE_CONDUIT, DEAD_ZONE]
 	var weights: Array = [
-		lerpf(50.0, 35.0, t),   # BOOST_CORRIDOR   — most common
-		lerpf(10.0,  12.0, t),   # PRESSURE_SINK     — rarest
-		lerpf(15.0,  20.0, t),   # UNSTABLE_CONDUIT
-		lerpf(15.0,  25.0, t),   # DEAD_ZONE
+		lerpf(50.0, 35.0, t),
+		lerpf(2.0,  15.0, t),
+		(lerpf(8.0, 20.0, t) if phase >= 4 else 0.0),
+		(lerpf(6.0, 25.0, t) if phase >= 6 else 0.0),
 	]
 
 	var types: Array = [
@@ -559,7 +559,7 @@ func _on_objective_tile_expired(tile: SpecialTile) -> void:
 	if slot.is_empty(): return
 	match slot["objective"]:
 		Objective.BOOST_CORRIDOR:
-			NotificationManager.notify("Boost Corridor Ended.",
+			NotificationManager.notify("Boost Corridor destroyed by the wave. Objective failed.",
 				NotificationManager.Type.OBJECTIVE, "OBJECTIVE")
 		Objective.DEAD_ZONE:
 			NotificationManager.notify("Dead Zone persisted. 200 data drained.",

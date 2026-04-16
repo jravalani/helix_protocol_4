@@ -57,7 +57,7 @@ var TOOLTIPS := {
 	"data_reserve": {
 		"title": "Data Reserve",
 		"desc": "Allocate data into the repair reserve pool, used by auto repair drones.",
-		"cost": "100"
+		"cost": "Free — transfers from Data"
 	},
 	"auto_repair": {
 		"title": "Auto Repair",

@@ -241,7 +241,6 @@ func _start_rate_limit_visual() -> void:
 			"HUB RATE LIMITED",
 			30.0
 		)
-
 	# Permanent label centered on top of the hub until rate limit clears
 	if _rate_limit_label:
 		_rate_limit_label.queue_free()

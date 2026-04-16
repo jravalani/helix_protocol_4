@@ -21,12 +21,40 @@ const TAIL_STEPS: int    = 8
 const TAIL_DISTANCE: float = 20.0
 const PACKET_WIDTH: float  = 10.0
 
+# ── Dual-lane system ─────────────────────────────────────────────
+# Outbound (vent→hub) rides the left lane (+offset perpendicular to path)
+# Returning (hub→vent) rides the right lane (-offset perpendicular to path)
+const LANE_OFFSET: float = 5.0
+
+var _outbound_gradient: Gradient
+var _returning_gradient: Gradient
+
 func _ready() -> void:
 	loop = false
 	_base_speed = SPEED_PER_LEVEL[clamp(GameData.current_pipe_upgrade_level, 0, 3)]
 	speed = _base_speed
 	SignalBus.trigger_packet_slowdown.connect(_on_fracture_wave)
 	SignalBus.pipes_upgraded.connect(_on_pipes_upgraded)
+
+	# Outbound gradient — cyan/electric blue (active data transmission)
+	_outbound_gradient = Gradient.new()
+	_outbound_gradient.offsets = PackedFloat32Array([0.0, 0.91, 1.0])
+	_outbound_gradient.colors = PackedColorArray([
+		Color(0.02, 0.06, 0.15, 1.0),   # dark blue tail
+		Color(0.0, 0.75, 0.92, 1.0),    # bright cyan body
+		Color(0.85, 1.0, 1.0, 1.0)      # white-cyan head
+	])
+
+	# Returning gradient — amber/gold (payload delivered, heading home)
+	_returning_gradient = Gradient.new()
+	_returning_gradient.offsets = PackedFloat32Array([0.0, 0.91, 1.0])
+	_returning_gradient.colors = PackedColorArray([
+		Color(0.15, 0.08, 0.02, 1.0),   # dark amber tail
+		Color(0.92, 0.55, 0.05, 1.0),   # warm amber body
+		Color(1.0, 0.95, 0.85, 1.0)     # white-gold head
+	])
+
+	_apply_lane_visuals()
 
 func _on_pipes_upgraded(level: int) -> void:
 	_base_speed = SPEED_PER_LEVEL[clamp(level, 0, 3)]
@@ -58,22 +86,49 @@ func _process(delta: float) -> void:
 
 func _update_visuals() -> void:
 	packet_line.clear_points()
-	
+
 	var curve: Curve2D = get_parent().curve
 	if not curve:
 		return
-	
+
 	var total_length: float = curve.get_baked_length()
-	
+
+	# Sample world positions along the curve for the tail
+	var samples: Array[Vector2] = []
 	for i in range(TAIL_STEPS + 1):
 		var t: float = float(i) / float(TAIL_STEPS)
 		var sample_progress: float = progress - TAIL_DISTANCE * (1.0 - t)
 		sample_progress = clamp(sample_progress, 0.0, total_length)
-		
-		var world_pos: Vector2 = curve.sample_baked(sample_progress)
-		packet_line.add_point(to_local(world_pos))
-	
-	packet_light.position = Vector2.ZERO
+		samples.append(curve.sample_baked(sample_progress))
+
+	# Build lane-offset points from per-sample tangent
+	var last_tangent: Vector2 = Vector2.RIGHT
+	for i in range(samples.size()):
+		var tangent: Vector2
+		if i < samples.size() - 1:
+			tangent = samples[i + 1] - samples[i]
+		elif i > 0:
+			tangent = samples[i] - samples[i - 1]
+		else:
+			tangent = last_tangent
+
+		if tangent.length_squared() > 0.001:
+			tangent = tangent.normalized()
+			last_tangent = tangent
+		else:
+			tangent = last_tangent
+
+		# Left perpendicular in Godot 2D (Y-down)
+		# No sign flip needed — reversed tangent on the return path
+		# naturally places the returning packet on the opposite side.
+		var left_perp: Vector2 = Vector2(tangent.y, -tangent.x)
+		var offset_pos: Vector2 = samples[i] + left_perp * LANE_OFFSET
+		packet_line.add_point(to_local(offset_pos))
+
+	# Offset the light to match the lane
+	# With rotates=true, local -Y always points left-of-travel,
+	# which is the correct side for both directions.
+	packet_light.position = Vector2(0, -LANE_OFFSET)
 
 # ════════════════════════════════════════════════════════════════
 #region Path Building
@@ -195,6 +250,7 @@ func _arrive_at_hub() -> void:
 
 	# Flip direction — head back to vent
 	returning = true
+	_apply_lane_visuals()
 	if not _build_return_path():
 		get_parent().queue_free()
 
@@ -208,6 +264,7 @@ func _arrive_at_vent() -> void:
 
 	# Flip direction — head back to hub
 	returning = false
+	_apply_lane_visuals()
 	if not _build_forward_path():
 		get_parent().queue_free()
 
@@ -217,6 +274,16 @@ func _arrive_at_vent() -> void:
 # ════════════════════════════════════════════════════════════════
 #region Destruction
 # ════════════════════════════════════════════════════════════════
+
+# ── Lane visual helpers ──────────────────────────────────────────
+
+func _apply_lane_visuals() -> void:
+	if returning:
+		packet_line.gradient = _returning_gradient
+		packet_light.color = Color(1.0, 0.7, 0.2)   # warm amber glow
+	else:
+		packet_line.gradient = _outbound_gradient
+		packet_light.color = Color(0.3, 0.8, 1.0)   # cyan glow
 
 func _explode() -> void:
 	_exploding = true
