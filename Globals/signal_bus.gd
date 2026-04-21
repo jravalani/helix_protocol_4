@@ -34,6 +34,8 @@ signal launch_rocket_requested
 
 signal camera_shake(duration: float, strength: float)
 
+signal camera_zoom(multiplier: float, duration: float)
+
 signal zone_unlocked(zone: int)
 
 signal game_over

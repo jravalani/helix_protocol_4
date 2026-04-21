@@ -8,6 +8,7 @@ func _ready() -> void:
 	# 1. Connect first so we don't miss any signals
 	SignalBus.increase_map_size.connect(increase_camera_bounds)
 	SignalBus.camera_shake.connect(shake)
+	SignalBus.camera_zoom.connect(zoom_by_multiplier)
 	# 2. Call it once to set the starting view
 	increase_camera_bounds(GameData.current_map_size)
 
@@ -62,5 +63,11 @@ func shake(duration: float, strength: float) -> void:
 		)
 		_shake_tween.tween_property(self, "offset", rand_offset, 0.05)
 
-	# Settle back to base offset cleanly
+# Settle back to base offset cleanly
 	_shake_tween.tween_property(self, "offset", _base_offset, 0.05)
+
+func zoom_by_multiplier(multiplier: float, duration: float) -> void:
+	var target := zoom * multiplier
+	var tw := create_tween()
+	tw.tween_property(self, "zoom", target, duration)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
