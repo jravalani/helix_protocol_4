@@ -424,6 +424,11 @@ func _setup_labels(color: Color) -> void:
 
 func _glitch_in() -> void:
 	var color: Color = COLORS[tile_type]
+	match tile_type:
+		Type.DEAD_ZONE:        AudioManager.play_sfx("tile_dead_zone")
+		Type.UNSTABLE_CONDUIT: AudioManager.play_sfx("tile_unstable_conduit")
+		Type.PRESSURE_SINK:    AudioManager.play_sfx("tile_under_pressure")
+		_:                     AudioManager.play_sfx("glitch_in")
 
 	for mat in _cell_materials:
 		var t: Tween = create_tween()
@@ -586,6 +591,7 @@ func _update_label_instability(remaining: float) -> void:
 # ── Glitch out ─────────────────────────────
 
 func _glitch_out() -> void:
+	AudioManager.play_sfx("glitch_out")
 	if _glitch_tween:  _glitch_tween.kill()
 	if _urgent_tween:  _urgent_tween.kill()
 	if _led_tween:     _led_tween.kill()

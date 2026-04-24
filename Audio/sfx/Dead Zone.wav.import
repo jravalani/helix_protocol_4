@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://dmj8gnuwby2mq"
+path="res://.godot/imported/Dead Zone.wav-4c0876d1a6fde0d45c9d85cf0efa47ff.sample"
+
+[deps]
+
+source_file="res://Audio/sfx/New folder/Dead Zone.wav"
+dest_files=["res://.godot/imported/Dead Zone.wav-4c0876d1a6fde0d45c9d85cf0efa47ff.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

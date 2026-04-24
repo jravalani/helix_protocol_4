@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cvnquambhno88"
+path="res://.godot/imported/dragon-studio-whoosh-cinematic-376875.mp3-63d23a16dba9a310324aaa3efd7acb47.mp3str"
+
+[deps]
+
+source_file="res://Audio/sfx/New folder/dragon-studio-whoosh-cinematic-376875.mp3"
+dest_files=["res://.godot/imported/dragon-studio-whoosh-cinematic-376875.mp3-63d23a16dba9a310324aaa3efd7acb47.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://cgappvhjng2pn"
+path="res://.godot/imported/Urgent Warning.ogg-99180b1e5f1234a453ebfbf6b0133daa.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/sfx/New folder/Urgent Warning.ogg"
+dest_files=["res://.godot/imported/Urgent Warning.ogg-99180b1e5f1234a453ebfbf6b0133daa.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

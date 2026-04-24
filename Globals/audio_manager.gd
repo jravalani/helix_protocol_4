@@ -164,10 +164,10 @@ func _register_sounds() -> void:
 		"build_pipe"            : load("res://Audio/sfx/socket_connect.ogg"),
 		"remove_pipe"           : load("res://Audio/sfx/socket_disconnect.ogg"),
 		"hub_repair"            : load("res://Audio/sfx/hub_repair.ogg"),
-		"pipe_fracture"         : null,
+		"pipe_fracture"         : load("res://Audio/sfx/Urgent_Warning.ogg"),
 		"pipe_burst"            : null,
-		"hub_malfunction"       : null,
-		"vent_fail"             : null,
+		"hub_malfunction"       : load("res://Audio/sfx/Access_Denied.wav"),
+		"vent_fail"             : load("res://Audio/sfx/ksjsbwuil-ui-beep-4-513914.mp3"),
 		"repair"                : load("res://Audio/sfx/normal_upgrade.mp3"),
 		"upgrade"               : load("res://Audio/sfx/normal_upgrade.mp3"),
 		"rocket_upgrade"        : load("res://Audio/sfx/rocket_upgrade.mp3"),
@@ -183,6 +183,13 @@ func _register_sounds() -> void:
 		"bg_thud_5"             : load("res://Audio/sfx/thud5.ogg"),
 		"bg_thud_6"             : load("res://Audio/sfx/thud6.ogg"),
 		"bg_thud_7"             : load("res://Audio/sfx/thud7.ogg"),
+		"glitch_in"             : load("res://Audio/music/Glitch In Spawn.mp3"),
+		"glitch_out"            : load("res://Audio/music/Glitch out expiry.wav"),
+		"tile_dead_zone"        : load("res://Audio/sfx/Dead_Zone.wav"),
+		"tile_unstable_conduit" : load("res://Audio/sfx/Unstable_Conduit.mp3"),
+		"tile_under_pressure"   : load("res://Audio/sfx/Under_pressure.mp3"),
+		"whoosh_a"              : load("res://Audio/sfx/dragon-studio-whoosh-cinematic-376875.mp3"),
+		"whoosh_b"              : load("res://Audio/sfx/rescopicsound-cinematic-designed-sci-fi-whoosh-transition-nexawave-228295.mp3"),
 	}
 
 	_ui_sounds = {
