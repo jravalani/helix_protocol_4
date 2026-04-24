@@ -96,7 +96,7 @@ var data_reserve_for_auto_repairs : int = 0
 #region Economy & Progression
 
 var lifetime_data_earned : int = 0
-var total_data           : int = 0
+var total_data           : int = 1000
 var previous_threshold   : int = 0
 var score_to_next_reward : int = 30
 
@@ -217,7 +217,7 @@ func reset_to_defaults() -> void:
 	pressure_rate_multiplier = 1.0
 
 	# Economy
-	total_data = 0
+	total_data = 0;
 	lifetime_data_earned = 0
 	previous_threshold = 0
 	score_to_next_reward = 30

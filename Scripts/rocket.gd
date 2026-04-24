@@ -22,9 +22,15 @@ const SEGMENT_SCALE = Vector2(0.43, 0.43)
 const SHADOW_SCALE = Vector2(0.42, 0.42)
 
 var launch_effect_scene = preload("res://ParticleEffects/rocket_launch_effect.tscn")
+var trail_effect_scene = preload("res://ParticleEffects/rocket_trail_effect.tscn")
 const HAZE_SHADER = preload("res://shaders/rocket_haze.gdshader")
 
 var _haze_materials: Array[ShaderMaterial] = []
+# Active trail reference — used by _process to track the nozzle position
+var _trail_ref: Node2D = null
+# Nozzle position in segment_2's local (unscaled) texture space.
+# Maps to the bottom-centre of the rocket body sprite.
+const NOZZLE_LOCAL := Vector2(128.0, 256.0)
 
 func _apply_haze_shader() -> void:
 	var segs = [segment_2, segment_3, segment_4, segment_5]
@@ -53,22 +59,33 @@ func _input_event(viewport: Viewport, event: InputEvent, shape_idx: int) -> void
 func _ready() -> void:
 	SignalBus.rocket_segment_purchased.connect(_on_rocket_segment_purchased)
 	SignalBus.launch_rocket_requested.connect(_on_launch_requested)
-	
+	set_process(false)  # Only active during the launch sequence
+
 	# Set shadow opacity to 60%
 	shadow_1.modulate = Color(1, 1, 1, 0.6)
 	shadow_2.modulate = Color(1, 1, 1, 0.6)
 	shadow_3.modulate = Color(1, 1, 1, 0.6)
 	shadow_4.modulate = Color(1, 1, 1, 0.6)
 	shadow_5.modulate = Color(1, 1, 1, 0.6)
-	
+
 	# Set segment shadows on launchpad opacity to 60%
 	segment2_shadow_on_launchpad.modulate = Color(1, 1, 1, 0.6)
 	segment3_shadow_on_launchpad.modulate = Color(1, 1, 1, 0.6)
 	segment4_shadow_on_launchpad.modulate = Color(1, 1, 1, 0.6)
 	segment5_shadow_on_launchpad.modulate = Color(1, 1, 1, 0.6)
-	
+
 	# Initialize visuals based on current phase
 	update_rocket_visuals(GameData.current_rocket_phase)
+
+func _process(_delta: float) -> void:
+	if _trail_ref == null or not is_instance_valid(_trail_ref):
+		set_process(false)
+		_trail_ref = null
+		return
+	# Transform the nozzle's local position by segment_2's current transform
+	# (which includes its live scale), giving the exact world position of the nozzle
+	# as it grows toward the camera.
+	_trail_ref.global_position = segment_2.global_transform * NOZZLE_LOCAL
 
 func _on_rocket_segment_purchased(next_phase: int) -> void:
 	update_rocket_visuals(next_phase)
@@ -158,10 +175,10 @@ func _animate_new_segment(phase: int) -> void:
 			tween.tween_property(segment_shadow, "scale", SHADOW_SCALE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func launch_rocket() -> void:
-	# ── Phase 1: Pre-launch buildup (3 seconds) ──────────────────
+	# ── Phase 1: Pre-launch buildup (2.5 seconds) ────────────────
 	_apply_haze_shader()
 
-	# Spawn launch effect early for smoke/particles
+	# Spawn main ground-plume effect early — smoke/fire fill the pad
 	var launch_effect = launch_effect_scene.instantiate()
 	launch_effect.global_position = global_position + Vector2(128, 128)
 	get_parent().add_child(launch_effect)
@@ -178,28 +195,57 @@ func launch_rocket() -> void:
 	SignalBus.camera_shake.emit(0.6, 11.0)
 	await get_tree().create_timer(0.9).timeout
 
-	# ── Phase 2: Liftoff ─────────────────────────────────────────
-	# One final massive shake at ignition
-	SignalBus.camera_shake.emit(0.8, 18.0)
+	# ── Phase 2: Ignition flash ───────────────────────────────────
+	# Bright screen flash — the engines ignite
+	_flash_screen(Color(1.0, 0.78, 0.38), 0.82)
 
-	# Kill haze — rocket is gone, no more heat distortion needed
+	# Rocket body glows warm orange at the moment of ignition
+	_flash_segments()
+
+	# Massive ignition shake
+	SignalBus.camera_shake.emit(0.9, 22.0)
+
+	# Kill haze — rocket is clearing the pad
 	_ramp_haze(0.0, 0.5)
 
+	# Zoom in toward the rocket as it ascends — cinematic pull-in
+	SignalBus.camera_zoom.emit(1.45, 2.4)
+
+	# Engine nozzle trail — tracks the nozzle live via _process
+	var trail = trail_effect_scene.instantiate()
+	get_parent().add_child(trail)
+	# Set initial position immediately after entering the tree
+	trail.global_position = segment_2.global_transform * NOZZLE_LOCAL
+	_trail_ref = trail
+	set_process(true)
+	trail.play()
+
+	# Continuous ascent rumble — layered shakes throughout the 3s climb
+	_run_ascent_rumble()
+
+	# ── Phase 3: Ascent ───────────────────────────────────────────
 	var tween = create_tween()
 	tween.set_parallel(true)
 
-	# Scale up (coming toward camera)
+	# Scale up (rocket appears to fly toward camera)
 	var final_scale = SEGMENT_SCALE * 3.0
 	tween.tween_property(segment_2, "scale", final_scale, 3.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tween.tween_property(segment_3, "scale", final_scale, 3.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tween.tween_property(segment_4, "scale", final_scale, 3.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tween.tween_property(segment_5, "scale", final_scale, 3.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 
-	# Fade out as they pass camera
-	tween.tween_property(segment_2, "modulate:a", 0.0, 3.0).set_delay(1.5)
-	tween.tween_property(segment_3, "modulate:a", 0.0, 3.0).set_delay(1.5)
-	tween.tween_property(segment_4, "modulate:a", 0.0, 3.0).set_delay(1.5)
-	tween.tween_property(segment_5, "modulate:a", 0.0, 3.0).set_delay(1.5)
+	# Fade out as rocket blasts through the camera
+	tween.tween_property(segment_2, "modulate:a", 0.0, 2.0).set_delay(1.5)
+	tween.tween_property(segment_3, "modulate:a", 0.0, 2.0).set_delay(1.5)
+	tween.tween_property(segment_4, "modulate:a", 0.0, 2.0).set_delay(1.5)
+	tween.tween_property(segment_5, "modulate:a", 0.0, 2.0).set_delay(1.5)
+
+	# Stop trail tracking and cut emission as the rocket body fades out
+	tween.tween_callback(func():
+		_trail_ref = null
+		set_process(false)
+		trail.stop()
+	).set_delay(1.5)
 
 	# Shadows
 	segment2_shadow_on_launchpad.visible = false
@@ -225,6 +271,43 @@ func launch_rocket() -> void:
 	).set_delay(2.5)
 
 	tween.finished.connect(_on_launch_complete, CONNECT_ONE_SHOT)
+
+# ── Cinematic helpers ─────────────────────────────────────────────────────────
+
+# Warm orange screen flash at ignition — signals the engine firing moment
+func _flash_screen(color: Color, peak_alpha: float) -> void:
+	var canvas := CanvasLayer.new()
+	canvas.layer = 128
+	get_tree().root.add_child(canvas)
+	var rect := ColorRect.new()
+	rect.color = Color(color.r, color.g, color.b, 0.0)
+	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	canvas.add_child(rect)
+	var tw := create_tween()
+	tw.tween_property(rect, "color:a", peak_alpha, 0.055)
+	tw.tween_property(rect, "color:a", 0.0, 0.55)
+	tw.tween_callback(canvas.queue_free)
+
+# Flash rocket segments to a warm-orange tint at ignition, then settle back
+func _flash_segments() -> void:
+	var segs := [segment_2, segment_3, segment_4, segment_5]
+	for seg in segs:
+		var tw := create_tween()
+		tw.tween_property(seg, "modulate", Color(1.0, 0.82, 0.45, 1.0), 0.07)
+		tw.tween_property(seg, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.45)
+
+# Sustained low-frequency rumble shakes throughout the 3-second ascent
+func _run_ascent_rumble() -> void:
+	await get_tree().create_timer(1.1).timeout
+	SignalBus.camera_shake.emit(0.28, 9.0)
+	await get_tree().create_timer(0.45).timeout
+	SignalBus.camera_shake.emit(0.28, 7.0)
+	await get_tree().create_timer(0.45).timeout
+	SignalBus.camera_shake.emit(0.28, 11.0)
+	await get_tree().create_timer(0.45).timeout
+	SignalBus.camera_shake.emit(0.28, 6.0)
+	await get_tree().create_timer(0.45).timeout
+	SignalBus.camera_shake.emit(0.28, 8.0)
 
 func _on_launch_requested() -> void:
 	if GameData.current_rocket_phase >= 5:
