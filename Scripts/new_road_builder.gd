@@ -128,10 +128,13 @@ func build_road(cell: Vector2i) -> void:
 			var previous_road = GameData.road_grid.get(connect_from)
 			if previous_road is NewRoadTile:
 				previous_road.add_connection(dir_to_current)
-				var id_a = GameData.get_cell_id(connect_from)
-				var id_b = GameData.get_cell_id(cell)
-				if not GameData.astar.are_points_connected(id_a, id_b):
-					GameData.astar.connect_points(id_a, id_b)
+				# Only connect A* after BOTH sides have their arms confirmed (mutual handshake)
+				if current_road.manual_connections.has(-dir_to_current) \
+				and previous_road.manual_connections.has(dir_to_current):
+					var id_a = GameData.get_cell_id(connect_from)
+					var id_b = GameData.get_cell_id(cell)
+					if not GameData.astar.are_points_connected(id_a, id_b):
+						GameData.astar.connect_points(id_a, id_b)
 			# If connect_from is just the anchor (no real pipe), no A* needed —
 			# the arm on current_road is purely visual
 

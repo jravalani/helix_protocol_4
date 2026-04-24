@@ -96,7 +96,7 @@ var data_reserve_for_auto_repairs : int = 0
 #region Economy & Progression
 
 var lifetime_data_earned : int = 0
-var total_data           : int = 1000
+var total_data           : int = 0
 var previous_threshold   : int = 0
 var score_to_next_reward : int = 30
 
@@ -602,6 +602,12 @@ func rebuild_astar() -> void:
 			continue
 		for dir in pipe.manual_connections:
 			var neighbor_cell = cell + dir
+			var neighbor_pipe = road_grid.get(neighbor_cell)
+			# MUTUAL HANDSHAKE: neighbor must also have an arm pointing back
+			if not neighbor_pipe is NewRoadTile:
+				continue
+			if not neighbor_pipe.manual_connections.has(-dir):
+				continue
 			var id_a = get_cell_id(cell)
 			var id_b = get_cell_id(neighbor_cell)
 			if astar.has_point(id_a) and astar.has_point(id_b):

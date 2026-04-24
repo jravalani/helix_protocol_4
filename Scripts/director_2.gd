@@ -152,7 +152,7 @@ func _spawn_first_special_tile_with_tutorial() -> void:
 	_spawn_random_objective()
 
 	# Restore time scale after a short real-time pause (10s real = 1s game at 0.1x)
-	await get_tree().create_timer(3.0).timeout
+	await get_tree().create_timer(2.0).timeout
 	Engine.time_scale = 1.0
 	var top_panel = get_tree().get_root().find_child("TopPanel", true, false)
 	if top_panel and top_panel.has_method("sync_speed_button_state"):
@@ -582,7 +582,7 @@ func _on_objective_tile_expired(tile: SpecialTile) -> void:
 	if slot.is_empty(): return
 	match slot["objective"]:
 		Objective.BOOST_CORRIDOR:
-			NotificationManager.notify("Boost Corridor destroyed by the wave. Objective failed.",
+			NotificationManager.notify("Objective Expired.",
 				NotificationManager.Type.OBJECTIVE, "OBJECTIVE")
 		Objective.DEAD_ZONE:
 			NotificationManager.notify("Dead Zone persisted. 200 data drained.",

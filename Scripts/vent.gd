@@ -11,7 +11,7 @@ const INTERVAL_FRONTIER := 4.0
 
 @onready var driveway_marker: Marker2D = $DrivewayMarker
 @onready var fan: Sprite2D = $Fan
-@onready var max_capacity: int = 2
+@onready var max_capacity: int = 4
 
 @onready var left_cloud: GPUParticles2D = $LeftCloud
 @onready var right_cloud: GPUParticles2D = $RightCloud
@@ -49,19 +49,37 @@ func _physics_process(delta: float) -> void:
 	fan.rotation += fan_rotation_speed * delta
 
 func _ready():
-	# Capture loading state BEFORE the await — by next frame is_loading
-	# will already be false, which would incorrectly spawn a driveway stub.
 	var _was_loading := SaveManager.is_loading
 	if not _was_loading:
 		AudioManager.play_sfx("build_vent", 0.4, 5.0)
 	left_cloud.restart()
 	right_cloud.restart()
-	if not _was_loading:
-		SignalBus.camera_shake.emit(0.25, 4.0)
 	cell_type = "VENT"
 	super()
 	SignalBus.map_changed.connect(_on_map_changed)
 	SignalBus.trigger_vent_burst.connect(_on_fracture_wave)
+
+	if not _was_loading:
+		# Spin fan up from zero — sells the "powering on" feel
+		fan_rotation_speed = 0.0
+		modulate.a = 0.0
+		scale = Vector2(0.75, 0.75)
+
+		var spawn_tween := create_tween().set_parallel(true)
+		spawn_tween.tween_property(self, "modulate:a", 1.0, 0.10)
+		spawn_tween.tween_property(self, "scale", Vector2(1.1, 1.1), 0.10)
+		spawn_tween.tween_method(
+			func(v): fan_rotation_speed = v, 0.0, FAN_BASE_SPEED * 5.0, 0.25
+		)
+		await spawn_tween.finished
+
+		var settle := create_tween().set_parallel(true)
+		settle.tween_property(self, "scale", Vector2(1.0, 1.0), 0.15).set_trans(Tween.TRANS_BOUNCE)
+		settle.tween_method(
+			func(v): fan_rotation_speed = v, FAN_BASE_SPEED * 5.0, FAN_BASE_SPEED, 0.6
+		)
+
+		SignalBus.camera_shake.emit(0.30, 5.0)
 
 	await get_tree().process_frame
 

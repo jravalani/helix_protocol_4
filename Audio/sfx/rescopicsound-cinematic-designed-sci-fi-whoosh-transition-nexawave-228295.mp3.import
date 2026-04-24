@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://cbf8y2uftsx3i"
-path="res://.godot/imported/rescopicsound-cinematic-designed-sci-fi-whoosh-transition-nexawave-228295.mp3-13857a88a77b03042db80dc37879f8b2.mp3str"
+path="res://.godot/imported/rescopicsound-cinematic-designed-sci-fi-whoosh-transition-nexawave-228295.mp3-2b5581f8175f1c7ac7cecc0c3354af38.mp3str"
 
 [deps]
 
-source_file="res://Audio/sfx/New folder/rescopicsound-cinematic-designed-sci-fi-whoosh-transition-nexawave-228295.mp3"
-dest_files=["res://.godot/imported/rescopicsound-cinematic-designed-sci-fi-whoosh-transition-nexawave-228295.mp3-13857a88a77b03042db80dc37879f8b2.mp3str"]
+source_file="res://Audio/sfx/rescopicsound-cinematic-designed-sci-fi-whoosh-transition-nexawave-228295.mp3"
+dest_files=["res://.godot/imported/rescopicsound-cinematic-designed-sci-fi-whoosh-transition-nexawave-228295.mp3-2b5581f8175f1c7ac7cecc0c3354af38.mp3str"]
 
 [params]
 

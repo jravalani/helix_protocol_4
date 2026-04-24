@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://d4l4mljcpr1h"]
+[gd_scene format=3 uid="uid://d4l4mljcpr1h"]
 
 [ext_resource type="Script" uid="uid://dgmysj83wsaoe" path="res://Scripts/vent.gd" id="1_ticwc"]
 [ext_resource type="Texture2D" uid="uid://06fdjs53mhv7" path="res://Assets/Vent/VentShadowFinal.png" id="2_0rnbu"]
@@ -52,44 +52,44 @@ scale_min = 0.0
 scale_max = 2.0
 color_ramp = SubResource("GradientTexture1D_bgkev")
 
-[node name="Vent" type="Area2D" groups=["houses", "vents"]]
+[node name="Vent" type="Area2D" unique_id=1063626928 groups=["houses", "vents"]]
 z_index = 10
 collision_layer = 2
 script = ExtResource("1_ticwc")
 grid_size = Vector2i(1, 1)
 
-[node name="Shadow" type="Sprite2D" parent="."]
+[node name="Shadow" type="Sprite2D" parent="." unique_id=1589211493]
 modulate = Color(0.03876, 0.06100855, 0.07846785, 0.4)
 position = Vector2(8, 8)
 scale = Vector2(0.1, 0.1)
 texture = ExtResource("2_0rnbu")
 
-[node name="Base" type="Sprite2D" parent="."]
+[node name="Base" type="Sprite2D" parent="." unique_id=680393143]
 position = Vector2(3.8146973e-06, 0)
 scale = Vector2(0.1, 0.1)
 texture = ExtResource("3_1mklc")
 
-[node name="Fan" type="Sprite2D" parent="."]
+[node name="Fan" type="Sprite2D" parent="." unique_id=423944089]
 scale = Vector2(0.1, 0.1)
 texture = ExtResource("4_bgkev")
 
-[node name="EntranceMarker" type="Marker2D" parent="."]
+[node name="EntranceMarker" type="Marker2D" parent="." unique_id=1256934557]
 
-[node name="DrivewayMarker" type="Marker2D" parent="."]
+[node name="DrivewayMarker" type="Marker2D" parent="." unique_id=718528467]
 position = Vector2(0, 32)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1467871262]
 scale = Vector2(0.65, 0.65)
 shape = SubResource("RectangleShape2D_okrnj")
 
-[node name="SmokeParticleEffect" parent="." instance=ExtResource("5_arggx")]
+[node name="SmokeParticleEffect" parent="." unique_id=1953774896 instance=ExtResource("5_arggx")]
 
-[node name="PointLight2D" type="PointLight2D" parent="."]
+[node name="PointLight2D" type="PointLight2D" parent="." unique_id=57357652]
 scale = Vector2(0.13, 0.13)
 texture = ExtResource("9_bgkev")
 texture_scale = 5.0
 
-[node name="LeftCloud" type="GPUParticles2D" parent="."]
+[node name="LeftCloud" type="GPUParticles2D" parent="." unique_id=784656471]
 position = Vector2(-20, 0)
 emitting = false
 amount = 12
@@ -99,7 +99,7 @@ one_shot = true
 explosiveness = 1.0
 process_material = SubResource("ParticleProcessMaterial_0rnbu")
 
-[node name="RightCloud" type="GPUParticles2D" parent="."]
+[node name="RightCloud" type="GPUParticles2D" parent="." unique_id=1090799473]
 position = Vector2(20, 0)
 emitting = false
 amount = 12

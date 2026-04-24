@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://cvnquambhno88"
-path="res://.godot/imported/dragon-studio-whoosh-cinematic-376875.mp3-63d23a16dba9a310324aaa3efd7acb47.mp3str"
+path="res://.godot/imported/dragon-studio-whoosh-cinematic-376875.mp3-5e9a7fa7fd70d4e36d245b3a2d445c90.mp3str"
 
 [deps]
 
-source_file="res://Audio/sfx/New folder/dragon-studio-whoosh-cinematic-376875.mp3"
-dest_files=["res://.godot/imported/dragon-studio-whoosh-cinematic-376875.mp3-63d23a16dba9a310324aaa3efd7acb47.mp3str"]
+source_file="res://Audio/sfx/dragon-studio-whoosh-cinematic-376875.mp3"
+dest_files=["res://.godot/imported/dragon-studio-whoosh-cinematic-376875.mp3-5e9a7fa7fd70d4e36d245b3a2d445c90.mp3str"]
 
 [params]
 

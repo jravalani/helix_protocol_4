@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://d186wcvci6wef"
-path="res://.godot/imported/ksjsbwuil-ui-beep-4-513914.mp3-8d6f11f568edf554015d11896e3ecf8e.mp3str"
+path="res://.godot/imported/ksjsbwuil-ui-beep-4-513914.mp3-8fe6a3699a2a65666ef20d149fb6a2d9.mp3str"
 
 [deps]
 
-source_file="res://Audio/sfx/New folder/ksjsbwuil-ui-beep-4-513914.mp3"
-dest_files=["res://.godot/imported/ksjsbwuil-ui-beep-4-513914.mp3-8d6f11f568edf554015d11896e3ecf8e.mp3str"]
+source_file="res://Audio/sfx/ksjsbwuil-ui-beep-4-513914.mp3"
+dest_files=["res://.godot/imported/ksjsbwuil-ui-beep-4-513914.mp3-8fe6a3699a2a65666ef20d149fb6a2d9.mp3str"]
 
 [params]
 

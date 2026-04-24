@@ -27,6 +27,8 @@ var panel_open := false
 # ── Tutorial state ────────────────────────────────────────────────
 enum TutorialStep { CONNECT_PIPES, WAIT_FOR_DATA, EXPAND_VENT, PLACE_HUB, SAVE_GAME, DONE }
 var tutorial_step: TutorialStep = TutorialStep.CONNECT_PIPES
+var _hub_placed_timer: float = -1.0        # counts up after hub is placed; -1 = not started
+var _speed_boost_notify_timer: float = -1.0 # counts up after network goes live; -1 = not started
 # ── Tooltip data ─────────────────────────────────────────────────
 var TOOLTIPS := {
 	"vent": {
@@ -156,15 +158,27 @@ func _process(delta: float) -> void:
 			GameData.current_vent_count, GameData.MAX_VENTS
 		]
 
-	_tick_tutorial()
+	_tick_tutorial(delta)
 	update_button_states()
 
 	if panel_open:
 		reinforce_panel_container.update_button_states()
 
-func _tick_tutorial() -> void:
+func _tick_tutorial(delta: float) -> void:
 	if tutorial_step == TutorialStep.DONE:
 		return
+
+	# Tick the delayed speed-boost notification
+	if _speed_boost_notify_timer >= 0.0:
+		_speed_boost_notify_timer += delta
+		if _speed_boost_notify_timer >= 10.0:
+			_speed_boost_notify_timer = -1.0
+			NotificationManager.notify(
+				"Tip: Use the >> button to speed up time while you wait for Data to accumulate.",
+				NotificationManager.Type.INFO,
+				"SPEED UP",
+				20.0
+			)
 
 	match tutorial_step:
 		TutorialStep.CONNECT_PIPES:
@@ -183,12 +197,7 @@ func _tick_tutorial() -> void:
 					"NETWORK LIVE",
 					30.0
 				)
-				NotificationManager.notify(
-					"Tip: Use the >> button to speed up time while you wait for Data to accumulate.",
-					NotificationManager.Type.INFO,
-					"SPEED UP",
-					20.0
-				)
+				_speed_boost_notify_timer = 0.0  # start 10-second countdown
 
 		TutorialStep.WAIT_FOR_DATA:
 			if GameData.total_data >= GameData.current_vent_spawn_cost:
@@ -215,8 +224,20 @@ func _tick_tutorial() -> void:
 
 		# --- NEW STEP ---
 		TutorialStep.PLACE_HUB:
-			if GameData.current_hub_count >= 1: # Assuming they start with 1
-				tutorial_step = TutorialStep.SAVE_GAME
+			if GameData.current_hub_count >= 1:
+				if _hub_placed_timer < 0.0:
+					_hub_placed_timer = 0.0
+					NotificationManager.notify(
+						"Hub deployed. Sector is stabilizing.",
+						NotificationManager.Type.INFO,
+						"HUB ONLINE",
+						10.0
+					)
+				else:
+					_hub_placed_timer += delta
+					if _hub_placed_timer >= 10.0:
+						_hub_placed_timer = -1.0
+						tutorial_step = TutorialStep.SAVE_GAME
 		
 		TutorialStep.SAVE_GAME:
 			var top_panel = get_node_or_null("/root/Main/CanvasLayer/TopPanel")

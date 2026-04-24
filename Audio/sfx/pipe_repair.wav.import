@@ -2,13 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://dmj8gnuwby2mq"
-path="res://.godot/imported/Dead Zone.wav-945cd7d9c4415f10011ab0dc5d66380b.sample"
+uid="uid://ckctb7grb5ydb"
+path="res://.godot/imported/pipe_repair.wav-6df50b82fc669412b37a2d013d0b3bda.sample"
 
 [deps]
 
-source_file="res://Audio/sfx/Dead Zone.wav"
-dest_files=["res://.godot/imported/Dead Zone.wav-945cd7d9c4415f10011ab0dc5d66380b.sample"]
+source_file="res://Audio/sfx/pipe_repair.wav"
+dest_files=["res://.godot/imported/pipe_repair.wav-6df50b82fc669412b37a2d013d0b3bda.sample"]
 
 [params]
 
