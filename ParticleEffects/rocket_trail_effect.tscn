@@ -1,0 +1,104 @@
+[gd_scene load_steps=0 format=3 uid="uid://dwm3ej5p3jupc"]
+
+[ext_resource type="Script" uid="uid://dtrailscript001" path="res://Scripts/rocket_trail_effect.gd" id="1_trail_script"]
+
+; ── Shared: additive blend ──────────────────────────────────────────────────
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_trail_add"]
+blend_mode = 1
+
+; ── Shared: soft radial circle texture ──────────────────────────────────────
+[sub_resource type="Gradient" id="Gradient_trail_circle"]
+offsets = PackedFloat32Array(0, 0.45)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_trail_circle"]
+gradient = SubResource("Gradient_trail_circle")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+
+; ── CoreFlame: tight white-hot fire column ──────────────────────────────────
+[sub_resource type="Gradient" id="Gradient_core_ramp"]
+offsets = PackedFloat32Array(0, 0.12, 0.4, 0.72, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 0.9, 1, 1, 0.88, 0.35, 1, 0.95, 0.45, 0.08, 0.6, 0.3, 0.1, 0.02, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_core"]
+gradient = SubResource("Gradient_core_ramp")
+
+[sub_resource type="Curve" id="Curve_core_scale"]
+_data = [Vector2(0, 0.08), 0.0, 0.0, 0, 0, Vector2(0.15, 1), 0.0, 0.0, 0, 0, Vector2(0.6, 0.55), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="CurveTexture" id="CurveTexture_core"]
+curve = SubResource("Curve_core_scale")
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_core_flame"]
+particle_flag_disable_z = true
+emission_shape = 3
+emission_box_extents = Vector3(5, 1, 1)
+direction = Vector3(0, 1, 0)
+spread = 5.0
+initial_velocity_min = 380.0
+initial_velocity_max = 720.0
+gravity = Vector3(0, 0, 0)
+damping_min = 40.0
+damping_max = 90.0
+scale_min = 0.6
+scale_max = 1.6
+scale_curve = SubResource("CurveTexture_core")
+color_ramp = SubResource("GradientTexture1D_core")
+
+; ── OuterGlow: wider warm orange aura ───────────────────────────────────────
+[sub_resource type="Gradient" id="Gradient_glow_ramp"]
+offsets = PackedFloat32Array(0, 0.2, 0.55, 1)
+colors = PackedColorArray(1, 0.92, 0.6, 0.95, 1, 0.65, 0.18, 0.85, 0.88, 0.3, 0.05, 0.5, 0.25, 0.08, 0.02, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_glow"]
+gradient = SubResource("Gradient_glow_ramp")
+
+[sub_resource type="Curve" id="Curve_glow_scale"]
+_data = [Vector2(0, 0.3), 0.0, 0.0, 0, 0, Vector2(0.25, 1), 0.0, 0.0, 0, 0, Vector2(0.7, 0.75), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="CurveTexture" id="CurveTexture_glow"]
+curve = SubResource("Curve_glow_scale")
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_outer_glow"]
+particle_flag_disable_z = true
+emission_shape = 3
+emission_box_extents = Vector3(10, 3, 1)
+direction = Vector3(0, 1, 0)
+spread = 22.0
+initial_velocity_min = 160.0
+initial_velocity_max = 340.0
+gravity = Vector3(0, 0, 0)
+damping_min = 20.0
+damping_max = 50.0
+scale_min = 2.0
+scale_max = 5.0
+scale_curve = SubResource("CurveTexture_glow")
+color_ramp = SubResource("GradientTexture1D_glow")
+
+; ── Nodes ────────────────────────────────────────────────────────────────────
+[node name="RocketTrailEffect" type="Node2D"]
+z_index = 198
+script = ExtResource("1_trail_script")
+
+[node name="OuterGlow" type="GPUParticles2D" parent="."]
+material = SubResource("CanvasItemMaterial_trail_add")
+emitting = false
+amount = 80
+texture = SubResource("GradientTexture2D_trail_circle")
+lifetime = 0.9
+one_shot = false
+visibility_rect = Rect2(-300, -80, 600, 700)
+process_material = SubResource("PPM_outer_glow")
+
+[node name="CoreFlame" type="GPUParticles2D" parent="."]
+material = SubResource("CanvasItemMaterial_trail_add")
+emitting = false
+amount = 100
+texture = SubResource("GradientTexture2D_trail_circle")
+lifetime = 0.6
+one_shot = false
+visibility_rect = Rect2(-200, -60, 400, 600)
+process_material = SubResource("PPM_core_flame")

@@ -132,8 +132,31 @@ func _ready() -> void:
 		spawn_initial_colony()
 		NotificationManager.notify("Colony initialised. Map size: " + str(GameData.current_map_size), NotificationManager.Type.INFO)
 	
-	await get_tree().create_timer(5.0).timeout
+	await get_tree().create_timer(180.0).timeout
+	_spawn_first_special_tile_with_tutorial()
+
+func _spawn_first_special_tile_with_tutorial() -> void:
+	# Slow the game down so the player can read the tutorial
+	Engine.time_scale = 0.1
+
+	# Notify the player about special tiles
+	NotificationManager.notify(
+		"A Special Tile has appeared on the map!\n" +
+		"Special Tiles are bonus objectives that may reward you for routing packets through them.",
+		NotificationManager.Type.OBJECTIVE,
+		"SPECIAL TILE",
+		40.0
+	)
+
+	# Spawn the tile
 	_spawn_random_objective()
+
+	# Restore time scale after a short real-time pause (10s real = 1s game at 0.1x)
+	await get_tree().create_timer(3.0).timeout
+	Engine.time_scale = 1.0
+	var top_panel = get_tree().get_root().find_child("TopPanel", true, false)
+	if top_panel and top_panel.has_method("sync_speed_button_state"):
+		top_panel.sync_speed_button_state()
 
 func _on_rocket_segment_purchased(phase: int) -> void:
 

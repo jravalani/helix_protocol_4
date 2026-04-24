@@ -2,11 +2,13 @@
 
 [ext_resource type="Script" uid="uid://dwfnmgtxxw7kw" path="res://Scripts/rocket_launch_effect.gd" id="1_script"]
 
-[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_fire"]
+; ── Shared: additive blend for fire/glow layers ───────────────────────────────
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_additive"]
 blend_mode = 1
 
+; ── Shared: soft radial-gradient circle texture for all particles ─────────────
 [sub_resource type="Gradient" id="Gradient_circle"]
-offsets = PackedFloat32Array(0, 0.4)
+offsets = PackedFloat32Array(0, 0.5)
 colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_circle"]
@@ -14,84 +16,177 @@ gradient = SubResource("Gradient_circle")
 fill = 1
 fill_from = Vector2(0.5, 0.5)
 
-[sub_resource type="Gradient" id="Gradient_fire_ramp"]
-offsets = PackedFloat32Array(0, 0.3, 0.7, 1)
-colors = PackedColorArray(1, 1, 0.3, 1, 1, 0.5, 0.1, 1, 0.8, 0.2, 0.05, 0.6, 0.3, 0.1, 0.05, 0)
+; ── IgnitionBurst: one-shot white-hot downward blast at ignition ──────────────
+[sub_resource type="Gradient" id="Gradient_ignition_ramp"]
+offsets = PackedFloat32Array(0, 0.18, 0.55, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 0.92, 0.28, 1, 1, 0.48, 0.08, 0.72, 0.38, 0.12, 0.04, 0)
 
-[sub_resource type="GradientTexture1D" id="GradientTexture1D_fire"]
-gradient = SubResource("Gradient_fire_ramp")
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_ignition"]
+gradient = SubResource("Gradient_ignition_ramp")
 
-[sub_resource type="Curve" id="Curve_fire_scale"]
-_data = [Vector2(0, 0.3), 0.0, 0.0, 0, 0, Vector2(0.25, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+[sub_resource type="Curve" id="Curve_ignition_scale"]
+_data = [Vector2(0, 0.2), 0.0, 0.0, 0, 0, Vector2(0.18, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
 point_count = 3
 
-[sub_resource type="CurveTexture" id="CurveTexture_fire"]
-curve = SubResource("Curve_fire_scale")
+[sub_resource type="CurveTexture" id="CurveTexture_ignition"]
+curve = SubResource("Curve_ignition_scale")
 
-[sub_resource type="ParticleProcessMaterial" id="PPM_fire"]
+[sub_resource type="ParticleProcessMaterial" id="PPM_ignition"]
 particle_flag_disable_z = true
-spread = 180.0
-initial_velocity_min = 150.0
-initial_velocity_max = 300.0
+emission_shape = 3
+emission_box_extents = Vector3(10, 3, 1)
+direction = Vector3(0, 1, 0)
+spread = 55.0
+initial_velocity_min = 200.0
+initial_velocity_max = 420.0
 gravity = Vector3(0, 0, 0)
-damping_min = 50.0
-damping_max = 100.0
+damping_min = 65.0
+damping_max = 140.0
+scale_min = 2.5
+scale_max = 6.0
+scale_curve = SubResource("CurveTexture_ignition")
+color_ramp = SubResource("GradientTexture1D_ignition")
+
+; ── ExhaustFlame: sustained tight fire column shooting straight down ──────────
+[sub_resource type="Gradient" id="Gradient_flame_ramp"]
+offsets = PackedFloat32Array(0, 0.14, 0.42, 0.72, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 0.94, 0.38, 1, 1, 0.52, 0.08, 1, 0.82, 0.18, 0.03, 0.5, 0.28, 0.07, 0.02, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_flame"]
+gradient = SubResource("Gradient_flame_ramp")
+
+[sub_resource type="Curve" id="Curve_flame_scale"]
+_data = [Vector2(0, 0.1), 0.0, 0.0, 0, 0, Vector2(0.18, 1), 0.0, 0.0, 0, 0, Vector2(0.65, 0.55), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="CurveTexture" id="CurveTexture_flame"]
+curve = SubResource("Curve_flame_scale")
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_exhaust_flame"]
+particle_flag_disable_z = true
+emission_shape = 3
+emission_box_extents = Vector3(7, 2, 1)
+direction = Vector3(0, 1, 0)
+spread = 10.0
+initial_velocity_min = 340.0
+initial_velocity_max = 680.0
+gravity = Vector3(0, 0, 0)
+damping_min = 30.0
+damping_max = 70.0
 scale_min = 1.5
-scale_max = 3.0
-scale_curve = SubResource("CurveTexture_fire")
-color_ramp = SubResource("GradientTexture1D_fire")
+scale_max = 3.5
+scale_curve = SubResource("CurveTexture_flame")
+color_ramp = SubResource("GradientTexture1D_flame")
 
-[sub_resource type="Gradient" id="Gradient_smoke_ramp"]
-offsets = PackedFloat32Array(0, 0.4, 1)
-colors = PackedColorArray(0.6, 0.55, 0.5, 0.7, 0.3, 0.28, 0.25, 0.4, 0.15, 0.13, 0.12, 0)
+; ── ExhaustSmoke: sustained thick billowing smoke plume going downward ────────
+[sub_resource type="Gradient" id="Gradient_exsmoke_ramp"]
+offsets = PackedFloat32Array(0, 0.22, 0.58, 1)
+colors = PackedColorArray(0.95, 0.9, 0.82, 0.88, 0.62, 0.57, 0.52, 0.68, 0.32, 0.29, 0.27, 0.32, 0.1, 0.09, 0.08, 0)
 
-[sub_resource type="GradientTexture1D" id="GradientTexture1D_smoke"]
-gradient = SubResource("Gradient_smoke_ramp")
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_exsmoke"]
+gradient = SubResource("Gradient_exsmoke_ramp")
 
-[sub_resource type="Curve" id="Curve_smoke_scale"]
-_data = [Vector2(0, 0.4), 0.0, 0.0, 0, 0, Vector2(0.5, 1), 0.0, 0.0, 0, 0, Vector2(1, 1.3), 0.0, 0.0, 0, 0]
+[sub_resource type="Curve" id="Curve_exsmoke_scale"]
+_data = [Vector2(0, 0.25), 0.0, 0.0, 0, 0, Vector2(0.38, 1), 0.0, 0.0, 0, 0, Vector2(1, 1.45), 0.0, 0.0, 0, 0]
 point_count = 3
 
-[sub_resource type="CurveTexture" id="CurveTexture_smoke"]
-curve = SubResource("Curve_smoke_scale")
+[sub_resource type="CurveTexture" id="CurveTexture_exsmoke"]
+curve = SubResource("Curve_exsmoke_scale")
 
-[sub_resource type="ParticleProcessMaterial" id="PPM_smoke"]
+[sub_resource type="ParticleProcessMaterial" id="PPM_exhaust_smoke"]
 particle_flag_disable_z = true
-spread = 180.0
-initial_velocity_min = 40.0
-initial_velocity_max = 100.0
-angular_velocity_min = -90.0
-angular_velocity_max = 90.0
+emission_shape = 3
+emission_box_extents = Vector3(16, 5, 1)
+direction = Vector3(0, 1, 0)
+spread = 45.0
+initial_velocity_min = 65.0
+initial_velocity_max = 180.0
+angular_velocity_min = -100.0
+angular_velocity_max = 100.0
 gravity = Vector3(0, 0, 0)
-damping_min = 10.0
-damping_max = 30.0
-scale_min = 2.0
-scale_max = 5.0
-scale_curve = SubResource("CurveTexture_smoke")
-color_ramp = SubResource("GradientTexture1D_smoke")
+damping_min = 4.0
+damping_max = 18.0
+scale_min = 5.5
+scale_max = 14.0
+scale_curve = SubResource("CurveTexture_exsmoke")
+color_ramp = SubResource("GradientTexture1D_exsmoke")
 turbulence_enabled = true
 
+; ── GroundSmoke: one-shot circular shockwave blasting out from the base ───────
+[sub_resource type="Gradient" id="Gradient_ground_ramp"]
+offsets = PackedFloat32Array(0, 0.3, 1)
+colors = PackedColorArray(0.92, 0.87, 0.76, 0.95, 0.52, 0.48, 0.43, 0.58, 0.1, 0.09, 0.08, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_ground"]
+gradient = SubResource("Gradient_ground_ramp")
+
+[sub_resource type="Curve" id="Curve_ground_scale"]
+_data = [Vector2(0, 0.18), 0.0, 0.0, 0, 0, Vector2(0.28, 1), 0.0, 0.0, 0, 0, Vector2(1, 1.35), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_ground"]
+curve = SubResource("Curve_ground_scale")
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_ground_smoke"]
+particle_flag_disable_z = true
+emission_shape = 3
+emission_box_extents = Vector3(60, 8, 1)
+direction = Vector3(0, 1, 0)
+spread = 180.0
+initial_velocity_min = 75.0
+initial_velocity_max = 230.0
+angular_velocity_min = -65.0
+angular_velocity_max = 65.0
+gravity = Vector3(0, 0, 0)
+damping_min = 28.0
+damping_max = 60.0
+scale_min = 6.0
+scale_max = 16.0
+scale_curve = SubResource("CurveTexture_ground")
+color_ramp = SubResource("GradientTexture1D_ground")
+turbulence_enabled = true
+
+; ── Scene nodes ───────────────────────────────────────────────────────────────
 [node name="RocketLaunchEffect" type="Node2D" unique_id=2080902031]
 z_index = 195
 script = ExtResource("1_script")
 
-[node name="FireBurst" type="GPUParticles2D" parent="." unique_id=1946769524]
-material = SubResource("CanvasItemMaterial_fire")
+[node name="GroundSmoke" type="GPUParticles2D" parent="." unique_id=111111111]
 emitting = false
-amount = 64
+amount = 80
 texture = SubResource("GradientTexture2D_circle")
-lifetime = 0.8
+lifetime = 2.8
 one_shot = true
-explosiveness = 1.0
-visibility_rect = Rect2(-500, -500, 1000, 1000)
-process_material = SubResource("PPM_fire")
+explosiveness = 0.65
+visibility_rect = Rect2(-800, -300, 1600, 900)
+process_material = SubResource("PPM_ground_smoke")
 
-[node name="SmokeRing" type="GPUParticles2D" parent="." unique_id=828652220]
+[node name="ExhaustSmoke" type="GPUParticles2D" parent="." unique_id=222222222]
 emitting = false
-amount = 40
+amount = 120
 texture = SubResource("GradientTexture2D_circle")
-lifetime = 2.5
+lifetime = 4.2
+one_shot = false
+visibility_rect = Rect2(-700, -200, 1400, 1100)
+process_material = SubResource("PPM_exhaust_smoke")
+
+[node name="ExhaustFlame" type="GPUParticles2D" parent="." unique_id=828652220]
+material = SubResource("CanvasItemMaterial_additive")
+emitting = false
+amount = 160
+texture = SubResource("GradientTexture2D_circle")
+lifetime = 0.95
+one_shot = false
+visibility_rect = Rect2(-400, -100, 800, 900)
+process_material = SubResource("PPM_exhaust_flame")
+
+[node name="IgnitionBurst" type="GPUParticles2D" parent="." unique_id=1946769524]
+material = SubResource("CanvasItemMaterial_additive")
+emitting = false
+amount = 80
+texture = SubResource("GradientTexture2D_circle")
+lifetime = 0.75
 one_shot = true
-explosiveness = 0.8
-visibility_rect = Rect2(-500, -500, 1000, 1000)
-process_material = SubResource("PPM_smoke")
+explosiveness = 0.95
+visibility_rect = Rect2(-600, -150, 1200, 900)
+process_material = SubResource("PPM_ignition")
