@@ -33,6 +33,7 @@ var _dead_pulse_tween: Tween = null
 var _rate_limit_tween: Tween = null
 var _rate_limit_label: Label = null
 var _rate_limit_label_tween: Tween = null
+var _rate_limit_timer_label: Label = null
 
 # ── Tutorial ──────────────────────────────────────────────────────
 static var _hub_fracture_tutorial_shown: bool = false
@@ -79,6 +80,11 @@ func _process(delta: float) -> void:
 		if is_rate_limited:
 			is_rate_limited = false
 			_stop_rate_limit_visual()
+
+	# Update the cooldown countdown label in real time
+	if is_rate_limited and _rate_limit_timer_label:
+		var time_left := GameData.hub_rate_window - window_timer
+		_rate_limit_timer_label.text = "%.1fs" % max(0.0, time_left)
 
 	# Update popup position if open
 	if _popup_open:
@@ -267,6 +273,20 @@ func _start_rate_limit_visual() -> void:
 	_rate_limit_label_tween.tween_property(_rate_limit_label, "modulate:a", 0.4, 0.6)
 	_rate_limit_label_tween.tween_property(_rate_limit_label, "modulate:a", 1.0, 0.6)
 
+	# Cooldown timer label — shows seconds until rate limit clears
+	if _rate_limit_timer_label:
+		_rate_limit_timer_label.queue_free()
+	_rate_limit_timer_label = Label.new()
+	_rate_limit_timer_label.add_theme_color_override("font_color", Color("ff8844"))
+	_rate_limit_timer_label.add_theme_font_override("font", load("res://Assets/Fonts/JetBrainsMono-ExtraBold.ttf"))
+	_rate_limit_timer_label.add_theme_font_size_override("font_size", 18)
+	add_child(_rate_limit_timer_label)
+	await get_tree().process_frame
+	_rate_limit_timer_label.position = Vector2(
+		(hub_width - _rate_limit_timer_label.size.x) / 2.0,
+		-_rate_limit_label.size.y - _rate_limit_timer_label.size.y - 8.0
+	)
+
 func _stop_rate_limit_visual() -> void:
 	if _rate_limit_tween:
 		_rate_limit_tween.kill()
@@ -277,6 +297,9 @@ func _stop_rate_limit_visual() -> void:
 	if _rate_limit_label:
 		_rate_limit_label.queue_free()
 		_rate_limit_label = null
+	if _rate_limit_timer_label:
+		_rate_limit_timer_label.queue_free()
+		_rate_limit_timer_label = null
 	var restore := create_tween()
 	restore.tween_property(self, "modulate", Color.WHITE, 0.3)
 
@@ -313,6 +336,9 @@ func fracture() -> void:
 	if _rate_limit_label:
 		_rate_limit_label.queue_free()
 		_rate_limit_label = null
+	if _rate_limit_timer_label:
+		_rate_limit_timer_label.queue_free()
+		_rate_limit_timer_label = null
 
 	var flicker := create_tween()
 	for i in range(4):

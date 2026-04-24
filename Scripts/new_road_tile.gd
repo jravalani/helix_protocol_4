@@ -58,13 +58,13 @@ var zone_rates = {
 
 # Pipe visual
 const BASE_WIDTH: float    = 20.0
-const OUTLINE_WIDTH: float = 36.0
-const UPGRADE_WIDTH: float = 34.0
+const OUTLINE_WIDTH: float = 34.0
+const UPGRADE_WIDTH: float = 36.0
 
 # Connector ring settings
 const CONNECTOR_SPACING: float   = 16.0  # pixels between rings along the arm
 const CONNECTOR_HALF_SIZE: float =  8.0  # half-length of the perpendicular crossbar
-const CONNECTOR_THICKNESS: float =  4.0  # Line2D width of each ring
+const CONNECTOR_THICKNESS: float =  5.0  # Line2D width of each ring
 
 # Assign your texture here or leave null for solid color
 var pipe_texture: Texture = null

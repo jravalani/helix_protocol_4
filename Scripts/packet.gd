@@ -41,7 +41,7 @@ func _ready() -> void:
 	_outbound_gradient.offsets = PackedFloat32Array([0.0, 0.91, 1.0])
 	_outbound_gradient.colors = PackedColorArray([
 		Color(0.02, 0.06, 0.15, 1.0),   # dark blue tail
-		Color(0.0, 0.75, 0.92, 1.0),    # bright cyan body
+		Color("ff00ff"),    # bright cyan body
 		Color(0.85, 1.0, 1.0, 1.0)      # white-cyan head
 	])
 
@@ -50,7 +50,7 @@ func _ready() -> void:
 	_returning_gradient.offsets = PackedFloat32Array([0.0, 0.91, 1.0])
 	_returning_gradient.colors = PackedColorArray([
 		Color(0.15, 0.08, 0.02, 1.0),   # dark amber tail
-		Color(0.92, 0.55, 0.05, 1.0),   # warm amber body
+		Color("5b005bff"),   # warm amber body
 		Color(1.0, 0.95, 0.85, 1.0)     # white-gold head
 	])
 
